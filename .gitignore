@@ -1,0 +1,8 @@
+# Log và file tạm
+*.log
+tmp/
+
+# Cấu hình riêng của IDE và Windows
+.vscode/
+Thumbs.db
+Desktop.ini
