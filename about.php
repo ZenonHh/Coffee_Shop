@@ -37,21 +37,21 @@
 	      </button>
 	      <div class="collapse navbar-collapse" id="ftco-nav">
 	        <ul class="navbar-nav ml-auto">
-	          <li class="nav-item"><a href="index.php" class="nav-link">Home</a></li>
-	          <li class="nav-item"><a href="menu.php" class="nav-link">Menu</a></li>
-	          <li class="nav-item"><a href="services.php" class="nav-link">Services</a></li>
-	          <li class="nav-item"><a href="blog.php" class="nav-link">Blog</a></li>
-	          <li class="nav-item active"><a href="about.php" class="nav-link">About</a></li>
+	          <li class="nav-item"><a href="index.php" class="nav-link">Trang chủ</a></li>
+	          <li class="nav-item"><a href="menu.php" class="nav-link">Thực đơn</a></li>
+	          <li class="nav-item"><a href="services.php" class="nav-link">Dịch vụ</a></li>
+	          <li class="nav-item"><a href="blog.php" class="nav-link">Bài viết</a></li>
+	          <li class="nav-item active"><a href="about.php" class="nav-link">Giới thiệu</a></li>
 	          <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="room.php" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Shop</a>
+              <a class="nav-link dropdown-toggle" href="room.php" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Cửa hàng</a>
               <div class="dropdown-menu" aria-labelledby="dropdown04">
-              	<a class="dropdown-item" href="shop.php">Shop</a>
-                <a class="dropdown-item" href="product-single.php">Single Product</a>
-                <a class="dropdown-item" href="room.php">Cart</a>
-                <a class="dropdown-item" href="checkout.php">Checkout</a>
+              	<a class="dropdown-item" href="shop.php">Cửa hàng</a>
+                <a class="dropdown-item" href="product-single.php">Sản phẩm</a>
+                <a class="dropdown-item" href="room.php">Giỏ hàng</a>
+                <a class="dropdown-item" href="checkout.php">Thanh toán</a>
               </div>`
             </li>
-	          <li class="nav-item"><a href="contact.php" class="nav-link">Contact</a></li>
+	          <li class="nav-item"><a href="contact.php" class="nav-link">Liên hệ</a></li>
 	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small>1</small></span></a></li>
 	        </ul>
 	      </div>
@@ -67,8 +67,8 @@
           <div class="row slider-text justify-content-center align-items-center">
 
             <div class="col-md-7 col-sm-12 text-center ftco-animate">
-            	<h1 class="mb-3 mt-5 bread">About Us</h1>
-	            <p class="breadcrumbs"><span class="mr-2"><a href="index.php">Home</a></span> <span>About</span></p>
+            	<h1 class="mb-3 mt-5 bread">Về chúng tôi</h1>
+	            <p class="breadcrumbs"><span class="mr-2"><a href="index.php">Trang chủ</a></span> <span>Giới thiệu</span></p>
             </div>
 
           </div>
@@ -81,8 +81,8 @@
     	<div class="one-half ftco-animate">
     		<div class="overlap">
 	        <div class="heading-section ftco-animate ">
-	        	<span class="subheading">Discover</span>
-	          <h2 class="mb-4">Our Story</h2>
+	        	<span class="subheading">Khám phá</span>
+	          <h2 class="mb-4">Câu chuyện của chúng tôi</h2>
 	        </div>
 	        <div>
 	  				<p>On her way she met a copy. The copy warned the Little Blind Text, that where it came from it would have been rewritten a thousand times and everything that was left from its origin would be the word "and" and the Little Blind Text should turn around and return to its own, safe country. But nothing the copy said could convince her and so it didn’t take long until a few insidious Copy Writers ambushed her, made her drunk with Longe and Parole and dragged her into their agency, where they abused her for their.</p>
@@ -96,8 +96,8 @@
 	    <div class="container">
 	      <div class="row justify-content-center mb-5">
 	        <div class="col-md-7 heading-section text-center ftco-animate">
-	        	<span class="subheading">Testimony</span>
-	          <h2 class="mb-4">Customers Says</h2>
+	        	<span class="subheading">Chứng nhận</span>
+	          <h2 class="mb-4">Khách hàng đánh giá</h2>
 	          <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
 	        </div>
 	      </div>
@@ -178,10 +178,10 @@
     		<div class="row align-items-center">
     			<div class="col-md-6 pr-md-5">
     				<div class="heading-section text-md-right ftco-animate">
-	          	<span class="subheading">Discover</span>
-	            <h2 class="mb-4">Our Menu</h2>
+	          	<span class="subheading">Khám phá</span>
+	            <h2 class="mb-4">Thực đơn của chúng tôi</h2>
 	            <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-	            <p><a href="#" class="btn btn-primary btn-outline-primary px-4 py-3">View Full Menu</a></p>
+	            <p><a href="#" class="btn btn-primary btn-outline-primary px-4 py-3">Xem toàn bộ thực đơn</a></p>
 	          </div>
     			</div>
     			<div class="col-md-6">
@@ -223,7 +223,7 @@
 		              <div class="text">
 		              	<div class="icon"><span class="flaticon-coffee-cup"></span></div>
 		              	<strong class="number" data-number="100">0</strong>
-		              	<span>Coffee Branches</span>
+		              	<span>Chi nhánh</span>
 		              </div>
 		            </div>
 		          </div>
@@ -232,7 +232,7 @@
 		              <div class="text">
 		              	<div class="icon"><span class="flaticon-coffee-cup"></span></div>
 		              	<strong class="number" data-number="85">0</strong>
-		              	<span>Number of Awards</span>
+		              	<span>Giải thưởng</span>
 		              </div>
 		            </div>
 		          </div>
@@ -241,7 +241,7 @@
 		              <div class="text">
 		              	<div class="icon"><span class="flaticon-coffee-cup"></span></div>
 		              	<strong class="number" data-number="10567">0</strong>
-		              	<span>Happy Customer</span>
+		              	<span>Khách hàng hài lòng</span>
 		              </div>
 		            </div>
 		          </div>
@@ -250,7 +250,7 @@
 		              <div class="text">
 		              	<div class="icon"><span class="flaticon-coffee-cup"></span></div>
 		              	<strong class="number" data-number="900">0</strong>
-		              	<span>Staff</span>
+		              	<span>Nhân viên</span>
 		              </div>
 		            </div>
 		          </div>
@@ -266,7 +266,7 @@
         <div class="row mb-5">
           <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
             <div class="ftco-footer-widget mb-4">
-              <h2 class="ftco-heading-2">About Us</h2>
+              <h2 class="ftco-heading-2">Về chúng tôi</h2>
               <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
               <ul class="ftco-footer-social list-unstyled float-md-left float-lft mt-5">
                 <li class="ftco-animate"><a href="#"><span class="icon-twitter"></span></a></li>
@@ -277,7 +277,7 @@
           </div>
           <div class="col-lg-4 col-md-6 mb-5 mb-md-5">
             <div class="ftco-footer-widget mb-4">
-              <h2 class="ftco-heading-2">Recent Blog</h2>
+              <h2 class="ftco-heading-2">Bài viết gần đây</h2>
               <div class="block-21 mb-4 d-flex">
                 <a class="blog-img mr-4" style="background-image: url(images/image_1.jpg);"></a>
                 <div class="text">
@@ -304,18 +304,18 @@
           </div>
           <div class="col-lg-2 col-md-6 mb-5 mb-md-5">
              <div class="ftco-footer-widget mb-4 ml-md-4">
-              <h2 class="ftco-heading-2">Services</h2>
+              <h2 class="ftco-heading-2">Dịch vụ</h2>
               <ul class="list-unstyled">
-                <li><a href="#" class="py-2 d-block">Cooked</a></li>
-                <li><a href="#" class="py-2 d-block">Deliver</a></li>
-                <li><a href="#" class="py-2 d-block">Quality Foods</a></li>
-                <li><a href="#" class="py-2 d-block">Mixed</a></li>
+                <li><a href="#" class="py-2 d-block">Chế biến</a></li>
+                <li><a href="#" class="py-2 d-block">Giao hàng</a></li>
+                <li><a href="#" class="py-2 d-block">Thực phẩm chất lượng</a></li>
+                <li><a href="#" class="py-2 d-block">Pha chế</a></li>
               </ul>
             </div>
           </div>
           <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
             <div class="ftco-footer-widget mb-4">
-            	<h2 class="ftco-heading-2">Have a Questions?</h2>
+            	<h2 class="ftco-heading-2">Bạn có câu hỏi?</h2>
             	<div class="block-23 mb-3">
 	              <ul>
 	                <li><span class="icon icon-map-marker"></span><span class="text">203 Fake St. Mountain View, San Francisco, California, USA</span></li>
