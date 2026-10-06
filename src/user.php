@@ -17,7 +17,7 @@ class User
 
     public function dangky($taiKhoan, $hoTen, $email, $sdt, $matKhau)
     {
-        $sqlCheck = 'SELECT ma_kh FROM khach_hang WHERE tai_khoan = ? OR email = ?';
+        $sqlCheck = 'SELECT MaKH FROM khachhang WHERE TaiKhoan = ? OR Email = ?';
         $this->data->select_prepare($sqlCheck, 'ss', $taiKhoan, $email);
 
         if ($this->data->numRows() > 0) {
@@ -27,7 +27,8 @@ class User
         }
 
         $hash = password_hash($matKhau, PASSWORD_DEFAULT);
-        $sqlInsert = 'INSERT INTO khach_hang (tai_khoan, mat_khau, ho_ten, email, sdt) VALUES (?, ?, ?, ?, ?)';
+        // Không cần truyền DiemTichLuy, HangTV — CSDL tự điền giá trị DEFAULT
+        $sqlInsert = 'INSERT INTO khachhang (TaiKhoan, MatKhau, HoTen, Email, Sdt) VALUES (?, ?, ?, ?, ?)';
         $ok = $this->data->command_prepare($sqlInsert, 'sssss', $taiKhoan, $hash, $hoTen, $email, $sdt)->execute();
 
         if ($ok) {
@@ -43,14 +44,17 @@ class User
 
     public function dangnhap($taiKhoan, $matKhau)
     {
-        $sql = 'SELECT ma_kh, tai_khoan, mat_khau, ho_ten FROM khach_hang WHERE tai_khoan = ?';
+        // Sửa lại đúng bảng khachhang, cùng bộ tên cột với dangky()
+        $sql = 'SELECT MaKH, TaiKhoan, MatKhau, HoTen, DiemTichLuy, HangTV FROM khachhang WHERE TaiKhoan = ?';
         $this->data->select_prepare($sql, 's', $taiKhoan);
         $row = $this->data->fetch();
 
-        if ($row && password_verify($matKhau, $row['mat_khau'])) {
-            $_SESSION['user_id'] = $row['ma_kh'];
-            $_SESSION['username'] = $row['tai_khoan'];
-            $_SESSION['fullname'] = $row['ho_ten'];
+        if ($row && password_verify($matKhau, $row['MatKhau'])) {
+            $_SESSION['user_id']   = $row['MaKH'];
+            $_SESSION['username']  = $row['TaiKhoan'];
+            $_SESSION['fullname']  = $row['HoTen'];
+            $_SESSION['diem']      = $row['DiemTichLuy'];   // tiện hiển thị điểm ngay trên header
+            $_SESSION['hang']      = $row['HangTV'];
             header('Location: index.php');
             exit();
         }

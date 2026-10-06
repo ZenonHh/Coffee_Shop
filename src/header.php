@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if (!isset($title)) {
     $title = 'Katinat Coffee';
 }
@@ -62,7 +65,20 @@ if (!isset($activePage)) {
             </li>
 	          <li class="nav-item <?= $activePage === 'contact' ? 'active' : '' ?>"><a href="contact.php" class="nav-link">Liên hệ</a></li>
 	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small>1</small></span></a></li>
+	          <?php if (isset($_SESSION['user_id'])): ?>
+	          <li class="nav-item dropdown">
+	            <a class="nav-link dropdown-toggle" href="#" id="dropdownUser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	              <span class="icon-person"></span> <?= htmlspecialchars($_SESSION['fullname']) ?>
+	            </a>
+	            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUser">
+	              <a class="dropdown-item" href="profile.php">Thông tin cá nhân</a>
+	              <a class="dropdown-item" href="orders.php">Đơn hàng của tôi</a>
+	              <a class="dropdown-item" href="logout.php">Đăng xuất</a>
+	            </div>
+	          </li>
+	          <?php else: ?>
 	          <li class="nav-item <?= $activePage === 'login' || $activePage === 'register' ? 'active' : '' ?>"><a href="login.php" class="nav-link">Đăng nhập</a></li>
+	          <?php endif; ?>
 			  </ul>
 	      </div>
 		  </div>

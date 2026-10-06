@@ -2,9 +2,25 @@
 $title = 'Đăng ký - Katinat Coffee';
 $activePage = 'register';
 include "database/connect.php";
+require_once "src/user.php";
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (isset($_POST['dang_ky'])) {
+    if ($_POST['mat_khau'] !== $_POST['xac_nhan_mat_khau']) {
+        $_SESSION['error'] = 'Mật khẩu xác nhận không khớp!';
+        header('Location: register.php');
+        exit();
+    }
+    $user = new User();
+    $user->dangky($_POST['tai_khoan'], $_POST['ho_ten'], $_POST['email'] ?? '', $_POST['sdt'], $_POST['mat_khau']);
+}
+
 include "src/header.php";
 ?>
-
+<!--
 <section class="home-slider owl-carousel">
   <div class="slider-item" style="background-image: url(images/bg_3.jpg);" data-stellar-background-ratio="0.5">
     <div class="overlay"></div>
@@ -21,7 +37,7 @@ include "src/header.php";
     </div>
   </div>
 </section>
-
+-->
 <section class="ftco-section contact-section">
   <div class="container mt-5">
     <div class="row justify-content-center">

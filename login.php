@@ -2,6 +2,17 @@
 $title = 'Đăng nhập - Katinat Coffee';
 $activePage = 'login';
 include "database/connect.php";
+require_once "src/user.php";   
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (isset($_POST['dang_nhap'])) {
+    $user = new User();
+    $user->dangnhap($_POST['tai_khoan'], $_POST['mat_khau']);
+}
+
 include "src/header.php";
 ?>
 <!--
@@ -27,6 +38,10 @@ include "src/header.php";
     <div class="row justify-content-center">
       <div class="col-md-6 ftco-animate">
         <h2 class="mb-4 text-center">Đăng nhập tài khoản</h2>
+
+        <?php if (isset($_SESSION['error'])): ?>
+  <div class="alert alert-danger"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+<?php endif; ?>
 
         <form action="login.php" method="POST" class="contact-form">
           <div class="form-group">

@@ -6,7 +6,9 @@ class Database
     private $host = 'localhost';
     private $user = 'root';
     private $pass = '';
-    private $database = 'web_coffee';
+    private $database = 'coffee_shop_db';
+    private $stmt = null;
+    private $result = null;
 
     public function __construct()
     {
@@ -33,20 +35,88 @@ class Database
 
     public function select($sql)
     {
-        $result = $this->conn->query($sql);
-        if (!$result) {
+        $this->result = $this->conn->query($sql);
+        if (!$this->result) {
             echo 'Lỗi truy vấn: ' . $this->conn->error;
             return [];
         }
-        return $result->fetch_all(MYSQLI_ASSOC);
+        return $this->result->fetch_all(MYSQLI_ASSOC);
     }
 
     public function selectOne($sql)
     {
-        $result = $this->conn->query($sql);
-        if (!$result) {
+        $this->result = $this->conn->query($sql);
+        if (!$this->result) {
             return null;
         }
-        return $result->fetch_assoc();
+        return $this->result->fetch_assoc();
+    }
+
+    public function select_prepare($sql, $types = '', ...$params)
+    {
+        $this->stmt = $this->conn->prepare($sql);
+        if (!$this->stmt) {
+            die('Lỗi prepare: ' . $this->conn->error);
+        }
+
+        if ($types !== '' && !empty($params)) {
+            $this->stmt->bind_param($types, ...$params);
+        }
+
+        if ($this->stmt->execute()) {
+            $this->result = $this->stmt->get_result();
+            return $this;
+        }
+
+        echo 'Lỗi execute: ' . $this->stmt->error;
+        return false;
+    }
+
+    public function command_prepare($sql, $types = '', ...$params)
+    {
+        $this->stmt = $this->conn->prepare($sql);
+        if (!$this->stmt) {
+            die('Lỗi prepare: ' . $this->conn->error);
+        }
+
+        if ($types !== '' && !empty($params)) {
+            $this->stmt->bind_param($types, ...$params);
+        }
+
+        return $this;
+    }
+
+    public function execute()
+    {
+        if (!$this->stmt) {
+            return false;
+        }
+
+        $ok = $this->stmt->execute();
+        if (!$ok) {
+            echo 'Lỗi execute: ' . $this->stmt->error;
+        }
+        return $ok;
+    }
+
+    public function fetch()
+    {
+        if ($this->result && $this->result->num_rows > 0) {
+            return $this->result->fetch_assoc();
+        }
+        return null;
+    }
+
+    public function fetchAll()
+    {
+        if ($this->result && $this->result->num_rows > 0) {
+            return $this->result->fetch_all(MYSQLI_ASSOC);
+        }
+        return [];
+    }
+
+    public function numRows()
+    {
+        return $this->result ? $this->result->num_rows : 0;
     }
 }
