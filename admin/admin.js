@@ -97,7 +97,6 @@
 
     var productDialog = document.getElementById('productDialog');
     var openProductDialog = document.getElementById('openProductDialog');
-    var saveProductPreview = document.getElementById('saveProductPreview');
     var surveyDialog = document.getElementById('surveyDialog');
     var openSurveyDialog = document.getElementById('openSurveyDialog');
     var saveSurveyPreview = document.getElementById('saveSurveyPreview');
@@ -107,9 +106,11 @@
             productDialog.showModal();
         });
     }
-    if (saveProductPreview && productDialog) {
-        saveProductPreview.addEventListener('click', function () {
-            showToast('Đây là giao diện mẫu. Sản phẩm chưa được lưu.');
+    if (productDialog) {
+        productDialog.querySelectorAll('.dialog-close, .dialog-cancel').forEach(function (button) {
+            button.addEventListener('click', function () {
+                productDialog.close();
+            });
         });
     }
     if (surveyDialog && openSurveyDialog) {

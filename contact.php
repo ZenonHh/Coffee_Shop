@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/includes/session_helpers.php'; app_start_session(); ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -26,7 +27,7 @@
     
     <link rel="stylesheet" href="css/flaticon.css">
     <link rel="stylesheet" href="css/icomoon.css">
-    <link rel="stylesheet" href="css/style.css?v=20261004-2">
+    <link rel="stylesheet" href="css/style.css?v=20261004-3">
   </head>
   <body>
 	<nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
@@ -52,7 +53,7 @@
               </div>
             </li>
 	          <li class="nav-item active"><a href="contact.php" class="nav-link">Liên hệ</a></li>
-	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small>1</small></span></a></li>
+	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small><?= app_cart_count() ?></small></span></a></li>
 	        </ul>
 	      </div>
 		  </div>

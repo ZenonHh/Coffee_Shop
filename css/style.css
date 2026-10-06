@@ -8483,6 +8483,21 @@ textarea.form-control {
   visibility: visible;
   animation: none !important; }
 
+.catalog-image-link {
+  display: block;
+  overflow: hidden;
+  background: #f8f5f0;
+  text-align: center; }
+
+.catalog-image {
+  display: block;
+  width: 100%;
+  height: 260px;
+  object-fit: contain; }
+
+.catalog-entry .text h3 {
+  min-height: 3em; }
+
 .bg-primary {
   background: #c49b63 !important; }
 

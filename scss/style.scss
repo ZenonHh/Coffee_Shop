@@ -28,8 +28,6 @@ $secondary: #f8b500;
     transition:         all $transition ease;
 }
 
-html {
-}
 body {
 	font-family: $font-primary;
 	background: $darken;
@@ -474,8 +472,6 @@ h1, h2, h3, h4, h5,
 					padding: 0;
 					li{
 						list-style: none;
-						span{
-						}
 					}
 				}
 				//BREADCRUBS
@@ -870,7 +866,7 @@ h1, h2, h3, h4, h5,
 			z-index: -1;
 		}
 		h3{
-			width: calc(100% - 80px;);
+			width: calc(100% - 80px);
 			font-size: 18px;
 			span{
 				background: $darken;
@@ -939,7 +935,7 @@ h1, h2, h3, h4, h5,
 		background: transparent;
 		padding: 16px 20px;
 	}
-	button,.form-control{;
+	button,.form-control{
 		height: 54px !important;
 		text-align: center;
 		bordeR: 1px solid rgba(255,255,255,.1) !important;
@@ -978,8 +974,6 @@ h1, h2, h3, h4, h5,
 
 //CART
 .ftco-cart{
-	.input-group{
-	}
 	button{
 		i{
 			color: $primary;
@@ -993,7 +987,7 @@ h1, h2, h3, h4, h5,
 		background: transparent;
 		padding: 16px 20px;
 	}
-	button,.form-control{;
+	button,.form-control{
 		height: 54px !important;
 		text-align: center;
 		bordeR: 1px solid rgba(255,255,255,.1) !important;
@@ -1357,10 +1351,6 @@ h1, h2, h3, h4, h5,
 		@include border-radius(50%);
 		@include transition(.3s);
 	}
-	.text{
-		p{
-		}
-	}
 	&:hover, &:focus{
 		-webkit-box-shadow: 0px 3px 66px -24px rgba(0,0,0,0.2);
 		-moz-box-shadow: 0px 3px 66px -24px rgba(0,0,0,0.2);
@@ -1546,15 +1536,10 @@ textarea.form-control {
 
 //ABOUT
 .about-author{
-	img{
-	}
 	.desc{
 		h3{
 			font-size: 24px;
 		}
-	}
-	.bio{
-
 	}
 }
 
@@ -1868,6 +1853,7 @@ textarea.form-control {
 .mfp-with-zoom .mfp-container,
 .mfp-with-zoom.mfp-bg {
   opacity: 0;
+  backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   -webkit-transition: all 0.3s ease-out; 
   -moz-transition: all 0.3s ease-out; 
@@ -1981,8 +1967,6 @@ textarea.form-control {
 	position: relative;
 	width: 100%;
 	display: block;
-	.nav-link-wrap{
-	}
 	.nav-pills{
 		p{
 			margin-bottom: 0;
@@ -2017,10 +2001,6 @@ textarea.form-control {
 				width: 100%;
 				margin-bottom: 5px;
 			}
-		}
-	}
-	.tab-content{
-		.tab-pane{
 		}
 	}
 }
@@ -2106,27 +2086,12 @@ textarea.form-control {
 
 .block-6 {
 	margin-bottom: 40px;
-	.icon {
-		span {
-			&:before {
-			}
-		}
-	}
-	.media-body {
-		.heading {
-
-		}
-		p {
-		}
-	}
 } 
 
 
 
 //### .block-18 
 .block-18 {
-	.icon, .text {
-	}
 	.icon {
 		> span {
 			font-size: 40px;
@@ -2176,8 +2141,6 @@ textarea.form-control {
 .contact-section {
 	.contact-info{
 		p{
-			a{
-			}
 			span{
 				color: $white;
 			}
@@ -2229,8 +2192,6 @@ textarea.form-control {
 		outline: none!important;
 		box-shadow: none!important;
 		font-size: 15px;
-	}
-	#map {
 	}
 }
 
