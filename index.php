@@ -1,75 +1,4 @@
 <?php
-<<<<<<< HEAD
-require_once __DIR__ . '/includes/app_helpers.php';
-app_start_session();
-require_once __DIR__ . '/includes/catalog_data.php';
-$homeProducts = array_slice(array_merge(...array_map(
-    static fn (array $category): array => $category['products'],
-    array_values($catalogGroups)
-)), 0, 4);
-?>
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Coffee - Free Bootstrap 4 Template by Colorlib</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
-    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Great+Vibes" rel="stylesheet">
-
-    <link rel="stylesheet" href="css/open-iconic-bootstrap.min.css">
-    <link rel="stylesheet" href="css/animate.css">
-    
-    <link rel="stylesheet" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" href="css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="css/magnific-popup.css">
-
-    <link rel="stylesheet" href="css/aos.css">
-
-    <link rel="stylesheet" href="css/ionicons.min.css">
-
-    <link rel="stylesheet" href="css/bootstrap-datepicker.css">
-    <link rel="stylesheet" href="css/jquery.timepicker.css">
-
-    <link rel="stylesheet" href="css/flaticon.css">
-    <link rel="stylesheet" href="css/icomoon.css">
-    <link rel="stylesheet" href="css/style.css?v=20261004-3">
-  </head>
-  <body>
-	<nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container">
-	      <a class="navbar-brand" href="index.php">Coffee<small>Blend</small></a>
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="oi oi-menu"></span> Menu
-	      </button>
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav ml-auto">
-	          <li class="nav-item active"><a href="index.php" class="nav-link">Trang chủ</a></li>
-	          <li class="nav-item"><a href="menu.php" class="nav-link">Thực đơn</a></li>
-	          <li class="nav-item"><a href="services.php" class="nav-link">Dịch vụ</a></li>
-	          <li class="nav-item"><a href="blog.php" class="nav-link">Bài viết</a></li>
-	          <li class="nav-item"><a href="about.php" class="nav-link">Giới thiệu</a></li>
-	          <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="room.php" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Cửa hàng</a>
-              <div class="dropdown-menu" aria-labelledby="dropdown04">
-              	<a class="dropdown-item" href="shop.php">Cửa hàng</a>
-                <a class="dropdown-item" href="product-single.php">Sản phẩm</a>
-                <a class="dropdown-item" href="room.php">Giỏ hàng</a>
-                <a class="dropdown-item" href="checkout.php">Thanh toán</a>
-              </div>
-            </li>
-	          <li class="nav-item"><a href="contact.php" class="nav-link">Liên hệ</a></li>
-	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small><?= app_cart_count() ?></small></span></a></li>
-	        </ul>
-	      </div>
-		  </div>
-	  </nav>
-    <!-- END nav -->
-
-    <section class="home-slider owl-carousel">
-=======
 $title = 'Katinat Coffee';
 $activePage = 'home';
 include "database/connect.php";
@@ -78,7 +7,6 @@ include "src/products.php";
 ?>
 
 <section class="home-slider owl-carousel">
->>>>>>> 54f9627129778467a5dc26f946680533767fb86f
       <div class="slider-item" style="background-image: url(images/bg_1.jpg);">
       	<div class="overlay"></div>
         <div class="container">
@@ -127,7 +55,7 @@ include "src/products.php";
         </div>
       </div>
     </section>
-
+<!--
     <section class="ftco-intro">
     	<div class="container-wrap">
     		<div class="wrap d-md-flex align-items-xl-end">
@@ -156,6 +84,7 @@ include "src/products.php";
 	    				</div>
 	    			</div>
 	    		</div>
+<!--
 	    		<div class="book p-4">
 	    			<h3>Đặt bàn</h3>
 	    			<form action="#" class="appointment-form">
@@ -195,9 +124,11 @@ include "src/products.php";
 	    			</form>
 	    		</div>
     		</div>
+			
+
     	</div>
     </section>
-
+	-->
     <section class="ftco-about d-md-flex">
     	<div class="one-half img" style="background-image: url(images/about.jpg);"></div>
     	<div class="one-half ftco-animate">
@@ -260,18 +191,31 @@ include "src/products.php";
 	          	<span class="subheading">Khám phá</span>
 	            <h2 class="mb-4">Thực đơn của chúng tôi</h2>
 	            <p class="mb-4">Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts. Separated they live in Bookmarksgrove right at the coast of the Semantics, a large language ocean.</p>
-	            <p><a href="menu.php" class="btn btn-primary btn-outline-primary px-4 py-3">Xem toàn bộ thực đơn</a></p>
+	            <p><a href="#" class="btn btn-primary btn-outline-primary px-4 py-3">Xem toàn bộ thực đơn</a></p>
 	          </div>
     			</div>
     			<div class="col-md-6">
     				<div class="row">
-                        <?php foreach ($homeProducts as $index => $product): ?>
     					<div class="col-md-6">
-<div class="menu-entry<?= $index % 2 === 1 ? ' mt-lg-4' : '' ?>">
-		<a href="product-single.php?id=<?= (int) $product['MaSP'] ?>" class="img" style="background-image: url('<?= app_escape(app_product_image($product['HinhAnh'] ?? null)) ?>');"></a>
+    						<div class="menu-entry">
+		    					<a href="#" class="img" style="background-image: url(images/menu-1.jpg);"></a>
 		    				</div>
     					</div>
-                        <?php endforeach; ?>
+    					<div class="col-md-6">
+    						<div class="menu-entry mt-lg-4">
+		    					<a href="#" class="img" style="background-image: url(images/menu-2.jpg);"></a>
+		    				</div>
+    					</div>
+    					<div class="col-md-6">
+    						<div class="menu-entry">
+		    					<a href="#" class="img" style="background-image: url(images/menu-3.jpg);"></a>
+		    				</div>
+    					</div>
+    					<div class="col-md-6">
+    						<div class="menu-entry mt-lg-4">
+		    					<a href="#" class="img" style="background-image: url(images/menu-4.jpg);"></a>
+		    				</div>
+    					</div>
     				</div>
     			</div>
     		</div>
@@ -326,7 +270,63 @@ include "src/products.php";
       </div>
     </section>
 
-    <?php include __DIR__ . '/includes/featured_products_section.php'; ?>
+    <section class="ftco-section">
+    	<div class="container">
+    		<div class="row justify-content-center mb-5 pb-3">
+          <div class="col-md-7 heading-section ftco-animate text-center">
+          	<span class="subheading">Khám phá</span>
+            <h2 class="mb-4">Cà phê bán chạy nhất</h2>
+            <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
+          </div>
+        </div>
+        <div class="row">
+        	<div class="col-md-3">
+        		<div class="menu-entry">
+    					<a href="#" class="img" style="background-image: url(images/menu-1.jpg);"></a>
+    					<div class="text text-center pt-4">
+    						<h3><a href="#">Coffee Capuccino</a></h3>
+    						<p>A small river named Duden flows by their place and supplies</p>
+    						<p class="price"><span>$5.90</span></p>
+    						<p><a href="#" class="btn btn-primary btn-outline-primary">Thêm vào giỏ</a></p>
+    					</div>
+    				</div>
+        	</div>
+        	<div class="col-md-3">
+        		<div class="menu-entry">
+    					<a href="#" class="img" style="background-image: url(images/menu-2.jpg);"></a>
+    					<div class="text text-center pt-4">
+    						<h3><a href="#">Coffee Capuccino</a></h3>
+    						<p>A small river named Duden flows by their place and supplies</p>
+    						<p class="price"><span>$5.90</span></p>
+    						<p><a href="#" class="btn btn-primary btn-outline-primary">Thêm vào giỏ</a></p>
+    					</div>
+    				</div>
+        	</div>
+        	<div class="col-md-3">
+        		<div class="menu-entry">
+    					<a href="#" class="img" style="background-image: url(images/menu-3.jpg);"></a>
+    					<div class="text text-center pt-4">
+    						<h3><a href="#">Coffee Capuccino</a></h3>
+    						<p>A small river named Duden flows by their place and supplies</p>
+    						<p class="price"><span>$5.90</span></p>
+    						<p><a href="#" class="btn btn-primary btn-outline-primary">Thêm vào giỏ</a></p>
+    					</div>
+    				</div>
+        	</div>
+        	<div class="col-md-3">
+        		<div class="menu-entry">
+    					<a href="#" class="img" style="background-image: url(images/menu-4.jpg);"></a>
+    					<div class="text text-center pt-4">
+    						<h3><a href="#">Coffee Capuccino</a></h3>
+    						<p>A small river named Duden flows by their place and supplies</p>
+    						<p class="price"><span>$5.90</span></p>
+    						<p><a href="#" class="btn btn-primary btn-outline-primary">Thêm vào giỏ</a></p>
+    					</div>
+    				</div>
+        	</div>
+        </div>
+    	</div>
+    </section>
 
     <section class="ftco-gallery">
     	<div class="container-wrap">
@@ -363,7 +363,151 @@ include "src/products.php";
     	</div>
     </section>
 
-		<?php include __DIR__ . '/includes/product_catalog_section.php'; ?>
+		<section class="ftco-menu">
+    	<div class="container">
+    		<div class="row justify-content-center mb-5">
+          <div class="col-md-7 heading-section text-center ftco-animate">
+          	<span class="subheading">Khám phá</span>
+            <h2 class="mb-4">Sản phẩm</h2>
+            <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
+          </div>
+        </div>
+    		<div class="row d-md-flex">
+	    		<div class="col-lg-12 ftco-animate p-md-5">
+		    		<div class="row">
+		          <div class="col-md-12 nav-link-wrap mb-5">
+		            <div class="nav ftco-animate nav-pills justify-content-center" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+		              <a class="nav-link active" id="v-pills-1-tab" data-toggle="pill" href="#v-pills-1" role="tab" aria-controls="v-pills-1" aria-selected="true">Món chính</a>
+
+		              <a class="nav-link" id="v-pills-2-tab" data-toggle="pill" href="#v-pills-2" role="tab" aria-controls="v-pills-2" aria-selected="false">Đồ uống</a>
+
+		              <a class="nav-link" id="v-pills-3-tab" data-toggle="pill" href="#v-pills-3" role="tab" aria-controls="v-pills-3" aria-selected="false">Tráng miệng</a>
+		            </div>
+		          </div>
+		          <div class="col-md-12 d-flex align-items-center">
+		            
+		            <div class="tab-content ftco-animate" id="v-pills-tabContent">
+
+		              <div class="tab-pane fade show active" id="v-pills-1" role="tabpanel" aria-labelledby="v-pills-1-tab">
+		              	<div class="row">
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/dish-1.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Grilled Beef</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/dish-2.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Grilled Beef</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/dish-3.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Grilled Beef</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              	</div>
+		              </div>
+
+		              <div class="tab-pane fade" id="v-pills-2" role="tabpanel" aria-labelledby="v-pills-2-tab">
+		                <div class="row">
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/drink-1.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Lemonade Juice</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/drink-2.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Pineapple Juice</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/drink-3.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Soda Drinks</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              	</div>
+		              </div>
+
+		              <div class="tab-pane fade" id="v-pills-3" role="tabpanel" aria-labelledby="v-pills-3-tab">
+		                <div class="row">
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/dessert-1.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Hot Cake Honey</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/dessert-2.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Hot Cake Honey</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              		<div class="col-md-4 text-center">
+		              			<div class="menu-wrap">
+		              				<a href="#" class="menu-img img mb-4" style="background-image: url(images/dessert-3.jpg);"></a>
+		              				<div class="text">
+		              					<h3><a href="#">Hot Cake Honey</a></h3>
+		              					<p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia.</p>
+		              					<p class="price"><span>$2.90</span></p>
+		              					<p><a href="#" class="btn btn-primary btn-outline-primary">Add to cart</a></p>
+		              				</div>
+		              			</div>
+		              		</div>
+		              	</div>
+		              </div>
+		            </div>
+		          </div>
+		        </div>
+		      </div>
+		    </div>
+    	</div>
+    </section>
 
     <section class="ftco-section img" id="ftco-testimony" style="background-image: url(images/bg_1.jpg);"  data-stellar-background-ratio="0.5">
     	<div class="overlay"></div>

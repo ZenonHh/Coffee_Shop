@@ -1,72 +1,4 @@
 <?php
-<<<<<<< HEAD
-require_once __DIR__ . '/includes/app_helpers.php';
-app_start_session();
-require_once __DIR__ . '/includes/catalog_data.php';
-?>
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <title>Coffee - Free Bootstrap 4 Template by Colorlib</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    
-    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans:400,700" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Great+Vibes" rel="stylesheet">
-
-    <link rel="stylesheet" href="css/open-iconic-bootstrap.min.css">
-    <link rel="stylesheet" href="css/animate.css">
-    
-    <link rel="stylesheet" href="css/owl.carousel.min.css">
-    <link rel="stylesheet" href="css/owl.theme.default.min.css">
-    <link rel="stylesheet" href="css/magnific-popup.css">
-
-    <link rel="stylesheet" href="css/aos.css">
-
-    <link rel="stylesheet" href="css/ionicons.min.css">
-
-    <link rel="stylesheet" href="css/bootstrap-datepicker.css">
-    <link rel="stylesheet" href="css/jquery.timepicker.css">
-
-    
-    <link rel="stylesheet" href="css/flaticon.css">
-    <link rel="stylesheet" href="css/icomoon.css">
-    <link rel="stylesheet" href="css/style.css?v=20261004-3">
-  </head>
-  <body>
-	<nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container">
-	      <a class="navbar-brand" href="index.php">Coffee<small>Blend</small></a>
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="oi oi-menu"></span> Menu
-	      </button>
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav ml-auto">
-	          <li class="nav-item"><a href="index.php" class="nav-link">Trang chủ</a></li>
-	          <li class="nav-item active"><a href="menu.php" class="nav-link">Thực đơn</a></li>
-	          <li class="nav-item"><a href="services.php" class="nav-link">Dịch vụ</a></li>
-	          <li class="nav-item"><a href="blog.php" class="nav-link">Bài viết</a></li>
-	          <li class="nav-item"><a href="about.php" class="nav-link">Giới thiệu</a></li>
-	          <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="room.php" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Cửa hàng</a>
-              <div class="dropdown-menu" aria-labelledby="dropdown04">
-              	<a class="dropdown-item" href="shop.php">Cửa hàng</a>
-                <a class="dropdown-item" href="product-single.php">Sản phẩm</a>
-                <a class="dropdown-item" href="room.php">Giỏ hàng</a>
-                <a class="dropdown-item" href="checkout.php">Thanh toán</a>
-              </div>
-            </li>
-	          <li class="nav-item"><a href="contact.php" class="nav-link">Liên hệ</a></li>
-	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small><?= app_cart_count() ?></small></span></a></li>
-	        </ul>
-	      </div>
-		  </div>
-	  </nav>
-    <!-- END nav -->
-
-    <section class="home-slider owl-carousel">
-=======
 $title = 'Thực đơn - Katinat Coffee';
 $activePage = 'menu';
 include "database/connect.php";
@@ -75,7 +7,6 @@ include "src/products.php";
 ?>
 
 <section class="home-slider owl-carousel">
->>>>>>> 54f9627129778467a5dc26f946680533767fb86f
 
       <div class="slider-item" style="background-image: url(images/bg_3.jpg);" data-stellar-background-ratio="0.5">
       	<div class="overlay"></div>
@@ -162,80 +93,113 @@ include "src/products.php";
     	</div>
     </section>
 
-    <section class="ftco-section"><div class="container"><div class="row justify-content-center"><div class="col-md-8 heading-section text-center"><span class="subheading">Thực đơn Coffee Blend</span><h2 class="mb-4">Đồ uống, món ăn nhẹ và tráng miệng</h2><p>Khám phá các sản phẩm hiện đang được phục vụ.</p><p><a href="#product-catalog" class="btn btn-primary py-3 px-4">Xem thực đơn</a></p></div></div></div></section>
-
-    <?php include __DIR__ . '/includes/product_catalog_section.php'; ?>
-
-<<<<<<< HEAD
-    <footer class=" ftco-footer ftco-section img">
-    	<div class="overlay"></div>
-      <div class="container">
-        <div class="row mb-5">
-          <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
-            <div class="ftco-footer-widget mb-4">
-              <h2 class="ftco-heading-2">Về chúng tôi</h2>
-              <p>Far far away, behind the word mountains, far from the countries Vokalia and Consonantia, there live the blind texts.</p>
-              <ul class="ftco-footer-social list-unstyled float-md-left float-lft mt-5">
-                <li class="ftco-animate"><a href="#"><span class="icon-twitter"></span></a></li>
-                <li class="ftco-animate"><a href="#"><span class="icon-facebook"></span></a></li>
-                <li class="ftco-animate"><a href="#"><span class="icon-instagram"></span></a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-lg-4 col-md-6 mb-5 mb-md-5">
-            <div class="ftco-footer-widget mb-4">
-              <h2 class="ftco-heading-2">Bài viết gần đây</h2>
-              <div class="block-21 mb-4 d-flex">
-                <a class="blog-img mr-4" style="background-image: url(images/image_1.jpg);"></a>
-                <div class="text">
-                  <h3 class="heading"><a href="#">Even the all-powerful Pointing has no control about</a></h3>
-                  <div class="meta">
-                    <div><a href="#"><span class="icon-calendar"></span> Sept 15, 2018</a></div>
-                    <div><a href="#"><span class="icon-person"></span> Admin</a></div>
-                    <div><a href="#"><span class="icon-chat"></span> 19</a></div>
-                  </div>
-                </div>
-              </div>
-              <div class="block-21 mb-4 d-flex">
-                <a class="blog-img mr-4" style="background-image: url(images/image_2.jpg);"></a>
-                <div class="text">
-                  <h3 class="heading"><a href="#">Even the all-powerful Pointing has no control about</a></h3>
-                  <div class="meta">
-                    <div><a href="#"><span class="icon-calendar"></span> Sept 15, 2018</a></div>
-                    <div><a href="#"><span class="icon-person"></span> Admin</a></div>
-                    <div><a href="#"><span class="icon-chat"></span> 19</a></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-2 col-md-6 mb-5 mb-md-5">
-             <div class="ftco-footer-widget mb-4 ml-md-4">
-              <h2 class="ftco-heading-2">Dịch vụ</h2>
-              <ul class="list-unstyled">
-                <li><a href="#" class="py-2 d-block">Chế biến</a></li>
-                <li><a href="#" class="py-2 d-block">Giao hàng</a></li>
-                <li><a href="#" class="py-2 d-block">Thực phẩm chất lượng</a></li>
-                <li><a href="#" class="py-2 d-block">Pha chế</a></li>
-              </ul>
-            </div>
-          </div>
-          <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
-            <div class="ftco-footer-widget mb-4">
-            	<h2 class="ftco-heading-2">Bạn có câu hỏi?</h2>
-            	<div class="block-23 mb-3">
-	              <ul>
-	                <li><span class="icon icon-map-marker"></span><span class="text">203 Fake St. Mountain View, San Francisco, California, USA</span></li>
-	                <li><a href="#"><span class="icon icon-phone"></span><span class="text">+2 392 3929 210</span></a></li>
-	                <li><a href="#"><span class="icon icon-envelope"></span><span class="text">info@yourdomain.com</span></a></li>
-	              </ul>
-	            </div>
-            </div>
-          </div>
-        </div>
+    <section class="ftco-section">
+    	<div class="container">
         <div class="row">
-          <div class="col-md-12 text-center">
-=======
+        	<div class="col-md-6 mb-5 pb-3">
+        		<h3 class="mb-5 heading-pricing ftco-animate">Starter</h3>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-1.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Cornish - Mackerel</span></h3>
+	        				<span class="price">$20.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+        			</div>
+        		</div>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-2.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Roasted Steak</span></h3>
+	        				<span class="price">$29.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-3.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Seasonal Soup</span></h3>
+	        				<span class="price">$20.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-4.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Chicken Curry</span></h3>
+	        				<span class="price">$20.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        	</div>
+
+        	<div class="col-md-6 mb-5 pb-3">
+        		<h3 class="mb-5 heading-pricing ftco-animate">Món chính</h3>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-5.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Sea Trout</span></h3>
+	        				<span class="price">$49.91</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-6.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Roasted Beef</span></h3>
+	        				<span class="price">$20.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-7.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Butter Fried Chicken</span></h3>
+	        				<span class="price">$20.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        		<div class="pricing-entry d-flex ftco-animate">
+        			<div class="img" style="background-image: url(images/dish-8.jpg);"></div>
+        			<div class="desc pl-3">
+	        			<div class="d-flex text align-items-center">
+	        				<h3><span>Chiken Filet</span></h3>
+	        				<span class="price">$20.00</span>
+	        			</div>
+	        			<div class="d-block">
+	        				<p>A small river named Duden flows by their place and supplies</p>
+	        			</div>
+	        		</div>
+        		</div>
+        	</div>
+
         	<div class="col-md-6">
         		<h3 class="mb-5 heading-pricing ftco-animate">Tráng miệng</h3>
         		<div class="pricing-entry d-flex ftco-animate">
@@ -588,6 +552,5 @@ include "src/products.php";
     	</div>
     </section>
 
->>>>>>> 54f9627129778467a5dc26f946680533767fb86f
 
 <?php include "src/footer.php"; ?>

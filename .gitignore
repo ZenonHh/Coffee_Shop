@@ -6,6 +6,3 @@ tmp/
 .vscode/
 Thumbs.db
 Desktop.ini
-
-# Thông tin đăng nhập chỉ dùng trên máy local
-/config.local.php
