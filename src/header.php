@@ -62,7 +62,7 @@ if (!isset($activePage)) {
             </li>
 	          <li class="nav-item <?= $activePage === 'contact' ? 'active' : '' ?>"><a href="contact.php" class="nav-link">Liên hệ</a></li>
 	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small>1</small></span></a></li>
-	          <li class="nav-item"><a href="contact.php" class="nav-link">Đăng nhập</a></li>
+	          <li class="nav-item <?= $activePage === 'login' || $activePage === 'register' ? 'active' : '' ?>"><a href="login.php" class="nav-link">Đăng nhập</a></li>
 			  </ul>
 	      </div>
 		  </div>
