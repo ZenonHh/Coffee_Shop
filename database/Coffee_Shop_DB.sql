@@ -238,6 +238,7 @@ CREATE TABLE `lichsudiem` (
   `MaLSD` int(11) NOT NULL,
   `MaHD` int(11) DEFAULT NULL,
   `MaKH` int(11) NOT NULL,
+  ``
   `DiemThayDoi` int(11) NOT NULL,
   `LyDo` varchar(255) DEFAULT NULL,
   `NgayThucHien` datetime DEFAULT current_timestamp()
