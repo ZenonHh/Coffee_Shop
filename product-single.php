@@ -30,6 +30,9 @@ $lienQuan = array_filter(
     fn($r) => (int)$r['MaSP'] !== $maSP
 );
 $lienQuan = array_slice($lienQuan, 0, 4);
+$reviewProductIds = [$maSP];
+require_once __DIR__ . '/includes/product_review_data.php';
+$productReviewSummaries = app_product_review_summaries($conn, $reviewProductIds);
 
 $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
 ?>
@@ -57,6 +60,13 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
     <div class="row">
       <div class="col-lg-6 mb-5 ftco-animate">
         <a href="picture/<?= $hinh ?>" class="image-popup"><img src="picture/<?= $hinh ?>" class="img-fluid" alt="<?= htmlspecialchars($sp['TenSP']) ?>"></a>
+        <?php
+        $reviewProductId = $maSP;
+        $reviewSummary = $productReviewSummaries[$maSP] ?? ['ReviewCount' => 0, 'AverageRating' => 0];
+        $reviewShowRecent = true;
+        include __DIR__ . '/includes/product_review_widget.php';
+        unset($reviewSummary, $reviewShowRecent);
+        ?>
       </div>
 
       <div class="col-lg-6 product-details pl-md-5 ftco-animate">

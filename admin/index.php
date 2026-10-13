@@ -1,427 +1,8 @@
 <?php
-$adminConfig = is_file(__DIR__ . '/../config.local.php')
-    ? require __DIR__ . '/../config.local.php'
-    : [];
-if (!is_array($adminConfig)) {
-    $adminConfig = [];
-}
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_set_cookie_params([
-        'httponly' => true,
-        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-        'samesite' => 'Lax',
-    ]);
-    session_start();
-}
-if (!isset($_SESSION['admin_csrf'])) {
-    $_SESSION['admin_csrf'] = bin2hex(random_bytes(32));
-}
-function admin_redirect(string $location): never
-{
-    header('Location: ' . $location, true, 303);
-    exit;
-}
+require_once __DIR__ . '/AdminController.php';
 
-$adminMessage = $_SESSION['admin_message'] ?? '';
-$adminMessageType = $_SESSION['admin_message_type'] ?? 'success';
-unset($_SESSION['admin_message'], $_SESSION['admin_message_type']);
-$adminError = '';
-$isAdminAuthenticated = ($_SESSION['admin_authenticated'] ?? false) === true;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $postedToken = $_POST['csrf_token'] ?? '';
-    if (!is_string($postedToken) || !hash_equals($_SESSION['admin_csrf'], $postedToken)) {
-        $adminError = 'Phiên làm việc không hợp lệ. Vui lòng tải lại trang.';
-    } else {
-        $action = $_POST['action'] ?? '';
-        if ($action === 'login') {
-            $adminUsername = $adminConfig['admin_username'] ?? getenv('COFFEE_ADMIN_USERNAME') ?: '';
-            $adminPasswordHash = $adminConfig['admin_password_hash'] ?? getenv('COFFEE_ADMIN_PASSWORD_HASH') ?: '';
-            $enteredUsername = is_string($_POST['username'] ?? null) ? $_POST['username'] : '';
-            $enteredPassword = is_string($_POST['password'] ?? null) ? $_POST['password'] : '';
-            if ($adminPasswordHash === '') {
-                $adminError = 'Chưa cấu hình mật khẩu quản trị. Hãy tạo password hash và đặt trong config.local.php.';
-            } elseif (
-                is_string($adminUsername)
-                && is_string($adminPasswordHash)
-                && hash_equals($adminUsername, $enteredUsername)
-                && password_verify($enteredPassword, $adminPasswordHash)
-            ) {
-                session_regenerate_id(true);
-                $_SESSION['admin_authenticated'] = true;
-                $_SESSION['admin_csrf'] = bin2hex(random_bytes(32));
-                admin_redirect('index.php');
-            } else {
-                $adminError = 'Tên đăng nhập hoặc mật khẩu không chính xác.';
-            }
-        } elseif ($action === 'logout') {
-            unset($_SESSION['admin_authenticated']);
-            session_regenerate_id(true);
-            $_SESSION['admin_csrf'] = bin2hex(random_bytes(32));
-            admin_redirect('index.php');
-        } elseif (!$isAdminAuthenticated) {
-            http_response_code(403);
-            $adminError = 'Vui lòng đăng nhập với tài khoản quản trị.';
-        } else {
-            try {
-                require_once __DIR__ . '/../connect.php';
-                if ($action === 'create_product') {
-                    $name = is_string($_POST['name'] ?? null) ? trim($_POST['name']) : '';
-                    $categoryId = filter_var($_POST['category_id'] ?? null, FILTER_VALIDATE_INT);
-                    $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
-                    $size = is_string($_POST['size'] ?? null) ? trim($_POST['size']) : '';
-                    $image = $_FILES['image'] ?? null;
-
-                    if ($name === '' || mb_strlen($name, 'UTF-8') > 100 || !$categoryId || $price === false || $price < 0 || strlen($size) > 10) {
-                        throw new InvalidArgumentException('Vui lòng nhập tên, danh mục và giá bán hợp lệ; kích cỡ tối đa 10 ký tự.');
-                    }
-                    if (!is_array($image) || ($image['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-                        throw new InvalidArgumentException('Vui lòng chọn ảnh sản phẩm.');
-                    }
-                    if (!is_string($image['tmp_name'] ?? null) || !is_int($image['size'] ?? null) || $image['size'] < 1 || $image['size'] > 5 * 1024 * 1024 || !is_uploaded_file($image['tmp_name'])) {
-                        throw new InvalidArgumentException('Ảnh phải có dung lượng tối đa 5 MB.');
-                    }
-
-                    $imageInfo = new finfo(FILEINFO_MIME_TYPE);
-                    $mimeType = $imageInfo->file($image['tmp_name']);
-                    $imageExtensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-                    if (!isset($imageExtensions[$mimeType]) || @getimagesize($image['tmp_name']) === false) {
-                        throw new InvalidArgumentException('Ảnh chỉ được dùng định dạng JPG, PNG hoặc WEBP hợp lệ.');
-                    }
-
-                    $categoryCheck = $conn->prepare('SELECT 1 FROM LoaiSanPham WHERE MaLoaiSP = :categoryId');
-                    $categoryCheck->execute(['categoryId' => $categoryId]);
-                    if (!$categoryCheck->fetchColumn()) {
-                        throw new InvalidArgumentException('Danh mục sản phẩm không hợp lệ.');
-                    }
-
-                    $imageName = bin2hex(random_bytes(16)) . '.' . $imageExtensions[$mimeType];
-                    $imagePath = __DIR__ . '/../images/' . $imageName;
-                    if (!move_uploaded_file($image['tmp_name'], $imagePath)) {
-                        throw new RuntimeException('Không thể lưu ảnh sản phẩm vào thư mục images.');
-                    }
-                    try {
-                        $insertProduct = $conn->prepare(
-                            'INSERT INTO SanPham (MaLoaiSP, TenSP, KichCo, GiaBan, TrangThai, HinhAnh)
-                             VALUES (:categoryId, :name, :size, :price, 1, :image)'
-                        );
-                        $insertProduct->execute([
-                            'categoryId' => $categoryId,
-                            'name' => $name,
-                            'size' => $size !== '' ? $size : null,
-                            'price' => $price,
-                            'image' => $imageName,
-                        ]);
-                    } catch (Throwable $exception) {
-                        if (is_file($imagePath)) {
-                            unlink($imagePath);
-                        }
-                        throw $exception;
-                    }
-                    $_SESSION['admin_message'] = 'Đã thêm sản phẩm.';
-                } elseif ($action === 'delete_product') {
-                    $productId = filter_var($_POST['product_id'] ?? null, FILTER_VALIDATE_INT);
-                    if (!$productId || $productId < 1) {
-                        throw new InvalidArgumentException('Mã sản phẩm không hợp lệ.');
-                    }
-                    $findProduct = $conn->prepare('SELECT HinhAnh FROM SanPham WHERE MaSP = :productId');
-                    $findProduct->execute(['productId' => $productId]);
-                    $productImage = $findProduct->fetchColumn();
-                    if ($productImage === false) {
-                        throw new InvalidArgumentException('Không tìm thấy sản phẩm.');
-                    }
-                    $usageCheck = $conn->prepare('SELECT COUNT(*) FROM ChiTietHoaDon WHERE MaSP = :productId');
-                    $usageCheck->execute(['productId' => $productId]);
-                    if ((int) $usageCheck->fetchColumn() > 0) {
-                        $deleteProduct = $conn->prepare('UPDATE SanPham SET TrangThai = 0 WHERE MaSP = :productId');
-                        $deleteProduct->execute(['productId' => $productId]);
-                        $_SESSION['admin_message'] = 'Sản phẩm đã có trong hóa đơn nên được ẩn khỏi menu để giữ lịch sử đơn hàng.';
-                    } else {
-                        $deleteProduct = $conn->prepare('DELETE FROM SanPham WHERE MaSP = :productId');
-                        $deleteProduct->execute(['productId' => $productId]);
-                        $imageReferenceCheck = $conn->prepare('SELECT COUNT(*) FROM SanPham WHERE HinhAnh = :imageName');
-                        $imageReferenceCheck->execute(['imageName' => $productImage]);
-                        if ((int) $imageReferenceCheck->fetchColumn() === 0 && is_string($productImage) && basename($productImage) === $productImage) {
-                            $imagePath = __DIR__ . '/../images/' . $productImage;
-                            if (is_file($imagePath)) {
-                                unlink($imagePath);
-                            }
-                        }
-                        $_SESSION['admin_message'] = 'Đã xóa sản phẩm.';
-                    }
-                } elseif ($action === 'advance_order') {
-                    $orderId = filter_var($_POST['order_id'] ?? null, FILTER_VALIDATE_INT);
-                    $currentStatus = $_POST['current_status'] ?? '';
-                    $nextStatus = match ($currentStatus) {
-                        'Chờ xác nhận' => 'Đang giao',
-                        'Đang giao' => 'Hoàn tất',
-                        default => null,
-                    };
-                    if (!$orderId || $orderId < 1 || $nextStatus === null) {
-                        throw new InvalidArgumentException('Trạng thái đơn hàng không hợp lệ.');
-                    }
-                    $updateOrder = $conn->prepare(
-                        'UPDATE HoaDon SET TrangThai = :nextStatus
-                         WHERE MaHD = :orderId AND TrangThai = :currentStatus'
-                    );
-                    $updateOrder->execute([
-                        'nextStatus' => $nextStatus,
-                        'orderId' => $orderId,
-                        'currentStatus' => $currentStatus,
-                    ]);
-                    if ($updateOrder->rowCount() !== 1) {
-                        throw new InvalidArgumentException('Đơn hàng đã được cập nhật hoặc không còn ở trạng thái này.');
-                    }
-                    $_SESSION['admin_message'] = 'Đã chuyển đơn hàng sang trạng thái ' . $nextStatus . '.';
-                }
-                $_SESSION['admin_message_type'] = 'success';
-                admin_redirect('index.php?page=' . rawurlencode((string) ($_GET['page'] ?? 'dashboard')));
-            } catch (InvalidArgumentException $exception) {
-                $adminError = $exception->getMessage();
-            } catch (Throwable $exception) {
-                error_log('Admin operation failed: ' . $exception->getMessage());
-                $adminError = 'Không thể lưu thay đổi do lỗi hệ thống. Hãy kiểm tra cấu hình kết nối và nhật ký PHP.';
-            }
-        }
-    }
-}
-$pages = [
-    'dashboard' => ['title' => 'Tổng quan', 'eyebrow' => 'TỔNG QUA'],
-    'products' => ['title' => 'Sản phẩm', 'eyebrow' => 'QUẢN LÝ CỬA HÀNG'],
-    'orders' => ['title' => 'Đơn hàng', 'eyebrow' => 'QUẢN LÝ CỬA HÀNG'],
-    'customers' => ['title' => 'Khách hàng', 'eyebrow' => 'QUẢN LÝ CỬA HÀNG'],
-    'surveys' => ['title' => 'Khảo sát ý kiến', 'eyebrow' => 'THẤU HIỂU KHÁCH HÀNG'],
-];
-
-$page = $_GET['page'] ?? 'dashboard';
-if (!is_string($page) || !isset($pages[$page])) {
-    $page = 'dashboard';
-}
-$title = $pages[$page]['title'];
-
-$products = [];
-$orders = [];
-$categories = [];
-$customers = [];
-$surveys = [];
-$feedback = [];
-$dashboard = [
-    'revenue_today' => 0.0,
-    'orders_today' => 0,
-    'new_customers' => 0,
-    'average_order' => 0.0,
-    'revenue_week' => 0.0,
-    'revenue_previous_week' => 0.0,
-    'products_sold' => 0,
-    'revenue_days' => [],
-    'category_sales' => [],
-    'customer_count' => 0,
-    'loyal_customer_count' => 0,
-    'survey_open' => 0,
-    'survey_invitations' => 0,
-    'survey_responses' => 0,
-    'average_rating' => 0.0,
-    'rating_counts' => [],
-    'feedback_count' => 0,
-];
-if ($isAdminAuthenticated) {
-    try {
-        require_once __DIR__ . '/../connect.php';
-        if (in_array($page, ['products', 'dashboard'], true)) {
-            $categoryQuery = $conn->prepare('SELECT MaLoaiSP, TenLoaiSP FROM LoaiSanPham ORDER BY ThuTuHienThi, TenLoaiSP');
-            $categoryQuery->execute();
-            $categories = $categoryQuery->fetchAll();
-
-            $productQuery = $conn->prepare(
-                'SELECT sp.MaSP, sp.TenSP, sp.KichCo, sp.GiaBan, sp.TrangThai, sp.HinhAnh, ls.TenLoaiSP
-                 FROM SanPham AS sp
-                 INNER JOIN LoaiSanPham AS ls ON ls.MaLoaiSP = sp.MaLoaiSP
-                 ORDER BY sp.MaSP DESC'
-            );
-            $productQuery->execute();
-            $products = $productQuery->fetchAll();
-        }
-        if (in_array($page, ['orders', 'dashboard'], true)) {
-            $orderQuery = $conn->prepare(
-                'SELECT hd.MaHD, hd.TenNguoiNhan, hd.SdtNguoiNhan, hd.NgayTao, hd.TongTien, hd.TrangThai,
-                        COALESCE(SUM(ct.SoLuong), 0) AS SoSanPham
-                 FROM HoaDon AS hd
-                 LEFT JOIN ChiTietHoaDon AS ct ON ct.MaHD = hd.MaHD
-                 GROUP BY hd.MaHD, hd.TenNguoiNhan, hd.SdtNguoiNhan, hd.NgayTao, hd.TongTien, hd.TrangThai
-                 ORDER BY hd.MaHD DESC'
-            );
-            $orderQuery->execute();
-            $orders = $orderQuery->fetchAll();
-        }
-        if (in_array($page, ['customers', 'dashboard'], true)) {
-            $customerQuery = $conn->prepare(
-                "SELECT kh.MaKH, kh.HoTen, kh.Sdt, kh.HangTV, kh.NgayTao,
-                        COUNT(DISTINCT hd.MaHD) AS SoDonHang,
-                        COALESCE(SUM(CASE WHEN hd.TrangThai IS NULL OR (hd.TrangThai NOT LIKE '%hủy%' AND hd.TrangThai NOT LIKE '%huy%')
-                                          THEN hd.TongTien ELSE 0 END), 0) AS TongChiTieu
-                 FROM KhachHang AS kh
-                 LEFT JOIN HoaDon AS hd ON hd.MaKH = kh.MaKH
-                 GROUP BY kh.MaKH, kh.HoTen, kh.Sdt, kh.HangTV, kh.NgayTao
-                 ORDER BY kh.MaKH DESC"
-            );
-            $customerQuery->execute();
-            $customers = $customerQuery->fetchAll();
-            $dashboard['customer_count'] = count($customers);
-            $dashboard['loyal_customer_count'] = count(array_filter(
-                $customers,
-                static fn (array $customer): bool => trim((string) ($customer['HangTV'] ?? '')) !== ''
-            ));
-            $newCustomerQuery = $conn->prepare(
-                'SELECT COUNT(*) FROM KhachHang
-                 WHERE NgayTao >= CURDATE() - INTERVAL 29 DAY
-                   AND NgayTao < CURDATE() + INTERVAL 1 DAY'
-            );
-            $newCustomerQuery->execute();
-            $dashboard['new_customers'] = (int) $newCustomerQuery->fetchColumn();
-        }
-        if (in_array($page, ['surveys', 'dashboard'], true)) {
-            $surveyQuery = $conn->prepare(
-                "SELECT ks.MaKhaoSat, ks.TieuDe, ks.MoTa, ks.NgayBatDau, ks.NgayKetThuc,
-                        COUNT(DISTINCT ch.MaCauHoi) AS SoCauHoi,
-                        COUNT(DISTINCT lm.MaLoiMoi) AS SoLuotMoi,
-                        COUNT(DISTINCT CASE WHEN ct.MaLoiMoi IS NOT NULL THEN lm.MaLoiMoi END) AS SoLuotPhanHoi,
-                        CASE WHEN ks.NgayBatDau IS NULL OR ks.NgayKetThuc IS NULL THEN 'Chưa thiết lập'
-                             WHEN ks.NgayBatDau > NOW() THEN 'Sắp diễn ra'
-                             WHEN ks.NgayKetThuc < NOW() THEN 'Đã kết thúc'
-                             ELSE 'Đang diễn ra' END AS TrangThaiTinh
-                 FROM KhaoSat AS ks
-                 LEFT JOIN CauHoiKhaoSat AS ch ON ch.MaKhaoSat = ks.MaKhaoSat
-                 LEFT JOIN LoiMoiKhaoSat AS lm ON lm.MaKhaoSat = ks.MaKhaoSat
-                 LEFT JOIN CauTraLoi AS ct ON ct.MaLoiMoi = lm.MaLoiMoi
-                 GROUP BY ks.MaKhaoSat, ks.TieuDe, ks.MoTa, ks.NgayBatDau, ks.NgayKetThuc
-                 ORDER BY ks.MaKhaoSat DESC"
-            );
-            $surveyQuery->execute();
-            $surveys = $surveyQuery->fetchAll();
-
-            $feedbackQuery = $conn->prepare(
-                'SELECT ph.MaPhanHoi, ph.NoiDung, ph.DanhGia, ph.NgayGui, kh.HoTen, sp.TenSP
-                 FROM PhanHoi AS ph
-                 LEFT JOIN KhachHang AS kh ON kh.MaKH = ph.MaKH
-                 LEFT JOIN SanPham AS sp ON sp.MaSP = ph.MaSP
-                 ORDER BY ph.NgayGui DESC, ph.MaPhanHoi DESC
-                 LIMIT 12'
-            );
-            $feedbackQuery->execute();
-            $feedback = $feedbackQuery->fetchAll();
-            $feedbackCountQuery = $conn->prepare('SELECT COUNT(*) FROM PhanHoi');
-            $feedbackCountQuery->execute();
-            $dashboard['feedback_count'] = (int) $feedbackCountQuery->fetchColumn();
-            $dashboard['survey_open'] = count(array_filter(
-                $surveys,
-                static fn (array $survey): bool => $survey['TrangThaiTinh'] === 'Đang diễn ra'
-            ));
-            $dashboard['survey_invitations'] = array_sum(array_map(
-                static fn (array $survey): int => (int) $survey['SoLuotMoi'],
-                $surveys
-            ));
-            $dashboard['survey_responses'] = array_sum(array_map(
-                static fn (array $survey): int => (int) $survey['SoLuotPhanHoi'],
-                $surveys
-            ));
-
-            $ratingQuery = $conn->prepare(
-                'SELECT DanhGia, COUNT(*) AS SoLuot
-                 FROM PhanHoi
-                 WHERE DanhGia BETWEEN 1 AND 5
-                 GROUP BY DanhGia'
-            );
-            $ratingQuery->execute();
-            foreach ($ratingQuery->fetchAll() as $ratingRow) {
-                $dashboard['rating_counts'][(int) $ratingRow['DanhGia']] = (int) $ratingRow['SoLuot'];
-            }
-            $ratingTotal = array_sum($dashboard['rating_counts']);
-            if ($ratingTotal > 0) {
-                $dashboard['average_rating'] = array_sum(array_map(
-                    static fn (int $rating, int $count): int => $rating * $count,
-                    array_keys($dashboard['rating_counts']),
-                    array_values($dashboard['rating_counts'])
-                )) / $ratingTotal;
-            }
-        }
-        if ($page === 'dashboard') {
-            $metricQuery = $conn->prepare(
-                "SELECT
-                    COALESCE(SUM(CASE WHEN DATE(NgayTao) = CURDATE()
-                        AND (TrangThai IS NULL OR (TrangThai NOT LIKE '%hủy%' AND TrangThai NOT LIKE '%huy%')) THEN TongTien ELSE 0 END), 0) AS DoanhThuHomNay,
-                    SUM(CASE WHEN DATE(NgayTao) = CURDATE() THEN 1 ELSE 0 END) AS DonHomNay,
-                    COALESCE(AVG(CASE WHEN DATE(NgayTao) = CURDATE()
-                        AND (TrangThai IS NULL OR (TrangThai NOT LIKE '%hủy%' AND TrangThai NOT LIKE '%huy%')) THEN TongTien END), 0) AS GiaTriDonTrungBinh
-                 FROM HoaDon"
-            );
-            $metricQuery->execute();
-            $metrics = $metricQuery->fetch() ?: [];
-            $dashboard['revenue_today'] = (float) ($metrics['DoanhThuHomNay'] ?? 0);
-            $dashboard['orders_today'] = (int) ($metrics['DonHomNay'] ?? 0);
-            $dashboard['average_order'] = (float) ($metrics['GiaTriDonTrungBinh'] ?? 0);
-
-            $salesQuery = $conn->prepare(
-                "SELECT COALESCE(SUM(CASE WHEN NgayTao >= CURDATE() - INTERVAL 6 DAY
-                                           AND NgayTao < CURDATE() + INTERVAL 1 DAY
-                                           AND (TrangThai IS NULL OR (TrangThai NOT LIKE '%hủy%' AND TrangThai NOT LIKE '%huy%'))
-                                      THEN TongTien ELSE 0 END), 0) AS TuanNay,
-                        COALESCE(SUM(CASE WHEN NgayTao >= CURDATE() - INTERVAL 13 DAY
-                                           AND NgayTao < CURDATE() - INTERVAL 6 DAY
-                                           AND (TrangThai IS NULL OR (TrangThai NOT LIKE '%hủy%' AND TrangThai NOT LIKE '%huy%'))
-                                      THEN TongTien ELSE 0 END), 0) AS TuanTruoc
-                 FROM HoaDon"
-            );
-            $salesQuery->execute();
-            $sales = $salesQuery->fetch() ?: [];
-            $dashboard['revenue_week'] = (float) ($sales['TuanNay'] ?? 0);
-            $dashboard['revenue_previous_week'] = (float) ($sales['TuanTruoc'] ?? 0);
-
-            $dailyRevenueQuery = $conn->prepare(
-                "SELECT DATE(NgayTao) AS Ngay, SUM(TongTien) AS DoanhThu
-                 FROM HoaDon
-                 WHERE NgayTao >= CURDATE() - INTERVAL 6 DAY
-                   AND NgayTao < CURDATE() + INTERVAL 1 DAY
-                   AND (TrangThai IS NULL OR (TrangThai NOT LIKE '%hủy%' AND TrangThai NOT LIKE '%huy%'))
-                 GROUP BY DATE(NgayTao)"
-            );
-            $dailyRevenueQuery->execute();
-            $revenueByDay = [];
-            foreach ($dailyRevenueQuery->fetchAll() as $dayRow) {
-                $revenueByDay[(new DateTimeImmutable((string) $dayRow['Ngay']))->format('Y-m-d')] = (float) $dayRow['DoanhThu'];
-            }
-            $today = new DateTimeImmutable('today');
-            for ($offset = 6; $offset >= 0; $offset--) {
-                $date = $today->modify('-' . $offset . ' days');
-                $dashboard['revenue_days'][] = [
-                    'label' => ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'C'][(int) $date->format('') - 1],
-                    'revenue' => $revenueByDay[$date->format('Y-m-d')] ?? 0.0,
-                ];
-            }
-
-            $categorySalesQuery = $conn->prepare(
-                "SELECT ls.TenLoaiSP, COALESCE(SUM(CASE WHEN hd.MaHD IS NOT NULL THEN ct.SoLuong ELSE 0 END), 0) AS SoLuongBan
-                 FROM LoaiSanPham AS ls
-                 LEFT JOIN SanPham AS sp ON sp.MaLoaiSP = ls.MaLoaiSP
-                 LEFT JOIN ChiTietHoaDon AS ct ON ct.MaSP = sp.MaSP
-                 LEFT JOIN HoaDon AS hd ON hd.MaHD = ct.MaHD
-                   AND (hd.TrangThai IS NULL OR (hd.TrangThai NOT LIKE '%hủy%' AND hd.TrangThai NOT LIKE '%huy%'))
-                 GROUP BY ls.MaLoaiSP, ls.TenLoaiSP
-                 ORDER BY SoLuongBan DESC, ls.TenLoaiSP"
-            );
-            $categorySalesQuery->execute();
-            $dashboard['category_sales'] = $categorySalesQuery->fetchAll();
-            $dashboard['products_sold'] = array_sum(array_map(
-                static fn (array $category): int => (int) $category['SoLuongBan'],
-                $dashboard['category_sales']
-            ));
-
-        }
-    } catch (Throwable $exception) {
-        error_log('Admin data load failed: ' . $exception->getMessage());
-        $adminError = 'Không thể tải dữ liệu quản trị. Hãy kiểm tra kết nối MySQL và cấu trúc cơ sở dữ liệu.';
-    }
-}
-
+$viewData = (new AdminController())->handle();
+extract($viewData, EXTR_SKIP);
 function money(int|float|string $amount): string
 {
     return number_format((float) $amount, 0, ',', '.') . 'đ';
@@ -470,13 +51,13 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
         <p>Đăng nhập để quản lý sản phẩm và đơn hàng.</p>
         <?php if ($adminError !== ''): ?><div class="alert alert-danger" role="alert"><?= htmlspecialchars($adminError, ENT_QUOTES, 'UTF-8') ?></div><?php endif; ?>
         <form method="post" action="index.php" class="dialog-form">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
             <input type="hidden" name="action" value="login">
             <label>Tên đăng nhập<input name="username" type="text" autocomplete="username" required></label>
             <label>Mật khẩu<input name="password" type="password" autocomplete="current-password" required></label>
             <button class="button button-primary" type="submit">Đăng nhập</button>
         </form>
-        <p class="dialog-note"><?= empty($adminConfig['admin_password_hash']) ? 'Cần cấu hình admin_password_hash trong config.local.php trước khi đăng nhập.' : 'Tài khoản quản trị được cấu hình cục bộ; mật khẩu không được hiển thị tại đây.' ?></p>
+        <p class="dialog-note">Tài khoản phải có trạng thái hoạt động và vai trò Admin trong bảng taikhoan.</p>
     </section>
 </div></main>
 </body>
@@ -513,7 +94,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
 
         <div class="side-caption side-caption-spaced">HỆ THỐNG</div>
         <form method="post" action="index.php">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
             <input type="hidden" name="action" value="logout">
             <button class="side-link" type="submit"><span class="side-icon" aria-hidden="true">↪</span><span>Đăng xuất</span></button>
         </form>
@@ -527,7 +108,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
             <a class="store-link" href="../index.php"><span aria-hidden="true">↗</span> Xem website cửa hàng</a>
             <div class="admin-profile">
                 <div class="avatar avatar-admin">AD</div>
-                <div class="profile-copy"><strong>Quản trị viên</strong><span>admin@coffeeblend.vn</span></div>
+                <div class="profile-copy"><strong><?= htmlspecialchars($adminFullName, ENT_QUOTES, 'UTF-8') ?></strong><span><?= htmlspecialchars($adminUsername, ENT_QUOTES, 'UTF-8') ?> · <?= htmlspecialchars($adminRoleName, ENT_QUOTES, 'UTF-8') ?></span></div>
                 <span class="profile-dots" aria-hidden="true">···</span>
             </div>
         </div>
@@ -547,7 +128,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                 </label>
                 <button class="icon-button notification-button" type="button" aria-label="Thông báo">♧<i></i></button>
                 <div class="topbar-divider"></div>
-                <div class="topbar-user"><div class="avatar avatar-admin">AD</div><span>Admin</span><span class="chevron">⌄</span></div>
+                <div class="topbar-user"><div class="avatar avatar-admin">AD</div><span><?= htmlspecialchars($adminFullName, ENT_QUOTES, 'UTF-8') ?></span><span class="chevron">⌄</span></div>
             </div>
         </header>
 
@@ -645,7 +226,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                             <thead><tr><th>MÃ ĐƠN</th><th>KHÁCH HÀNG</th><th>THỜI GIAN</th><th>SẢN PHẨM</th><th>TỔNG TIỀN</th><th>TRẠNG THÁI</th><th></th></tr></thead>
                             <tbody>
                             <?php foreach (array_slice($orders, 0, 4) as $order): ?>
-                                <?php $orderStatus = (string) ($order['TrangThai'] ?? 'Chờ xác nhận'); ?>
+                                <?php $orderStatus = AdminController::orderStatus((string) ($order['TrangThai'] ?? '')); ?>
                                 <tr data-search-row>
                                     <td class="order-id">#<?= (int) $order['MaHD'] ?></td>
                                     <td><?= htmlspecialchars($order['TenNguoiNhan'] ?? 'Khách hàng', ENT_QUOTES, 'UTF-8') ?></td>
@@ -685,7 +266,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                                     <td><?= htmlspecialchars($product['TenLoaiSP'], ENT_QUOTES, 'UTF-8') ?></td><td class="money-cell"><?= money($product['GiaBan']) ?></td>
                                     <td><?= htmlspecialchars($product['KichCo'] ?? '—', ENT_QUOTES, 'UTF-8') ?></td>
                                     <td><span class="status status-<?= status_class($productStatus) ?>"><i></i><?= $productStatus ?></span></td>
-                                    <td><form method="post" action="index.php?page=products" onsubmit="return confirm('Xóa hoặc ẩn sản phẩm này?')"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>"><input type="hidden" name="action" value="delete_product"><input type="hidden" name="product_id" value="<?= (int) $product['MaSP'] ?>"><button class="row-more" type="submit" aria-label="Xóa <?= htmlspecialchars($product['TenSP'], ENT_QUOTES, 'UTF-8') ?>">×</button></form></td>
+                                    <td><form method="post" action="index.php?page=products" onsubmit="return confirm('Xóa hoặc ẩn sản phẩm này?')"><input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>"><input type="hidden" name="action" value="delete_product"><input type="hidden" name="product_id" value="<?= (int) $product['MaSP'] ?>"><button class="row-more" type="submit" aria-label="Xóa <?= htmlspecialchars($product['TenSP'], ENT_QUOTES, 'UTF-8') ?>">×</button></form></td>
                                 </tr>
                             <?php endforeach; ?>
                             <?php if ($products === []): ?><tr><td colspan="6" class="muted-cell">Chưa có sản phẩm. Hãy thêm món mới để hiển thị trên cửa hàng.</td></tr><?php endif; ?>
@@ -702,8 +283,8 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                 </section>
                 <section class="stats-grid compact-stats three-stats">
                     <article class="stat-card"><div class="stat-top"><span>Tổng đơn hàng</span><span class="stat-icon revenue-icon">▣</span></div><div class="stat-value"><?= count($orders) ?></div><div class="stat-foot"><span>Đơn trong cơ sở dữ liệu</span></div></article>
-                    <article class="stat-card"><div class="stat-top"><span>Chờ xác nhận</span><span class="stat-icon average-icon">◷</span></div><div class="stat-value"><?= count(array_filter($orders, static fn (array $order): bool => $order['TrangThai'] === 'Chờ xác nhận')) ?></div><div class="stat-foot"><span>Cần xử lý sớm</span></div></article>
-                    <article class="stat-card"><div class="stat-top"><span>Đã hoàn tất</span><span class="stat-icon customer-icon">✓</span></div><div class="stat-value"><?= count(array_filter($orders, static fn (array $order): bool => in_array($order['TrangThai'], ['Hoàn tất', 'Hoàn thành'], true))) ?></div><div class="stat-foot"><span>Đơn đã xử lý</span></div></article>
+                    <article class="stat-card"><div class="stat-top"><span>Chờ xác nhận</span><span class="stat-icon average-icon">◷</span></div><div class="stat-value"><?= count(array_filter($orders, static fn (array $order): bool => AdminController::orderStatus((string) $order['TrangThai']) === 'Chờ xác nhận')) ?></div><div class="stat-foot"><span>Cần xử lý sớm</span></div></article>
+                    <article class="stat-card"><div class="stat-top"><span>Đã hoàn tất</span><span class="stat-icon customer-icon">✓</span></div><div class="stat-value"><?= count(array_filter($orders, static fn (array $order): bool => in_array(AdminController::orderStatus((string) $order['TrangThai']), ['Hoàn tất', 'Hoàn thành'], true))) ?></div><div class="stat-foot"><span>Đơn đã xử lý</span></div></article>
                 </section>
                 <section class="panel table-panel">
                     <div class="panel-heading table-heading"><div><h2>Tất cả đơn hàng</h2><p>Dữ liệu lấy trực tiếp từ cơ sở dữ liệu.</p></div><div class="table-tools"><select class="filter-select" aria-label="Lọc trạng thái"><option>Tất cả trạng thái</option><option>Chờ xác nhận</option><option>Đang giao</option><option>Hoàn tất</option><option>Hoàn thành</option><option>Đã hủy</option></select><button class="button button-outline button-small" type="button" id="orderSearchFocus">⌕ <span class="hide-mobile">Tìm đơn hàng</span></button></div></div>
@@ -712,7 +293,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                             <thead><tr><th>MÃ ĐƠN</th><th>KHÁCH HÀNG</th><th>THỜI GIAN</th><th>SẢN PHẨM</th><th>TỔNG TIỀN</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead>
                             <tbody>
                             <?php foreach ($orders as $order): ?>
-                                <?php $orderStatus = (string) ($order['TrangThai'] ?? 'Chờ xác nhận'); ?>
+                                <?php $rawOrderStatus = (string) ($order['TrangThai'] ?? ''); $orderStatus = AdminController::orderStatus($rawOrderStatus); ?>
                                 <tr data-search-row data-status="<?= htmlspecialchars($orderStatus, ENT_QUOTES, 'UTF-8') ?>">
                                     <td class="order-id">#<?= (int) $order['MaHD'] ?></td>
                                     <td><div class="customer-info"><strong><?= htmlspecialchars($order['TenNguoiNhan'] ?? 'Khách hàng', ENT_QUOTES, 'UTF-8') ?></strong><small><?= htmlspecialchars($order['SdtNguoiNhan'] ?? '', ENT_QUOTES, 'UTF-8') ?></small></div></td>
@@ -723,10 +304,10 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                                     <td>
                                         <?php if (in_array($orderStatus, ['Chờ xác nhận', 'Đang giao'], true)): ?>
                                         <form method="post" action="index.php?page=orders">
-                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
                                             <input type="hidden" name="action" value="advance_order">
                                             <input type="hidden" name="order_id" value="<?= (int) $order['MaHD'] ?>">
-                                            <input type="hidden" name="current_status" value="<?= htmlspecialchars($orderStatus, ENT_QUOTES, 'UTF-8') ?>">
+                                            <input type="hidden" name="current_status" value="<?= htmlspecialchars($rawOrderStatus, ENT_QUOTES, 'UTF-8') ?>">
                                             <button class="button button-outline button-small" type="submit"><?= $orderStatus === 'Chờ xác nhận' ? 'Bắt đầu giao' : 'Hoàn tất' ?></button>
                                         </form>
                                         <?php endif; ?>
@@ -743,7 +324,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
             <?php elseif ($page === 'surveys'): ?>
                 <section class="welcome-row page-title-row survey-welcome">
                     <div><div class="eyebrow">THẤU HIỂU KHÁCH HÀNG</div><h1>Khảo sát ý kiến</h1><p class="page-subtitle">Lắng nghe khách hàng để cải thiện trải nghiệm tại Coffee Blend.</p></div>
-                    <button class="button button-primary" type="button" id="openSurveyDialog"><span aria-hidden="true">＋</span> Tạo khảo sát</button>
+                    <a class="button button-primary" href="surveys/index.php"><span aria-hidden="true">＋</span> Tạo khảo sát</a>
                 </section>
                 <section class="survey-callout">
                     <span class="survey-callout-icon" aria-hidden="true">✦</span>
@@ -794,7 +375,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                                     <td><?= (int) $survey['SoLuotMoi'] ?></td>
                                     <td><div class="response-cell"><strong><?= (int) $survey['SoLuotPhanHoi'] ?></strong><span><?= $responseRate ?>%</span><div class="response-track"><i style="width: <?= $responseRate ?>%"></i></div></div></td>
                                     <td><span class="status status-<?= status_class($surveyStatus) ?>"><i></i><?= htmlspecialchars($surveyStatus, ENT_QUOTES, 'UTF-8') ?></span></td>
-                                    <td></td>
+                                    <td><a class="button button-outline button-small" href="surveys/index.php?survey=<?= (int) $survey['MaKhaoSat'] ?>">Xem kết quả</a></td>
                                 </tr>
                             <?php endforeach; ?>
                             <?php if ($surveys === []): ?><tr><td colspan="7" class="muted-cell">Chưa có khảo sát trong cơ sở dữ liệu.</td></tr><?php endif; ?>
@@ -855,7 +436,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
 <dialog class="product-dialog" id="productDialog">
     <form method="post" action="index.php?page=products" enctype="multipart/form-data" class="dialog-form">
         <div class="dialog-heading"><div><div class="eyebrow">SẢN PHẨM MỚI</div><h2>Thêm sản phẩm</h2></div><button class="icon-button dialog-close" type="button" aria-label="Đóng">×</button></div>
-        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['admin_csrf'], ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
         <input type="hidden" name="action" value="create_product">
         <label>Tên sản phẩm<input name="name" type="text" maxlength="100" placeholder="Ví dụ: Cà phê sữa đá" required></label>
         <div class="dialog-fields">
@@ -865,22 +446,6 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
         <label>Kích cỡ (không bắt buộc)<input name="size" type="text" maxlength="10" placeholder="M, L hoặc mặc định"></label>
         <label>Ảnh sản phẩm (JPG, PNG, WEBP · tối đa 5 MB)<input name="image" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required></label>
         <div class="dialog-actions"><button class="button button-outline dialog-cancel" type="button">Hủy</button><button class="button button-primary" type="submit">Lưu sản phẩm</button></div>
-    </form>
-</dialog>
-<?php endif; ?>
-<?php if ($page === 'surveys'): ?>
-<dialog class="survey-dialog product-dialog" id="surveyDialog">
-    <form method="dialog" class="dialog-form">
-        <div class="dialog-heading"><div><div class="eyebrow">KHẢO SÁT MỚI</div><h2>Tạo khảo sát khách hàng</h2></div><button class="icon-button dialog-close" value="cancel" aria-label="Đóng">×</button></div>
-        <p class="dialog-note">Tạo khảo sát để thu thập ý kiến và cải thiện trải nghiệm khách hàng.</p>
-        <label>Tiêu đề khảo sát<input type="text" maxlength="255" placeholder="Ví dụ: Đánh giá trải nghiệm tháng 10"></label>
-        <label>Mô tả<textarea rows="3" placeholder="Chia sẻ mục đích khảo sát với khách hàng"></textarea></label>
-        <div class="dialog-fields">
-            <label>Ngày bắt đầu<input type="date"></label>
-            <label>Ngày kết thúc<input type="date"></label>
-        </div>
-        <div class="survey-question-preview"><strong>Câu hỏi khảo sát</strong>Phần quản lý câu hỏi sẽ được bổ sung cùng chức năng lưu khảo sát.</div>
-        <div class="dialog-actions"><button class="button button-outline" value="cancel">Hủy</button><button class="button button-primary" id="saveSurveyPreview" value="cancel">Tạo khảo sát</button></div>
     </form>
 </dialog>
 <?php endif; ?>

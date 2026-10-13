@@ -38,6 +38,7 @@ if (!isset($activePage)) {
     <link rel="stylesheet" href="css/flaticon.css">
     <link rel="stylesheet" href="css/icomoon.css">
     <link rel="stylesheet" href="css/style.css?v=20261004-2">
+    <link rel="stylesheet" href="css/product-reviews.css?v=20261013">
   </head>
 
 
@@ -73,6 +74,7 @@ if (!isset($activePage)) {
 	            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUser">
 	              <a class="dropdown-item" href="profile.php">Thông tin cá nhân</a>
 	              <a class="dropdown-item" href="order.php">Đơn hàng của tôi</a>
+	              <a class="dropdown-item" href="surveys.php">Khảo sát của tôi</a>
 	              <a class="dropdown-item" href="logout.php">Đăng xuất</a>
 	            </div>
 	          </li>
