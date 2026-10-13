@@ -72,7 +72,7 @@ if (!isset($activePage)) {
 	            </a>
 	            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUser">
 	              <a class="dropdown-item" href="profile.php">Thông tin cá nhân</a>
-	              <a class="dropdown-item" href="orders.php">Đơn hàng của tôi</a>
+	              <a class="dropdown-item" href="order.php">Đơn hàng của tôi</a>
 	              <a class="dropdown-item" href="logout.php">Đăng xuất</a>
 	            </div>
 	          </li>
