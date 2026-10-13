@@ -324,7 +324,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
             <?php elseif ($page === 'surveys'): ?>
                 <section class="welcome-row page-title-row survey-welcome">
                     <div><div class="eyebrow">THẤU HIỂU KHÁCH HÀNG</div><h1>Khảo sát ý kiến</h1><p class="page-subtitle">Lắng nghe khách hàng để cải thiện trải nghiệm tại Coffee Blend.</p></div>
-                    <a class="button button-primary" href="surveys/index.php"><span aria-hidden="true">＋</span> Tạo khảo sát</a>
+                    <a class="button button-primary" href="#surveyList"><span aria-hidden="true">↓</span> Danh sách khảo sát</a>
                 </section>
                 <section class="survey-callout">
                     <span class="survey-callout-icon" aria-hidden="true">✦</span>
@@ -360,25 +360,24 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                         <div class="focus-foot">Chủ đề góp ý chưa được phân loại trong các bảng hiện tại.</div>
                     </article>
                 </section>
-                <section class="panel table-panel survey-list-panel">
+                <section class="panel table-panel survey-list-panel" id="surveyList">
                     <div class="panel-heading table-heading"><div><h2>Danh sách khảo sát</h2><p>Theo dõi thời gian, lượt mời và tiến độ phản hồi.</p></div><div class="table-tools"><select class="filter-select" id="surveyStatusFilter" aria-label="Lọc trạng thái khảo sát"><option value="">Tất cả trạng thái</option><option value="Đang diễn ra">Đang diễn ra</option><option value="Sắp diễn ra">Sắp diễn ra</option><option value="Đã kết thúc">Đã kết thúc</option><option value="Chưa thiết lập">Chưa thiết lập</option></select><button class="button button-outline button-small" type="button" id="surveySearchFocus">⌕ <span class="hide-mobile">Tìm khảo sát</span></button></div></div>
                     <div class="table-scroll">
                         <table class="data-table survey-table">
-                            <thead><tr><th>KHẢO SÁT</th><th>LOẠI CÂU HỎI</th><th>THỜI GIAN</th><th>LƯỢT MỜI</th><th>PHẢN HỒI</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead>
+                            <thead><tr><th>KHẢO SÁT</th><th>SỐ CÂU HỎI</th><th>THỜI GIAN</th><th>LƯỢT MỜI</th><th>PHẢN HỒI</th><th>TRẠNG THÁI</th></tr></thead>
                             <tbody>
                             <?php foreach ($surveys as $survey): ?>
                                 <?php $responseRate = (int) $survey['SoLuotMoi'] > 0 ? (int) round((int) $survey['SoLuotPhanHoi'] / (int) $survey['SoLuotMoi'] * 100) : 0; $surveyStatus = (string) $survey['TrangThaiTinh']; ?>
                                 <tr data-search-row data-status="<?= htmlspecialchars($surveyStatus, ENT_QUOTES, 'UTF-8') ?>">
-                                    <td><div class="survey-name-cell"><span class="survey-row-icon" aria-hidden="true">▧</span><div><strong><?= htmlspecialchars($survey['TieuDe'], ENT_QUOTES, 'UTF-8') ?></strong><small>#<?= (int) $survey['MaKhaoSat'] ?> · <?= (int) $survey['SoCauHoi'] ?> câu hỏi</small></div></div></td>
+                                    <td><div class="survey-name-cell"><span class="survey-row-icon" aria-hidden="true">▧</span><div><strong><?= htmlspecialchars($survey['TieuDe'], ENT_QUOTES, 'UTF-8') ?></strong><small>#<?= (int) $survey['MaKhaoSat'] ?></small></div></div></td>
                                     <td><?= (int) $survey['SoCauHoi'] ?> câu hỏi</td>
                                     <td class="survey-dates"><?= !empty($survey['NgayBatDau']) ? date('d/m/Y', strtotime((string) $survey['NgayBatDau'])) : '—' ?><small>đến <?= !empty($survey['NgayKetThuc']) ? date('d/m/Y', strtotime((string) $survey['NgayKetThuc'])) : '—' ?></small></td>
                                     <td><?= (int) $survey['SoLuotMoi'] ?></td>
                                     <td><div class="response-cell"><strong><?= (int) $survey['SoLuotPhanHoi'] ?></strong><span><?= $responseRate ?>%</span><div class="response-track"><i style="width: <?= $responseRate ?>%"></i></div></div></td>
                                     <td><span class="status status-<?= status_class($surveyStatus) ?>"><i></i><?= htmlspecialchars($surveyStatus, ENT_QUOTES, 'UTF-8') ?></span></td>
-                                    <td><a class="button button-outline button-small" href="surveys/index.php?survey=<?= (int) $survey['MaKhaoSat'] ?>">Xem kết quả</a></td>
                                 </tr>
                             <?php endforeach; ?>
-                            <?php if ($surveys === []): ?><tr><td colspan="7" class="muted-cell">Chưa có khảo sát trong cơ sở dữ liệu.</td></tr><?php endif; ?>
+                            <?php if ($surveys === []): ?><tr><td colspan="6" class="muted-cell">Chưa có khảo sát trong cơ sở dữ liệu.</td></tr><?php endif; ?>
                             </tbody>
                         </table>
                     </div>
