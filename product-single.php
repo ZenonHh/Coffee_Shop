@@ -118,8 +118,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
               </span>
             </div>
           </div>
-
-          <p><button type="submit" class="btn btn-primary py-3 px-5" style="color:#fff !important;">Thêm vào giỏ</button></p>
+<p><button type="submit" class="btn btn-primary py-3 px-5" style="color:#fff !important;">Thêm vào giỏ - <span id="tong-tien"></span></button></p>
         </form>
       </div>
     </div>
@@ -165,8 +164,9 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
     document.querySelectorAll('.chon-topping:checked').forEach(function (cb) {
       gia += parseInt(cb.dataset.price, 10) || 0;
     });
-    var sl = parseInt(qty.value, 10) || 1;
-    out.textContent = (gia * sl).toLocaleString('vi-VN') + 'đ';
+   var sl = parseInt(qty.value, 10) || 1;
+out.textContent = gia.toLocaleString('vi-VN') + 'đ';
+document.getElementById('tong-tien').textContent = (gia * sl).toLocaleString('vi-VN') + 'đ';
   }
 
   size.addEventListener('change', tinhGia);
