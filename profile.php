@@ -43,7 +43,7 @@ $form = [
     'dia_chi' => $currentUser['DiaChi'] ?? '',
 ];
 
-// 4. Xử lý cập nhật
+// 4. Xử lý cập nhật dữ liệu POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $section = $_POST['section'] ?? '';
 
@@ -55,10 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $form['sdt']    = preg_replace('/[\s.\-]/', '', trim($_POST['sdt'] ?? ''));
         $form['email']  = trim($_POST['email'] ?? '');
 
+        $oldPass     = $_POST['old_password'] ?? '';
+        $newPass     = $_POST['new_password'] ?? '';
+        $confirmPass = $_POST['confirm_password'] ?? '';
+
         if (strpos($form['sdt'], '+84') === 0) {
             $form['sdt'] = '0' . substr($form['sdt'], 3);
         }
 
+        // Kiểm tra thông tin cá nhân
         if ($form['ho_ten'] === '') {
             $errors['ho_ten'] = 'Vui lòng nhập họ và tên.';
         } elseif (mb_strlen($form['ho_ten'], 'UTF-8') > 100) {
@@ -72,20 +77,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($form['email'] !== '' && !filter_var($form['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Email chưa đúng định dạng (ví dụ: ten@gmail.com).';
+            $errors['email'] = 'Email chưa đúng định dạng.';
+        }
+
+        // Kiểm tra mật khẩu (chỉ xác thực khi người dùng nhập ít nhất một ô)
+        if ($oldPass !== '' || $newPass !== '' || $confirmPass !== '') {
+            if ($oldPass === '') {
+                $errors['old_password'] = 'Vui lòng nhập mật khẩu hiện tại.';
+            }
+            if ($newPass === '') {
+                $errors['new_password'] = 'Vui lòng nhập mật khẩu mới.';
+            } elseif (strlen($newPass) < 6) {
+                $errors['new_password'] = 'Mật khẩu mới phải có tối thiểu 6 ký tự.';
+            }
+            if ($newPass !== $confirmPass) {
+                $errors['confirm_password'] = 'Xác nhận mật khẩu mới không khớp.';
+            }
         }
 
         if (!$errors && $formError === '') {
-            $ok = $userModel->updateProfileInfo((int)$userId, $form['ho_ten'], $form['sdt'], $form['email']);
-            if ($ok) {
+            $result = $userModel->updateProfileWithPassword(
+                (int)$userId, 
+                $form['ho_ten'], 
+                $form['sdt'], 
+                $form['email'], 
+                $oldPass, 
+                $newPass
+            );
+
+            if ($result['status']) {
                 $_SESSION['fullname'] = $form['ho_ten'];
                 $_SESSION['sdt']      = $form['sdt'];
                 $_SESSION['email']    = $form['email'];
-                $_SESSION['success']  = 'Đã lưu thông tin cá nhân thành công.';
+                $_SESSION['success']  = $result['msg'];
                 header('Location: profile.php');
                 exit();
             } else {
-                $formError = 'Không thể lưu thay đổi vào CSDL, vui lòng kiểm tra lại.';
+                $formError = $result['error'];
             }
         }
     } elseif ($section === 'address') {
@@ -123,10 +151,9 @@ $initial         = mb_strtoupper(mb_substr($hoTenHienThi, 0, 1, 'UTF-8'), 'UTF-8
 include "src/header.php";
 ?>
 
-<!-- Đã tách CSS sang file riêng -->
-<link rel="stylesheet" href="scss/style.scss">
+<link rel="stylesheet" href="css/profile.css">
 
-<section class="ftco-section contact-section" style="padding: 4em 0;">
+<section class="ftco-section contact-section">
   <div class="container">
 
     <div class="row justify-content-center mb-4">
@@ -138,7 +165,7 @@ include "src/header.php";
 
     <!-- Thông báo lỗi hoặc thành công -->
     <div class="row justify-content-center">
-      <div class="col-md-11">
+      <div class="col-md-12">
         <?php if ($formError !== ''): ?>
           <div class="alert alert-danger text-center" role="alert"><?= h($formError) ?></div>
         <?php endif; ?>
@@ -151,20 +178,17 @@ include "src/header.php";
     <div class="row justify-content-center">
 
       <!-- CỘT TRÁI: AVATAR & MENU -->
-      <div class="col-md-4 mb-4">
+      <div class="col-lg-4 col-md-5 mb-4">
         <div class="pf-card p-4 text-center">
           <div class="pf-avatar"><?= h($initial) ?></div>
           <h4 class="text-white mt-3 mb-1"><?= h($hoTenHienThi) ?></h4>
           <span class="badge badge-warning mb-3 px-3 py-1" style="background-color: #c49b63; color: #000; font-size: 13px;">Thành viên Katinat</span>
 
-          <div class="list-group list-group-flush text-left bg-transparent mt-3 border-top border-secondary pt-2">
-            <a href="profile.php" class="list-group-item list-group-item-action bg-transparent border-0 py-2" style="font-weight:600; color:#c49b63 !important;">
+          <div class="pf-menu list-group list-group-flush text-left bg-transparent mt-3 border-top border-secondary pt-3">
+            <a href="profile.php" class="list-group-item active">
               <span class="icon-user mr-2"></span> Thông tin cá nhân
             </a>
-            <a href="change_password.php" class="list-group-item list-group-item-action bg-transparent text-muted border-0 py-2">
-              <span class="icon-lock mr-2"></span> Đổi mật khẩu
-            </a>
-            <a href="logout.php" class="list-group-item list-group-item-action bg-transparent text-danger border-0 py-2">
+            <a href="logout.php" class="list-group-item text-danger">
               <span class="icon-power-off mr-2"></span> Đăng xuất
             </a>
           </div>
@@ -172,23 +196,31 @@ include "src/header.php";
       </div>
 
       <!-- CỘT PHẢI: CHI TIẾT VÀ SỬA THÔNG TIN -->
-      <div class="col-md-7">
+      <div class="col-lg-8 col-md-7">
 
-        <!-- MỤC 1: THÔNG TIN CÁ NHÂN -->
+        <!-- MỤC 1: THÔNG TIN CÁ NHÂN & ĐỔI MẬT KHẨU -->
         <div class="pf-card p-4 mb-4" data-section="info">
           <div class="pf-head">
-            <h5>Thông tin cá nhân</h5>
+            <h5><span class="icon-id-card mr-2" style="color:#c49b63;"></span> Thông tin tài khoản</h5>
             <button type="button" class="pf-link" data-edit="info" <?= $openSection === 'info' ? 'hidden' : '' ?>>Chỉnh sửa</button>
           </div>
 
           <!-- Chế độ xem -->
           <div data-view="info" <?= $openSection === 'info' ? 'hidden' : '' ?>>
-            <div class="pf-row"><div class="pf-label">Tên đăng nhập</div><div class="pf-value"><?= h($taiKhoanHienThi) ?></div></div>
-            <div class="pf-row"><div class="pf-label">Họ và tên</div><div class="pf-value"><?= h($hoTenHienThi) ?></div></div>
-            <div class="pf-row"><div class="pf-label">Số điện thoại</div>
+            <div class="pf-row">
+              <div class="pf-label">Tên đăng nhập</div>
+              <div class="pf-value" style="color:#c49b63; font-weight:600;"><?= h($taiKhoanHienThi) ?></div>
+            </div>
+            <div class="pf-row">
+              <div class="pf-label">Họ và tên</div>
+              <div class="pf-value"><?= h($hoTenHienThi) ?></div>
+            </div>
+            <div class="pf-row">
+              <div class="pf-label">Số điện thoại</div>
               <div class="pf-value"><?= !empty($sdtHienThi) ? h($sdtHienThi) : '<span class="pf-empty">Chưa cập nhật</span>' ?></div>
             </div>
-            <div class="pf-row"><div class="pf-label">Email</div>
+            <div class="pf-row">
+              <div class="pf-label">Email</div>
               <div class="pf-value"><?= !empty($emailHienThi) ? h($emailHienThi) : '<span class="pf-empty">Chưa cập nhật</span>' ?></div>
             </div>
           </div>
@@ -199,41 +231,74 @@ include "src/header.php";
             <input type="hidden" name="section" value="info">
 
             <div class="form-group mt-3">
-              <label class="text-white" for="f-username">Tên đăng nhập</label>
-              <input id="f-username" type="text" class="form-control" value="<?= h($taiKhoanHienThi) ?>" readonly style="background:rgba(255,255,255,.1); color:#bbb; cursor:not-allowed;">
-              <div class="pf-hint">Tên đăng nhập không thể thay đổi.</div>
+              <label for="f-username">Tên đăng nhập</label>
+              <input id="f-username" type="text" class="form-control" value="<?= h($taiKhoanHienThi) ?>" readonly style="background:rgba(255,255,255,.05) !important; color:#888 !important; cursor:not-allowed;">
+              <div class="pf-hint">Tên đăng nhập cố định không thể thay đổi.</div>
             </div>
 
             <div class="form-group">
-              <label class="text-white" for="f-hoten">Họ và tên <span class="text-danger">*</span></label>
+              <label for="f-hoten">Họ và tên <span class="text-danger">*</span></label>
               <input id="f-hoten" type="text" name="ho_ten" maxlength="100" required autocomplete="name"
                      class="form-control <?= isset($errors['ho_ten']) ? 'pf-invalid' : '' ?>" value="<?= h($form['ho_ten']) ?>">
               <?php if (isset($errors['ho_ten'])): ?><div class="pf-error"><?= h($errors['ho_ten']) ?></div><?php endif; ?>
             </div>
 
             <div class="form-group">
-              <label class="text-white" for="f-sdt">Số điện thoại <span class="text-danger">*</span></label>
+              <label for="f-sdt">Số điện thoại <span class="text-danger">*</span></label>
               <input id="f-sdt" type="tel" name="sdt" inputmode="numeric" maxlength="12" required autocomplete="tel"
                      class="form-control <?= isset($errors['sdt']) ? 'pf-invalid' : '' ?>" value="<?= h($form['sdt']) ?>">
               <?php if (isset($errors['sdt'])): ?><div class="pf-error"><?= h($errors['sdt']) ?></div><?php endif; ?>
             </div>
 
             <div class="form-group">
-              <label class="text-white" for="f-email">Email</label>
+              <label for="f-email">Email</label>
               <input id="f-email" type="email" name="email" maxlength="100" autocomplete="email"
                      class="form-control <?= isset($errors['email']) ? 'pf-invalid' : '' ?>" value="<?= h($form['email']) ?>">
               <?php if (isset($errors['email'])): ?><div class="pf-error"><?= h($errors['email']) ?></div><?php endif; ?>
             </div>
 
-            <button type="submit" class="pf-btn" disabled>Lưu thay đổi</button>
-            <button type="button" class="pf-btn pf-btn-ghost" data-cancel="info">Hủy</button>
+            <!-- CỤM ĐỔI MẬT KHẨU TÍCH HỢP -->
+            <div class="pt-3 mt-4 border-top border-secondary">
+              <h6 class="text-warning mb-2" style="font-size: 14.5px; font-weight: 600;">
+                <span class="icon-lock mr-1"></span> Đổi mật khẩu
+              </h6>
+              <p class="pf-hint mb-3">Bỏ trống các ô bên dưới nếu không muốn đổi mật khẩu.</p>
+
+              <div class="form-group">
+                <label for="f-old-pass">Mật khẩu hiện tại</label>
+                <input id="f-old-pass" type="password" name="old_password" autocomplete="current-password"
+                       class="form-control <?= isset($errors['old_password']) ? 'pf-invalid' : '' ?>" placeholder="Nhập mật khẩu hiện tại nếu muốn đổi">
+                <?php if (isset($errors['old_password'])): ?><div class="pf-error"><?= h($errors['old_password']) ?></div><?php endif; ?>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group col-md-6">
+                  <label for="f-new-pass">Mật khẩu mới</label>
+                  <input id="f-new-pass" type="password" name="new_password" autocomplete="new-password"
+                         class="form-control <?= isset($errors['new_password']) ? 'pf-invalid' : '' ?>" placeholder="Tối thiểu 6 ký tự">
+                  <?php if (isset($errors['new_password'])): ?><div class="pf-error"><?= h($errors['new_password']) ?></div><?php endif; ?>
+                </div>
+
+                <div class="form-group col-md-6">
+                  <label for="f-confirm-pass">Xác nhận mật khẩu mới</label>
+                  <input id="f-confirm-pass" type="password" name="confirm_password" autocomplete="new-password"
+                         class="form-control <?= isset($errors['confirm_password']) ? 'pf-invalid' : '' ?>" placeholder="Nhập lại mật khẩu mới">
+                  <?php if (isset($errors['confirm_password'])): ?><div class="pf-error"><?= h($errors['confirm_password']) ?></div><?php endif; ?>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <button type="submit" class="pf-btn" disabled>Lưu thay đổi</button>
+              <button type="button" class="pf-btn pf-btn-ghost" data-cancel="info">Hủy</button>
+            </div>
           </form>
         </div>
 
         <!-- MỤC 2: ĐỊA CHỈ NHẬN HÀNG -->
         <div class="pf-card p-4" data-section="address">
           <div class="pf-head">
-            <h5>Địa chỉ nhận hàng</h5>
+            <h5><span class="icon-map-marker mr-2" style="color:#c49b63;"></span> Địa chỉ nhận hàng</h5>
             <button type="button" class="pf-link" data-edit="address" <?= $openSection === 'address' ? 'hidden' : '' ?>>
               <?= !empty($diaChiHienThi) ? 'Chỉnh sửa' : 'Thêm địa chỉ' ?>
             </button>
@@ -241,15 +306,16 @@ include "src/header.php";
 
           <!-- Chế độ xem -->
           <div data-view="address" <?= $openSection === 'address' ? 'hidden' : '' ?>>
-            <div class="pf-row">
-              <div class="pf-value">
-                <?php if (!empty($diaChiHienThi)): ?>
-                  <?= nl2br(h($diaChiHienThi)) ?>
-                <?php else: ?>
-                  <span class="pf-empty">Bạn chưa có địa chỉ nhận hàng. Thêm địa chỉ để đặt hàng thuận tiện hơn.</span>
-                <?php endif; ?>
+            <?php if (!empty($diaChiHienThi)): ?>
+              <div class="pf-address-box">
+                <span class="icon-location-arrow mr-2" style="color: #c49b63;"></span>
+                <?= nl2br(h($diaChiHienThi)) ?>
               </div>
-            </div>
+            <?php else: ?>
+              <div class="pf-address-box text-center py-4">
+                <span class="pf-empty">Bạn chưa có địa chỉ nhận hàng. Thêm địa chỉ để đặt hàng thuận tiện hơn.</span>
+              </div>
+            <?php endif; ?>
           </div>
 
           <!-- Chế độ sửa -->
@@ -258,7 +324,7 @@ include "src/header.php";
             <input type="hidden" name="section" value="address">
 
             <div class="form-group mt-3">
-              <label class="text-white" for="f-diachi">Địa chỉ nhận hàng</label>
+              <label for="f-diachi">Địa chỉ nhận hàng</label>
               <textarea id="f-diachi" name="dia_chi" rows="3" maxlength="255" autocomplete="street-address"
                         class="form-control <?= isset($errors['dia_chi']) ? 'pf-invalid' : '' ?>"
                         placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..."><?= h($form['dia_chi']) ?></textarea>
@@ -266,8 +332,10 @@ include "src/header.php";
               <?php if (isset($errors['dia_chi'])): ?><div class="pf-error"><?= h($errors['dia_chi']) ?></div><?php endif; ?>
             </div>
 
-            <button type="submit" class="pf-btn" disabled>Lưu thay đổi</button>
-            <button type="button" class="pf-btn pf-btn-ghost" data-cancel="address">Hủy</button>
+            <div class="mt-4">
+              <button type="submit" class="pf-btn" disabled>Lưu thay đổi</button>
+              <button type="button" class="pf-btn pf-btn-ghost" data-cancel="address">Hủy</button>
+            </div>
           </form>
         </div>
 

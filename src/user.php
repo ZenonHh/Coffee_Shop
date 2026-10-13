@@ -1,4 +1,5 @@
 <?php
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -16,6 +17,7 @@ class User
 
     public function dangky($taiKhoan, $hoTen, $email, $sdt, $matKhau)
     {
+        // Kiểm tra tài khoản hoặc email đã tồn tại chưa
         $sqlCheck = 'SELECT MaKH FROM khachhang WHERE TaiKhoan = ? OR Email = ?';
         $this->data->select_prepare($sqlCheck, 'ss', $taiKhoan, $email);
 
@@ -90,6 +92,43 @@ class User
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    public function updateProfileWithPassword($maKH, $hoTen, $sdt, $email, $matKhauCu = '', $matKhauMoi = '')
+    {
+        // 1. Cập nhật thông tin cơ bản trước
+        $ok = $this->updateProfileInfo($maKH, $hoTen, $sdt, $email);
+        if (!$ok) {
+            return ['status' => false, 'error' => 'Không thể cập nhật thông tin cá nhân.'];
+        }
+
+        // 2. Nếu người dùng không nhập mật khẩu mới -> hoàn thành cập nhật thông tin
+        if (empty($matKhauMoi)) {
+            return ['status' => true, 'msg' => 'Đã lưu thông tin cá nhân thành công.'];
+        }
+
+        // 3. Nếu muốn đổi mật khẩu -> kiểm tra mật khẩu hiện tại
+        $sql = 'SELECT MatKhau FROM khachhang WHERE MaKH = ? LIMIT 1';
+        $this->data->select_prepare($sql, 'i', $maKH);
+        $row = $this->data->fetch();
+
+        if (!$row || !password_verify($matKhauCu, $row['MatKhau'])) {
+            return ['status' => false, 'error' => 'Mật khẩu hiện tại không chính xác.'];
+        }
+
+        // 4. Mã hóa và cập nhật mật khẩu mới
+        $hash = password_hash($matKhauMoi, PASSWORD_DEFAULT);
+        $sqlPass = 'UPDATE khachhang SET MatKhau = ? WHERE MaKH = ?';
+        try {
+            $stmt = $this->data->command_prepare($sqlPass, 'si', $hash, $maKH);
+            if ($stmt && $stmt->execute()) {
+                return ['status' => true, 'msg' => 'Đã cập nhật thông tin và đổi mật khẩu thành công.'];
+            }
+        } catch (Exception $e) {
+            return ['status' => false, 'error' => 'Lỗi CSDL khi cập nhật mật khẩu.'];
+        }
+
+        return ['status' => false, 'error' => 'Không thể cập nhật mật khẩu mới.'];
     }
 
     public function dangxuat()
