@@ -35,6 +35,17 @@ require_once __DIR__ . '/includes/product_review_data.php';
 $productReviewSummaries = app_product_review_summaries($conn, $reviewProductIds);
 
 $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
+$descriptionByCategory = [
+    1 => 'Đậm đà, thơm nồng và phù hợp cho những ai yêu hương vị cà phê nguyên bản.',
+    2 => 'Cà phê pha phin mang hương vị truyền thống, cân bằng và đặc trưng của quán.',
+    3 => 'Cà phê ủ lạnh êm dịu, thanh mát, thích hợp để thưởng thức trong ngày nóng.',
+    4 => 'Matcha thơm dịu, béo nhẹ và mang đến trải nghiệm mới mẻ cho người yêu đồ uống xanh.',
+    5 => 'Trà sữa thơm béo, dễ uống, là lựa chọn lý tưởng cho những phút thư giãn.',
+    6 => 'Trà trái cây thanh mát, kết hợp vị trà nhẹ cùng hương trái cây tự nhiên.',
+    7 => 'Thức uống trái cây tươi mát, nổi bật với màu sắc bắt mắt và vị chua ngọt hài hòa.',
+    8 => 'Món bánh thơm ngon, phù hợp dùng kèm cà phê trong những buổi gặp gỡ và thư giãn.',
+];
+$moTa = $descriptionByCategory[(int) $sp['MaLoaiSP']] ?? 'Một lựa chọn thơm ngon dành cho bạn tại Coffee Blend.';
 ?>
 
 <section class="home-slider owl-carousel">
@@ -46,7 +57,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
           <h1 class="mb-3 mt-5 bread"><?= htmlspecialchars($sp['TenSP']) ?></h1>
           <p class="breadcrumbs">
             <span class="mr-2"><a href="index.php">Trang chủ</a></span>
-            <span class="mr-2"><a href="shop.php">Cửa hàng</a></span>
+            <span class="mr-2"><a href="shop.php">Thực đơn</a></span>
             <span><?= htmlspecialchars($sp['TenLoaiSP']) ?></span>
           </p>
         </div>
@@ -60,6 +71,10 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
     <div class="row">
       <div class="col-lg-6 mb-5 ftco-animate">
         <a href="picture/<?= $hinh ?>" class="image-popup"><img src="picture/<?= $hinh ?>" class="img-fluid" alt="<?= htmlspecialchars($sp['TenSP']) ?>"></a>
+        <div class="product-description mt-4 mb-4">
+          <h4>Mô tả món</h4>
+          <p><?= htmlspecialchars($moTa, ENT_QUOTES, 'UTF-8') ?></p>
+        </div>
         <?php
         $reviewProductId = $maSP;
         $reviewSummary = $productReviewSummaries[$maSP] ?? ['ReviewCount' => 0, 'AverageRating' => 0];

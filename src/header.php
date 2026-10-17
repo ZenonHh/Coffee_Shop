@@ -45,25 +45,16 @@ if (!isset($activePage)) {
   <body>
 	<nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
 	    <div class="container">
-	      <a class="navbar-brand" href="index.php">Coffee<small>Blend</small></a>
+	      <a class="navbar-brand" href="index.php">Katinat<small>Coffee</small></a>
 	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
 	        <span class="oi oi-menu"></span> Menu
 	      </button>
 	      <div class="collapse navbar-collapse" id="ftco-nav">
 	        <ul class="navbar-nav ml-auto">
 	          <li class="nav-item <?= $activePage === 'home' ? 'active' : '' ?>"><a href="index.php" class="nav-link">Trang chủ</a></li>
-	          <li class="nav-item <?= $activePage === 'menu' ? 'active' : '' ?>"><a href="menu.php" class="nav-link">Thực đơn</a></li>
+	          <li class="nav-item <?= $activePage === 'shop' ? 'active' : '' ?>"><a href="shop.php" class="nav-link">Thực đơn</a></li>
 	          <li class="nav-item <?= $activePage === 'blog' ? 'active' : '' ?>"><a href="blog.php" class="nav-link">Bài viết</a></li>
 	          <li class="nav-item <?= $activePage === 'about' ? 'active' : '' ?>"><a href="about.php" class="nav-link">Giới thiệu</a></li>
-	          <li class="nav-item dropdown <?= $activePage === 'shop' ? 'active' : '' ?>">
-              <a class="nav-link dropdown-toggle" href="shop.php" id="dropdown04" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Cửa hàng</a>
-              <div class="dropdown-menu" aria-labelledby="dropdown04">
-              	<a class="dropdown-item" href="shop.php">Cửa hàng</a>
-                <a class="dropdown-item" href="product-single.php">Sản phẩm</a>
-                <a class="dropdown-item" href="cart.php">Giỏ hàng</a>
-                <a class="dropdown-item" href="checkout.php">Thanh toán</a>
-              </div>
-            </li>
 	          <li class="nav-item <?= $activePage === 'contact' ? 'active' : '' ?>"><a href="contact.php" class="nav-link">Liên hệ</a></li>
 	          <li class="nav-item cart"><a href="cart.php" class="nav-link"><span class="icon icon-shopping_cart"></span><span class="bag d-flex justify-content-center align-items-center"><small>1</small></span></a></li>
 	          <?php if (isset($_SESSION['user_id'])): ?>

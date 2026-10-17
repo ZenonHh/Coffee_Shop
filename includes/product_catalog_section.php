@@ -3,8 +3,8 @@
         <div class="row justify-content-center mb-5">
             <div class="col-md-8 heading-section text-center">
                 <span class="subheading">Coffee Blend</span>
-                <h2 class="mb-4">Thực đơn</h2>
-                <p>Chọn món yêu thích và kích cỡ phù hợp.</p>
+                <h2 class="mb-4">Thực đơn &amp; sản phẩm</h2>
+                <p>Chọn món, xem thông tin kích cỡ và giá bán để đặt hàng.</p>
             </div>
         </div>
         <?php if ($catalogGroups === []): ?>
