@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 13, 2026 at 07:48 AM
+-- Generation Time: Oct 13, 2026 at 10:51 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -359,7 +359,7 @@ CREATE TABLE `hoadon` (
 --
 
 INSERT INTO `hoadon` (`MaHD`, `MaCaLam`, `MaKH`, `MaNV`, `MaCTKM`, `LoaiDonHang`, `TongTien`, `TienGiamGia`, `TrangThai`, `NgayTao`, `PhiGiao`, `HoTenNguoiNhan`, `SdtNguoiNhan`, `DiaChiGiao`, `GhiChu`, `TamTinh`) VALUES
-(2, NULL, 1, NULL, NULL, '1', 105000.00, 0.00, '0', '2026-10-12 09:26:09', 0, 'nguyen van a', '0909090909', '120 yen lang thanh pho ha noi', NULL, 105000);
+(2, NULL, 1, NULL, NULL, '1', 105000.00, 0.00, 'Hoàn tất', '2026-10-12 09:26:09', 0, 'nguyen van a', '0909090909', '120 yen lang thanh pho ha noi', NULL, 105000);
 
 -- --------------------------------------------------------
 
@@ -376,15 +376,17 @@ CREATE TABLE `khachhang` (
   `Email` varchar(100) DEFAULT NULL,
   `DiemTichLuy` int(11) DEFAULT 0,
   `HangTV` varchar(20) DEFAULT 'Đồng',
-  `NgayTao` datetime DEFAULT current_timestamp()
+  `NgayTao` datetime DEFAULT current_timestamp(),
+  `DiaChi` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `khachhang`
 --
 
-INSERT INTO `khachhang` (`MaKH`, `TaiKhoan`, `MatKhau`, `HoTen`, `Sdt`, `Email`, `DiemTichLuy`, `HangTV`, `NgayTao`) VALUES
-(1, 'user01', '$2y$10$x0gqtT./APiYudtODvg/IewGSv2PxjNDxDWQVq8GuMcz7mGeL8Yxy', 'nguyen van a', '0909090909', '', 0, 'Đồng', '2026-10-06 14:44:33');
+INSERT INTO `khachhang` (`MaKH`, `TaiKhoan`, `MatKhau`, `HoTen`, `Sdt`, `Email`, `DiemTichLuy`, `HangTV`, `NgayTao`, `DiaChi`) VALUES
+(1, 'user01', '$2y$10$x0gqtT./APiYudtODvg/IewGSv2PxjNDxDWQVq8GuMcz7mGeL8Yxy', 'nguyen van a', '0909090909', '', 0, 'Đồng', '2026-10-06 14:44:33', NULL),
+(2, 'user02', '$2y$10$EntbLUusT30vc/LeUP.3RegMY4E8djOnX6ojiS9ehBwkGDMxiD88.', 'Nguyen van b', '0909090909222', 'user02@gmail.com', 0, 'Đồng', '2026-10-13 13:35:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -625,6 +627,13 @@ CREATE TABLE `taikhoan` (
   `TrangThai` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `taikhoan`
+--
+
+INSERT INTO `taikhoan` (`MaTaiKhoan`, `MaVaiTro`, `TenDangNhap`, `MatKhau`, `HoTen`, `TrangThai`) VALUES
+(4, 4, 'admin', '$2y$10$k23UXslDcs947rkCallV5OIgKO6A2HZCBtD9WUev7buorq8oVtz1i', 'Quản trị viên', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -659,6 +668,13 @@ CREATE TABLE `vaitro` (
   `TenVaiTro` varchar(50) NOT NULL,
   `MoTa` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vaitro`
+--
+
+INSERT INTO `vaitro` (`MaVaiTro`, `TenVaiTro`, `MoTa`) VALUES
+(4, 'Admin', 'Quản trị hệ thống');
 
 -- --------------------------------------------------------
 
@@ -991,7 +1007,7 @@ ALTER TABLE `hoadon`
 -- AUTO_INCREMENT for table `khachhang`
 --
 ALTER TABLE `khachhang`
-  MODIFY `MaKH` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `MaKH` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `khaosat`
@@ -1063,7 +1079,7 @@ ALTER TABLE `sanpham`
 -- AUTO_INCREMENT for table `taikhoan`
 --
 ALTER TABLE `taikhoan`
-  MODIFY `MaTaiKhoan` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaTaiKhoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `thanhtoan`
@@ -1075,7 +1091,7 @@ ALTER TABLE `thanhtoan`
 -- AUTO_INCREMENT for table `vaitro`
 --
 ALTER TABLE `vaitro`
-  MODIFY `MaVaiTro` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaVaiTro` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `voucher`

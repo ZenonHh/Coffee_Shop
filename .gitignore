@@ -6,3 +6,5 @@ tmp/
 .vscode/
 Thumbs.db
 Desktop.ini
+.DS_Store
+config.local.php

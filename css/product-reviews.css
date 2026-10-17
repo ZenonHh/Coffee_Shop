@@ -1,0 +1,145 @@
+.product-review {
+  margin-top: 12px;
+  padding: 12px;
+  color: #e8dfd7;
+  background: #1e1b18;
+  border: 1px solid rgba(196, 155, 99, .55);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.product-review__summary,
+.product-review__choices {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.product-review__summary {
+  flex-wrap: wrap;
+  margin-bottom: 9px;
+  color: #e8dfd7;
+  font-size: 12px;
+}
+
+.product-review__stars {
+  color: #c49b63;
+  letter-spacing: 1px;
+}
+
+.product-review__rating {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+}
+
+.product-review__rating legend {
+  margin-bottom: 3px;
+  color: #e8dfd7;
+  font-size: 12px;
+}
+
+.product-review__choices {
+  justify-content: flex-end;
+  gap: 2px;
+}
+
+.product-review__choices label {
+  margin: 0;
+  color: #71675c;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.product-review__choices input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.product-review__choices label:hover,
+.product-review__choices label:hover ~ label,
+.product-review__choices label.is-selected {
+  color: #c49b63;
+}
+
+.product-review__choices input:focus-visible + span {
+  outline: 2px solid #f2d4a8;
+  outline-offset: 2px;
+}
+
+.product-review__form textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 54px;
+  margin-bottom: 8px;
+  padding: 8px;
+  color: #f4eee7;
+  background: #121110;
+  border: 1px solid #51483e;
+  border-radius: 6px;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.product-review__form textarea::placeholder {
+  color: #b9ada0;
+}
+
+.product-review__submit {
+  padding: 7px 10px;
+  color: #171411;
+  background: #c49b63;
+  border: 0;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.product-review__submit:hover,
+.product-review__submit:focus {
+  background: #d6ad78;
+}
+
+.product-review__login,
+.product-review__notice {
+  margin: 6px 0;
+  color: #e8dfd7;
+  font-size: 12px;
+}
+
+.product-review__login a {
+  color: #e1bd8a;
+  text-decoration: underline;
+}
+
+.product-review__notice {
+  color: #e1bd8a;
+}
+
+.product-review__recent {
+  margin-top: 9px;
+  font-size: 12px;
+}
+
+.product-review__recent summary {
+  color: #e1bd8a;
+  cursor: pointer;
+}
+
+.product-review__entry {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(196, 155, 99, .2);
+}
+
+.product-review__entry p {
+  margin: 4px 0 0;
+  color: #ddd4cb;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}

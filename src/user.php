@@ -23,40 +23,41 @@ class User
 
         if ($this->data->numRows() > 0) {
             $_SESSION['error'] = 'Tên đăng nhập hoặc email đã tồn tại!';
-            return false;
+            header('Location: register.php');
+            exit();
         }
 
         $hash = password_hash($matKhau, PASSWORD_DEFAULT);
         $sqlInsert = 'INSERT INTO khachhang (TaiKhoan, MatKhau, HoTen, Email, Sdt) VALUES (?, ?, ?, ?, ?)';
-        
-        try {
-            $stmt = $this->data->command_prepare($sqlInsert, 'sssss', $taiKhoan, $hash, $hoTen, $email, $sdt);
-            if ($stmt && $stmt->execute()) {
-                return true;
-            }
-        } catch (Exception $e) {
-            $_SESSION['error'] = 'Lỗi CSDL: ' . $e->getMessage();
+        $ok = $this->data->command_prepare($sqlInsert, 'sssss', $taiKhoan, $hash, $hoTen, $email, $sdt)->execute();
+
+        if ($ok) {
+            $_SESSION['success'] = 'Đăng ký thành công! Vui lòng đăng nhập.';
+            header('Location: login.php');
+            exit();
         }
 
-        return false;
+        $_SESSION['error'] = 'Đăng ký thất bại, vui lòng thử lại.';
+        header('Location: register.php');
+        exit();
     }
 
     public function dangnhap($taiKhoan, $matKhau)
     {
-        $sql = 'SELECT MaKH, TaiKhoan, MatKhau, HoTen, Email, Sdt, DiaChi, DiemTichLuy, HangTV FROM khachhang WHERE TaiKhoan = ?';
+        $sql = 'SELECT MaKH, TaiKhoan, MatKhau, HoTen, DiemTichLuy, HangTV FROM khachhang WHERE TaiKhoan = ?';
         $this->data->select_prepare($sql, 's', $taiKhoan);
         $row = $this->data->fetch();
 
         if ($row && password_verify($matKhau, $row['MatKhau'])) {
-            $_SESSION['user_id']   = $row['MaKH'];
-            $_SESSION['username']  = $row['TaiKhoan'];
-            $_SESSION['fullname']  = $row['HoTen'];
-            $_SESSION['email']     = $row['Email'] ?? '';
-            $_SESSION['sdt']       = $row['Sdt'] ?? '';
-            $_SESSION['dia_chi']   = $row['DiaChi'] ?? '';
-            $_SESSION['diem']      = $row['DiemTichLuy'] ?? 0;
-            $_SESSION['hang']      = $row['HangTV'] ?? 'Thành viên';
-            header('Location: index.php');
+            session_regenerate_id(true);
+            $_SESSION['user_id'] = $row['MaKH'];
+            $_SESSION['username'] = $row['TaiKhoan'];
+            $_SESSION['fullname'] = $row['HoTen'];
+            $_SESSION['diem'] = $row['DiemTichLuy'];
+            $_SESSION['hang'] = $row['HangTV'];
+            $redirectAfterLogin = $_SESSION['customer_redirect_after_login'] ?? null;
+            unset($_SESSION['customer_redirect_after_login']);
+            header('Location: ' . ($redirectAfterLogin === 'surveys.php' ? 'surveys.php' : 'index.php'));
             exit();
         }
 
@@ -133,8 +134,8 @@ class User
 
     public function dangxuat()
     {
-        $_SESSION = [];
-        session_destroy();
+        unset($_SESSION['user_id'], $_SESSION['username'], $_SESSION['fullname'], $_SESSION['diem'], $_SESSION['hang']);
+        session_regenerate_id(true);
         header('Location: index.php');
         exit();
     }

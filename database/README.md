@@ -1,14 +1,22 @@
-# SQL Server setup
+# MySQL database
 
-1. Confirm that the `Coffee_Shop_DB` database and the tables from `Coffee_Shop_DB.sql` exist.
-2. Open `migrations/20261006_storefront.sql` in SQL Server Management Studio and execute it against `Coffee_Shop_DB`. It adds product image and delivery-recipient columns, then creates the storefront categories if they do not already exist.
-3. Keep database credentials in the ignored root `config.local.php` file. A safe template is available in `config.example.php`.
-4. Set a local admin password hash in `config.local.php`. Generate one with:
+The application uses the `coffee_shop_db` MySQL database through XAMPP.
 
-   ```powershell
-   C:\Xampp\php\php.exe -r "echo password_hash('Choose-A-Strong-Local-Password', PASSWORD_DEFAULT), PHP_EOL;"
-   ```
+## Initialize a new database
 
-5. Visit `admin/index.php`, sign in with the configured admin username and password, and add products. Product images can also be selected from the existing `images/` folder. The SQL source script contains no product rows, so the menu stays empty until products exist in the database.
+1. Create the database with `utf8mb4` encoding.
+2. Import [`coffee_shop_db.sql`](coffee_shop_db.sql) using phpMyAdmin or the MySQL CLI.
+3. Set the local connection options in the root `config.local.php` file. Do not add local credentials to source control.
 
-The customer menu only lists products with an active `TrangThai`; prices and order totals are read from SQL Server. Product uploads are stored in `images/`. Checkout requires the migration columns and saves the order and its detail rows in one transaction.
+## Existing databases
+
+Apply the SQL files in `migrations/` in filename order when they have not already been applied:
+
+- `20261006_customer_management.sql`: customer account status and email fields.
+- `20261008_crm_surveys.sql`: customer profile fields and survey invitation uniqueness.
+- `20261008_product_variants.sql`: product-size variants and the optional order-detail variant reference. On older schemas, it backfills variants from legacy product size/price columns without dropping those columns.
+- `20261013_staff_accounts.sql`: staff account updates.
+
+The product-variant migration is safe to rerun. Review a database backup before applying schema migrations to production data.
+
+The root `connect.php` provides the PDO connection used by storefront/CRM code. `database/connect.php` retains the MySQLi adapter required by the existing product and admin models.

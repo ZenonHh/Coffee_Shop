@@ -97,10 +97,6 @@
 
     var productDialog = document.getElementById('productDialog');
     var openProductDialog = document.getElementById('openProductDialog');
-    var surveyDialog = document.getElementById('surveyDialog');
-    var openSurveyDialog = document.getElementById('openSurveyDialog');
-    var saveSurveyPreview = document.getElementById('saveSurveyPreview');
-
     if (productDialog && openProductDialog) {
         openProductDialog.addEventListener('click', function () {
             productDialog.showModal();
@@ -111,16 +107,6 @@
             button.addEventListener('click', function () {
                 productDialog.close();
             });
-        });
-    }
-    if (surveyDialog && openSurveyDialog) {
-        openSurveyDialog.addEventListener('click', function () {
-            surveyDialog.showModal();
-        });
-    }
-    if (saveSurveyPreview && surveyDialog) {
-        saveSurveyPreview.addEventListener('click', function () {
-            showToast('Đây là giao diện mẫu. Khảo sát chưa được tạo.');
         });
     }
 
