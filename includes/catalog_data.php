@@ -12,8 +12,12 @@ $categoryStatement = $conn->prepare(
 $categoryStatement->execute();
 $catalogGroups = [];
 foreach ($categoryStatement->fetchAll() as $category) {
+    $categoryName = trim((string) $category['TenLoaiSP']);
+    if ($categoryName === 'Fruit Boost') {
+        $categoryName = 'Thức uống đặc biệt';
+    }
     $catalogGroups[(int) $category['MaLoaiSP']] = [
-        'name' => $category['TenLoaiSP'],
+        'name' => $categoryName,
         'products' => [],
     ];
 }

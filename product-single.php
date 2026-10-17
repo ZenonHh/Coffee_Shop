@@ -8,10 +8,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 include "database/connect.php";
-include "src/header.php";
-include "src/products.php";
 
-// Tự động nhận diện biến kết nối database
+// =========================================================================
+// 1. ĐỒNG BỘ TOÀN BỘ BIẾN KẾT NỐI DATABASE VÀO GLOBALS
+// =========================================================================
 if (!isset($conn) || !($conn instanceof mysqli)) {
     if (isset($connect) && ($connect instanceof mysqli)) {
         $conn = $connect;
@@ -36,19 +36,38 @@ if (!isset($conn) || !($conn instanceof mysqli)) {
     }
 }
 
+// Gán đồng thời vào cả $GLOBALS['conn'] và $GLOBALS['connect'] để các Model không bị null
+$GLOBALS['conn'] = $conn;
+$GLOBALS['connect'] = $conn;
+
+include "src/products.php";
+
 $maSP = (int)($_GET['id'] ?? 0);
 
 $productModel = new Product();
 $sp = $maSP > 0 ? $productModel->getById($maSP) : null;
 $bienThe = $sp ? $productModel->getVariants($maSP) : [];
 
-if (!$sp || empty($bienThe)) {
+// NẾU MÓN CÓ TRONG MENU NHƯNG CHƯA CÓ BIẾN THỂ SIZE TRONG BẢNG BienThe:
+// TỰ ĐỘNG TẠO 1 SIZE TIÊU CHUẨN ĐỂ KHÔNG BỊ LỖI DỪNG TRANG
+if ($sp && empty($bienThe)) {
+    $bienThe = [
+        [
+            'MaBienThe' => 0,
+            'KichCo'    => !empty($sp['KichCo']) ? $sp['KichCo'] : 'Tiêu chuẩn',
+            'GiaBan'    => (float)($sp['GiaBan'] ?? 0)
+        ]
+    ];
+}
+
+// Nếu thực sự không tìm thấy sản phẩm trong CSDL -> Chuyển về shop.php an toàn
+if (!$sp) {
     header('Location: shop.php');
     exit;
 }
 
 // =========================================================================
-// BACKEND: XỬ LÝ LƯU ĐÁNH GIÁ (ÁP DỤNG POST/REDIRECT/GET CHỐNG RESUBMISSION)
+// 2. XỬ LÝ LƯU ĐÁNH GIÁ (POST / REDIRECT / GET CHỐNG GỬI LẶP KHI F5)
 // =========================================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gui_danh_gia'])) {
     if (!$conn || !($conn instanceof mysqli)) {
@@ -108,22 +127,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['gui_danh_gia'])) {
                 }
                 $stmtPH->close();
             } else {
-                $_SESSION['review_error'] = 'Lỗi chuẩn bị truy vấn: ' . $conn->error;
+                $_SESSION['review_error'] = 'Lỗi truy vấn: ' . $conn->error;
             }
         }
     }
 
-    // CHUYỂN HƯỚNG BẰNG GET ĐỂ TRÁNH TRÌNH DUYỆT GỬI LẠI FORM KHI F5
     header("Location: product-single.php?id=" . $maSP . "#phan-danh-gia");
     exit;
 }
 
-// Lấy thông báo từ session và xóa đi
+// =========================================================================
+// 3. NẠP HEADER SAU KHI ĐÃ ĐẢM BẢO DỮ LIỆU SẢN PHẨM HỢP LỆ
+// =========================================================================
+include "src/header.php";
+
 $reviewSuccess = $_SESSION['review_success'] ?? '';
 $reviewError   = $_SESSION['review_error'] ?? '';
 unset($_SESSION['review_success'], $_SESSION['review_error']);
 
-// Tải danh sách đánh giá của sản phẩm này
+// Tải danh sách đánh giá từ bảng PhanHoi
 $reviewsList = [];
 $totalRatingSum = 0;
 
@@ -150,19 +172,42 @@ if ($conn && ($conn instanceof mysqli)) {
 $reviewCount = count($reviewsList);
 $avgRating = $reviewCount > 0 ? round($totalRatingSum / $reviewCount, 1) : 5.0;
 
-// Topping
+// Topping (nếu có class Topping)
 $toppingList = [];
-if (defined('MA_LOAI_CO_TOPPING') && in_array((int)$sp['MaLoaiSP'], MA_LOAI_CO_TOPPING, true)) {
-    $toppingList = (new Topping())->getAll();
+if (defined('MA_LOAI_CO_TOPPING') && is_array(MA_LOAI_CO_TOPPING) && isset($sp['MaLoaiSP']) && in_array((int)$sp['MaLoaiSP'], MA_LOAI_CO_TOPPING, true)) {
+    if (class_exists('Topping')) {
+        try {
+            $toppingList = (new Topping())->getAll() ?: [];
+        } catch (Throwable $e) {
+            $toppingList = [];
+        }
+    }
 }
 
-// Sản phẩm liên quan
-$lienQuan = array_filter(
-    $productModel->getByCategory($sp['MaLoaiSP']),
-    fn($r) => (int)$r['MaSP'] !== $maSP
-);
+// Sản phẩm liên quan (kiểm tra an toàn kiểu mảng)
+$rawLienQuan = (isset($sp['MaLoaiSP']) && method_exists($productModel, 'getByCategory')) 
+    ? $productModel->getByCategory($sp['MaLoaiSP']) 
+    : [];
+
+$lienQuan = is_array($rawLienQuan) ? array_filter(
+    $rawLienQuan,
+    fn($r) => (int)($r['MaSP'] ?? 0) !== $maSP
+) : [];
 $lienQuan = array_slice($lienQuan, 0, 4);
+
 $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
+
+$descriptionByCategory = [
+    1 => 'Đậm đà, thơm nồng và phù hợp cho những ai yêu hương vị cà phê nguyên bản.',
+    2 => 'Cà phê pha phin mang hương vị truyền thống, cân bằng và đặc trưng của quán.',
+    3 => 'Cà phê ủ lạnh êm dịu, thanh mát, thích hợp để thưởng thức trong ngày nóng.',
+    4 => 'Matcha thơm dịu, béo nhẹ và mang đến trải nghiệm mới mẻ cho người yêu đồ uống xanh.',
+    5 => 'Trà sữa thơm béo, dễ uống, là lựa chọn lý tưởng cho những phút thư giãn.',
+    6 => 'Trà trái cây thanh mát, kết hợp vị trà nhẹ cùng hương trái cây tự nhiên.',
+    7 => 'Thức uống trái cây tươi mát, nổi bật với màu sắc bắt mắt và vị chua ngọt hài hòa.',
+    8 => 'Món bánh thơm ngon, phù hợp dùng kèm cà phê trong những buổi gặp gỡ và thư giãn.',
+];
+$moTa = !empty($sp['MoTa']) ? $sp['MoTa'] : ($descriptionByCategory[(int)($sp['MaLoaiSP'] ?? 1)] ?? 'Một lựa chọn thơm ngon dành cho bạn tại Coffee Blend.');
 ?>
 
 <section class="home-slider owl-carousel">
@@ -174,8 +219,8 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
           <h1 class="mb-3 mt-5 bread"><?= htmlspecialchars($sp['TenSP']) ?></h1>
           <p class="breadcrumbs">
             <span class="mr-2"><a href="index.php">Trang chủ</a></span>
-            <span class="mr-2"><a href="shop.php">Cửa hàng</a></span>
-            <span><?= htmlspecialchars($sp['TenLoaiSP']) ?></span>
+            <span class="mr-2"><a href="shop.php">Thực đơn</a></span>
+            <span><?= htmlspecialchars($sp['TenLoaiSP'] ?? 'Đồ uống') ?></span>
           </p>
         </div>
       </div>
@@ -186,12 +231,21 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
 <section class="ftco-section">
   <div class="container">
     <div class="row">
+      <!-- Cột trái: Ảnh và mô tả món -->
       <div class="col-lg-6 mb-5 ftco-animate">
         <a href="picture/<?= $hinh ?>" class="image-popup">
-          <img src="picture/<?= $hinh ?>" class="img-fluid" style="border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,0.15);" alt="<?= htmlspecialchars($sp['TenSP']) ?>">
+          <img src="picture/<?= $hinh ?>" class="img-fluid" style="border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.25);" alt="<?= htmlspecialchars($sp['TenSP']) ?>">
         </a>
+
+        <?php if (!empty($moTa)): ?>
+        <div class="product-description mt-4 mb-4" style="background:rgba(255,255,255,0.03);padding:15px 20px;border-left:3px solid #c49b63;border-radius:4px;">
+          <h4 style="color:#c49b63;font-size:1.1rem;margin-bottom:8px;">Mô tả món</h4>
+          <p style="color:#bbb;margin-bottom:0;line-height:1.6;"><?= nl2br(htmlspecialchars($moTa, ENT_QUOTES, 'UTF-8')) ?></p>
+        </div>
+        <?php endif; ?>
       </div>
 
+      <!-- Cột phải: Chọn size, topping, số lượng -->
       <div class="col-lg-6 product-details pl-md-5 ftco-animate">
         <h3><?= htmlspecialchars($sp['TenSP']) ?></h3>
         
@@ -207,6 +261,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
         <form action="cart.php" method="post" id="form-them-gio">
           <input type="hidden" name="MaSP" value="<?= $maSP ?>">
 
+          <!-- Chọn size -->
           <div class="row mt-4">
             <div class="col-md-6">
               <label class="font-weight-bold">Kích cỡ</label>
@@ -225,6 +280,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
             </div>
           </div>
 
+          <!-- Chọn topping -->
           <?php if (!empty($toppingList)): ?>
             <div class="mb-3">
               <label class="font-weight-bold d-block">Thêm topping</label>
@@ -241,6 +297,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
             </div>
           <?php endif; ?>
 
+          <!-- Số lượng -->
           <div class="row">
             <div class="input-group col-md-6 d-flex mb-3">
               <span class="input-group-btn mr-2">
@@ -264,7 +321,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
 </section>
 
 <!-- ========================================================================= -->
-<!-- PHẦN ĐÁNH GIÁ MÓN NƯỚC                                                   -->
+<!-- KHU VỰC ĐÁNH GIÁ & NHẬN XÉT CỦA MÓN ĐỒ UỐNG                                -->
 <!-- ========================================================================= -->
 <section class="ftco-section pt-0" id="phan-danh-gia">
   <div class="container">
@@ -294,6 +351,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
           <?php endif; ?>
 
           <div class="row">
+            <!-- Form gửi nhận xét -->
             <div class="col-lg-5 mb-5 mb-lg-0">
               <div style="background:#1c1611;padding:25px;border-radius:10px;border:1px solid #3d2c1c;">
                 <h4 style="color:#c49b63;font-size:1.15rem;margin-bottom:15px;font-weight:600;">Gửi cảm nhận của bạn</h4>
@@ -337,6 +395,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
               </div>
             </div>
 
+            <!-- Danh sách nhận xét -->
             <div class="col-lg-7">
               <h4 style="color:#fff;font-size:1.15rem;margin-bottom:20px;font-weight:600;">
                 Nhận xét gần đây (<?= $reviewCount ?>)
@@ -385,6 +444,7 @@ $hinh = htmlspecialchars($sp['HinhAnh'] ?? 'menu-1.jpg');
   </div>
 </section>
 
+<!-- Script tương tác chọn sao -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const stars = document.querySelectorAll('.star-item');
