@@ -6,6 +6,8 @@ extract($viewData, EXTR_SKIP);
 
 $feedback = $feedback ?? [];
 $surveys  = $surveys ?? [];
+$accounts = $accounts ?? [];
+$roles    = $roles ?? [];
 
 function money(int|float|string $amount): string
 {
@@ -14,7 +16,7 @@ function money(int|float|string $amount): string
 
 function status_class(string $status): string
 {
-    if (in_array($status, ['Hoàn thành', 'Hoàn tất', 'Đang bán', 'Thân thiết', 'Đang diễn ra', 'Đang mở', 'Đã xử lý', 'Đã duyệt'], true)) {
+    if (in_array($status, ['Hoàn thành', 'Hoàn tất', 'Đang bán', 'Thân thiết', 'Đang diễn ra', 'Đang mở', 'Đã xử lý', 'Đã duyệt', 'Hoạt động'], true)) {
         return 'success';
     }
     if (in_array($status, ['Đang giao', 'Đang chuẩn bị', 'Thành viên'], true)) {
@@ -23,7 +25,7 @@ function status_class(string $status): string
     if (in_array($status, ['Chờ xác nhận', 'Sắp hết', 'Sắp diễn ra', 'Chờ xử lý', 'Chưa xử lý'], true)) {
         return 'warning';
     }
-    if (in_array($status, ['Đã hủy', 'Hết hàng', 'Đã kết thúc', 'Đã ẩn'], true)) {
+    if (in_array($status, ['Đã hủy', 'Hết hàng', 'Đã kết thúc', 'Đã ẩn', 'Đã khóa'], true)) {
         return 'muted';
     }
     return 'muted';
@@ -94,6 +96,11 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
             nav_link('customers', 'Khách hàng', '♙', $page);
             nav_link('reviews', 'Đánh giá món uống', '★', $page);
             nav_link('surveys', 'Khảo sát ý kiến', '▧', $page);
+            // MỤC TÀI KHOẢN VÀ PHÂN QUYỀN TRÊN MENU CHÍNH
+           
+            if (strcasecmp($adminRoleName ?? '', 'Admin') === 0) {
+                nav_link('accounts', 'Tài khoản', '👤', $page);
+            }
             ?>
         </nav>
 
@@ -196,7 +203,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                         <div class="chart-summary"><strong><?= money($dashboard['revenue_week']) ?></strong>
                             <?php if ($revenueChange !== null): ?><span class="<?= $revenueChange >= 0 ? 'trend-up' : 'trend-down' ?>"><?= $revenueChange >= 0 ? '↗' : '↘' ?> <?= number_format(abs($revenueChange), 1, ',', '.') ?>%</span><small>so với 7 ngày trước đó</small><?php else: ?><small>Chưa có dữ liệu 7 ngày trước đó để so sánh.</small><?php endif; ?>
                         </div>
-                        <div class="chart" role="img" aria-label="Biểu đồ doanh thu trong tuần: thứ Hai đến Chủ nhật">
+                        <div class="chart" role="img" aria-label="Biểu đồ doanh thu trong tuần">
                             <div class="chart-y-axis"><?php for ($tick = 4; $tick >= 0; $tick--): ?><span><?= number_format($revenueAxisMaximum * $tick / 4 / 1000000, 1, ',', '.') ?>tr</span><?php endfor; ?></div>
                             <div class="chart-plot">
                                 <div class="chart-grid-lines"><i></i><i></i><i></i><i></i><i></i></div>
@@ -217,7 +224,6 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                             <div class="category-row"><span class="category-dot dot-other"></span><span><?= htmlspecialchars($categorySale['TenLoaiSP'], ENT_QUOTES, 'UTF-8') ?></span><strong><?= $soldCount ?></strong><div class="mini-track"><i style="width: <?= $barWidth ?>%"></i></div><small><?= $share ?>%</small></div>
                             <?php endforeach; ?>
                         </div>
-                        <?php if ($dashboard['products_sold'] === 0): ?><div class="category-note">Chưa có sản phẩm nào trong chi tiết hóa đơn.</div><?php endif; ?>
                     </article>
                 </section>
 
@@ -428,9 +434,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                             <p>Toàn bộ bình luận, đánh giá sao của từng khách hàng cho sản phẩm.</p>
                         </div>
                         
-                        <!-- ==================== BỘ LỌC THEO NGÀY & SỐ SAO ==================== -->
                         <div class="table-tools" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;">
-                            <!-- 1. Lọc nhanh theo mốc thời gian -->
                             <select class="filter-select" id="datePresetFilter" onchange="handlePresetChange(this.value)" aria-label="Lọc thời gian">
                                 <option value="">Tất cả thời gian</option>
                                 <option value="today">Hôm nay</option>
@@ -440,14 +444,12 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                                 <option value="custom">Tùy chọn khoảng ngày...</option>
                             </select>
 
-                            <!-- 2. Chọn khoảng ngày cụ thể (Từ ngày - Đến ngày) -->
                             <div id="customDateRange" style="display:none;align-items:center;gap:6px;">
                                 <input type="date" id="dateFrom" class="filter-select" onchange="applyAllFilters()" title="Từ ngày">
                                 <span style="color:#6b7280;">–</span>
                                 <input type="date" id="dateTo" class="filter-select" onchange="applyAllFilters()" title="Đến ngày">
                             </div>
 
-                            <!-- 3. Lọc số sao -->
                             <select class="filter-select" id="starFilter" onchange="applyAllFilters()" aria-label="Lọc theo sao">
                                 <option value="">Tất cả số sao</option>
                                 <option value="5">5 sao ★★★★★</option>
@@ -514,32 +516,32 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                                         </span>
                                     </td>
                                     <td>
-                    <?php if ($statusXL !== 'Đã xử lý'): ?>
-                        <form method="post" action="index.php?page=reviews" style="display:inline-block;" onsubmit="return confirm('Xác nhận đánh giá này đã được liên hệ và xử lý xong với khách?')">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="action" value="update_feedback_status">
-                            <input type="hidden" name="feedback_id" value="<?= (int) $fb['MaPhanHoi'] ?>">
-                            <input type="hidden" name="status" value="Đã xử lý">
-                            <button class="button button-outline button-small" type="submit" style="color:#15803d;border-color:#86efac;font-weight:600;">
-                                ✓ Đã xử lý
-                            </button>
-                        </form>
-                    <?php else: ?>
-                        <form method="post" action="index.php?page=reviews" style="display:inline-block;">
-                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
-                            <input type="hidden" name="action" value="update_feedback_status">
-                            <input type="hidden" name="feedback_id" value="<?= (int) $fb['MaPhanHoi'] ?>">
-                            <input type="hidden" name="status" value="Chưa xử lý">
-                            <button class="button button-outline button-small" type="submit" style="color:#6b7280;opacity:0.8;" title="Chuyển lại về chưa xử lý">
-                                ↺ Hoàn tác
-                            </button>
-                        </form>
-                    <?php endif; ?>
-                </td>
+                                        <?php if ($statusXL !== 'Đã xử lý'): ?>
+                                            <form method="post" action="index.php?page=reviews" style="display:inline-block;" onsubmit="return confirm('Xác nhận đánh giá này đã được liên hệ và xử lý xong với khách?')">
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
+                                                <input type="hidden" name="action" value="update_feedback_status">
+                                                <input type="hidden" name="feedback_id" value="<?= (int) $fb['MaPhanHoi'] ?>">
+                                                <input type="hidden" name="status" value="Đã xử lý">
+                                                <button class="button button-outline button-small" type="submit" style="color:#15803d;border-color:#86efac;font-weight:600;">
+                                                    ✓ Đã xử lý
+                                                </button>
+                                            </form>
+                                        <?php else: ?>
+                                            <form method="post" action="index.php?page=reviews" style="display:inline-block;">
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
+                                                <input type="hidden" name="action" value="update_feedback_status">
+                                                <input type="hidden" name="feedback_id" value="<?= (int) $fb['MaPhanHoi'] ?>">
+                                                <input type="hidden" name="status" value="Chưa xử lý">
+                                                <button class="button button-outline button-small" type="submit" style="color:#6b7280;opacity:0.8;" title="Chuyển lại về chưa xử lý">
+                                                    ↺ Hoàn tác
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                             <?php if ($feedback === []): ?>
-                                <tr><td colspan="6" class="muted-cell">Chưa có đánh giá nào cho sản phẩm trong cơ sở dữ liệu.</td></tr>
+                                <tr><td colspan="7" class="muted-cell">Chưa có đánh giá nào cho sản phẩm trong cơ sở dữ liệu.</td></tr>
                             <?php endif; ?>
                             </tbody>
                         </table>
@@ -547,7 +549,6 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                     <div class="table-footer"><span id="reviewCountDisplay">Đang hiển thị <?= count($feedback) ?> lượt đánh giá</span></div>
                 </section>
 
-                <!-- JAVASCRIPT XỬ LÝ LỌC TỨC THÌ THEO NGÀY VÀ THEO SỐ SAO -->
                 <script>
                 function handlePresetChange(val) {
                     const customWrap = document.getElementById('customDateRange');
@@ -608,7 +609,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                     const rows = document.querySelectorAll('#reviewTable tbody tr[data-search-row]');
                     rows.forEach(row => {
                         const rowStar = row.getAttribute('data-stars');
-                        const rowDate = row.getAttribute('data-date'); // dạng YYYY-MM-DD
+                        const rowDate = row.getAttribute('data-date');
 
                         let matchStar = !starVal || (rowStar === starVal);
                         let matchDate = true;
@@ -641,6 +642,142 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                     applyAllFilters();
                 }
                 </script>
+
+            <?php elseif ($page === 'accounts' && strcasecmp($adminRoleName ?? '', 'Admin') === 0): ?>
+                <!-- ==================== GIAO DIỆN QUẢN LÝ TÀI KHOẢN & PHÂN QUYỀN ==================== -->
+                <?php
+                $totalAccounts = count($accounts);
+                $activeAccounts = count(array_filter($accounts, static fn($acc) => (int)($acc['TrangThai'] ?? 1) === 1));
+                $adminCount = count(array_filter($accounts, static fn($acc) => stripos($acc['TenVaiTro'] ?? '', 'Admin') !== false));
+                $managerCount = count(array_filter($accounts, static fn($acc) => stripos($acc['TenVaiTro'] ?? '', 'Quản lý') !== false));
+                ?>
+                <section class="welcome-row page-title-row">
+                    <div>
+                        <div class="eyebrow">QUẢN TRỊ HỆ THỐNG</div>
+                        <h1>Quản lý tài khoản</h1>
+                        <p class="page-subtitle">Phân bổ vai trò (Admin, Quản lý...), cấp quyền truy cập và kiểm soát tài khoản nhân sự.</p>
+                    </div>
+                    <button class="button button-primary" type="button" id="openAccountDialog"><span aria-hidden="true">＋</span> Thêm tài khoản</button>
+                </section>
+
+                <section class="stats-grid compact-stats">
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Tổng tài khoản</span><span class="stat-icon revenue-icon">👤</span></div>
+                        <div class="stat-value"><?= $totalAccounts ?></div>
+                        <div class="stat-foot"><span>Tài khoản trong bảng taikhoan</span></div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Đang hoạt động</span><span class="stat-icon customer-icon">✓</span></div>
+                        <div class="stat-value"><?= $activeAccounts ?></div>
+                        <div class="stat-foot"><span>Sẵn sàng đăng nhập vào hệ thống</span></div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Quản trị viên (Admin)</span><span class="stat-icon average-icon">✦</span></div>
+                        <div class="stat-value"><?= $adminCount ?></div>
+                        <div class="stat-foot"><span>Toàn quyền quản trị</span></div>
+                    </article>
+                    <article class="stat-card">
+                        <div class="stat-top"><span>Cấp Quản lý</span><span class="stat-icon order-icon">★</span></div>
+                        <div class="stat-value"><?= $managerCount ?></div>
+                        <div class="stat-foot"><span>Quản lý cửa hàng / chi nhánh</span></div>
+                    </article>
+                </section>
+
+                <section class="panel table-panel">
+                    <div class="panel-heading table-heading">
+                        <div>
+                            <h2>Danh sách nhân sự</h2>
+                            <p>Phân quyền trực tiếp vai trò (Admin, Quản lý...) và kiểm soát trạng thái hoạt động.</p>
+                        </div>
+                        <div class="table-tools">
+                            <button class="button button-outline button-small" type="button" onclick="document.getElementById('tableSearch').focus()">⌕ <span class="hide-mobile">Tìm tài khoản</span></button>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>TÀI KHOẢN</th>
+                                    <th>HỌ VÀ TÊN</th>
+                                    <th>VAI TRÒ / PHÂN QUYỀN</th>
+                                    <th>TRẠNG THÁI</th>
+                                    <th>THAO TÁC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php foreach ($accounts as $acc): ?>
+                                <?php 
+                                $accStatus = (int)($acc['TrangThai'] ?? 1) === 1 ? 'Hoạt động' : 'Đã khóa'; 
+                                $isSelf = ((int)$acc['MaTaiKhoan'] === (int)$_SESSION['admin_account_id']);
+                                ?>
+                                <tr data-search-row>
+                                    <td>
+                                        <div class="customer-cell">
+                                            <span class="avatar avatar-admin" style="background:#4a3826;color:#c49b63;">
+                                                <?= htmlspecialchars(mb_substr($acc['HoTen'] ?? 'U', 0, 1, 'UTF-8')) ?>
+                                            </span>
+                                            <div class="customer-info">
+                                                <strong><?= htmlspecialchars($acc['TenDangNhap']) ?></strong>
+                                                <small>ID: #<?= (int)$acc['MaTaiKhoan'] ?> <?= $isSelf ? '· (Bạn)' : '' ?></small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><?= htmlspecialchars($acc['HoTen']) ?></td>
+                                    <td>
+                                        <!-- Form đổi vai trò phân quyền trực tiếp -->
+                                        <form method="post" action="index.php?page=accounts" style="display:flex;align-items:center;gap:6px;">
+                                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
+                                            <input type="hidden" name="action" value="update_account_role">
+                                            <input type="hidden" name="account_id" value="<?= (int)$acc['MaTaiKhoan'] ?>">
+                                            <select name="role_id" class="filter-select" style="padding:4px 8px;font-size:0.85rem;" <?= $isSelf ? 'disabled' : '' ?>>
+                                                <?php foreach ($roles as $r): ?>
+                                                    <option value="<?= (int)$r['MaVaiTro'] ?>" <?= (int)$r['MaVaiTro'] === (int)$acc['MaVaiTro'] ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($r['TenVaiTro']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <?php if (!$isSelf): ?>
+                                                <button class="button button-outline button-small" type="submit" style="padding:4px 8px;" title="Cập nhật quyền">Lưu</button>
+                                            <?php endif; ?>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <span class="status status-<?= status_class($accStatus) ?>">
+                                            <i></i><?= $accStatus ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if (!$isSelf): ?>
+                                            <form method="post" action="index.php?page=accounts" style="display:inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn <?= (int)$acc['TrangThai'] === 1 ? 'KHÓA' : 'MỞ KHÓA' ?> tài khoản này?')">
+                                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
+                                                <input type="hidden" name="action" value="toggle_account_status">
+                                                <input type="hidden" name="account_id" value="<?= (int)$acc['MaTaiKhoan'] ?>">
+                                                <input type="hidden" name="new_status" value="<?= (int)$acc['TrangThai'] === 1 ? 0 : 1 ?>">
+                                                <?php if ((int)$acc['TrangThai'] === 1): ?>
+                                                    <button class="button button-outline button-small" type="submit" style="color:#ef4444;border-color:#fca5a5;">
+                                                        Khóa
+                                                    </button>
+                                                <?php else: ?>
+                                                    <button class="button button-outline button-small" type="submit" style="color:#15803d;border-color:#86efac;">
+                                                        Kích hoạt
+                                                    </button>
+                                                <?php endif; ?>
+                                            </form>
+                                        <?php else: ?>
+                                            <span style="color:#9ca3af;font-size:0.85rem;">Đang dùng</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <?php if ($accounts === []): ?>
+                                <tr><td colspan="5" class="muted-cell">Chưa có tài khoản nào trong cơ sở dữ liệu.</td></tr>
+                            <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer"><span>Đang hiển thị <?= count($accounts) ?> tài khoản</span></div>
+                </section>
 
             <?php elseif ($page === 'surveys'): ?>
                 <section class="welcome-row page-title-row survey-welcome">
@@ -682,7 +819,7 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
                 </section>
 
             <?php else: ?>
-                <!-- ==================== GIAO DIỆN KHÁCH HÀNG ==================== -->
+                <!-- GIAO DIỆN KHÁCH HÀNG -->
                 <section class="welcome-row page-title-row">
                     <div><div class="eyebrow">QUẢN LÝ CỬA HÀNG</div><h1>Khách hàng</h1><p class="page-subtitle">Thông tin và hoạt động mua hàng của khách hàng.</p></div>
                     <button class="button button-outline" type="button" id="customerExportButton"><span aria-hidden="true">↓</span> Xuất danh sách</button>
@@ -731,6 +868,63 @@ function nav_link(string $key, string $label, string $icon, string $activePage):
     </form>
 </dialog>
 <?php endif; ?>
+
+<!-- MODAL POPUP THÊM TÀI KHOẢN MỚI & CẤP QUYỀN VAI TRÒ -->
+<?php if ($page === 'accounts'): ?>
+<dialog class="product-dialog" id="accountDialog">
+    <form method="post" action="index.php?page=accounts" class="dialog-form">
+        <div class="dialog-heading">
+            <div><div class="eyebrow">NHÂN SỰ HỆ THỐNG</div><h2>Thêm tài khoản nhân sự</h2></div>
+            <button class="icon-button dialog-close" id="closeAccountDialog" type="button" aria-label="Đóng">×</button>
+        </div>
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($adminCsrf, ENT_QUOTES, 'UTF-8') ?>">
+        <input type="hidden" name="action" value="create_account">
+        
+        <label>Họ và tên nhân sự<input name="fullname" type="text" maxlength="100" placeholder="Ví dụ: Nguyễn Văn A" required></label>
+        
+        <div class="dialog-fields">
+            <label>Tên đăng nhập<input name="username" type="text" maxlength="50" placeholder="username" required></label>
+            <label>Cấp quyền vai trò (Role)
+                <select name="role_id" required>
+                    <option value="">Chọn quyền hạn</option>
+                    <?php foreach ($roles as$r): ?>
+                        <option value="<?= (int)$r['MaVaiTro'] ?>">
+                            <?= htmlspecialchars($r['TenVaiTro']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+        </div>
+        
+        <label>Mật khẩu khởi tạo<input name="password" type="password" placeholder="Nhập mật khẩu cho tài khoản" required></label>
+
+        <div class="dialog-actions">
+            <button class="button button-outline" id="cancelAccountDialog" type="button">Hủy</button>
+            <button class="button button-primary" type="submit">Tạo tài khoản</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dialog = document.getElementById('accountDialog');
+    const openBtn = document.getElementById('openAccountDialog');
+    const closeBtn = document.getElementById('closeAccountDialog');
+    const cancelBtn = document.getElementById('cancelAccountDialog');
+
+    if (openBtn && dialog) {
+        openBtn.addEventListener('click', () => dialog.showModal());
+    }
+    if (closeBtn && dialog) {
+        closeBtn.addEventListener('click', () => dialog.close());
+    }
+    if (cancelBtn && dialog) {
+        cancelBtn.addEventListener('click', () => dialog.close());
+    }
+});
+</script>
+<?php endif; ?>
+
 <div class="toast" id="adminToast" role="status" aria-live="polite"></div>
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 <script src="admin.js?v=2"></script>

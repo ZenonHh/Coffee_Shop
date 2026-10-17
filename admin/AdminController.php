@@ -16,6 +16,7 @@ class AdminController
         'customers' => ['title' => 'Khách hàng', 'eyebrow' => 'QUẢN LÝ CỬA HÀNG'],
         'reviews'   => ['title' => 'Đánh giá món uống', 'eyebrow' => 'Ý KIẾN KHÁCH HÀNG'],
         'surveys'   => ['title' => 'Khảo sát ý kiến', 'eyebrow' => 'THẤU HIỂU KHÁCH HÀNG'],
+        'accounts'  => ['title' => 'Quản lý tài khoản', 'eyebrow' => 'QUẢN TRỊ HỆ THỐNG'],
     ];
 
     public function __construct()
@@ -23,7 +24,7 @@ class AdminController
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_set_cookie_params([
                 'httponly' => true,
-                'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+                'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
                 'samesite' => 'Lax',
             ]);
             session_start();
@@ -68,6 +69,8 @@ class AdminController
             'customers'            => [],
             'surveys'              => [],
             'feedback'             => [],
+            'accounts'             => [],
+            'roles'                => [],
             'dashboard'            => [
                 'revenue_today'         => 0.0,
                 'orders_today'          => 0,
@@ -92,12 +95,44 @@ class AdminController
         if (!$this->authenticated) {
             return $data;
         }
+        
+        // Chặn người dùng không phải Admin truy cập trang Quản lý tài khoản
+        $currentRole = (string) ($_SESSION['admin_role_name'] ?? '');
+        if ($this->page === 'accounts' && strcasecmp($currentRole, 'Admin') !== 0) {
+            $_SESSION['admin_message'] = 'Bạn không có quyền truy cập vào khu vực Quản lý tài khoản!';
+            $_SESSION['admin_message_type'] = 'danger';
+            $this->redirect('index.php?page=dashboard');
+        }
 
         try {
             $model = new AdminModel();
+            $db = @mysqli_connect('localhost', 'root', '', 'coffee_shop_db') 
+                  ?: @mysqli_connect('localhost', 'root', '', 'coffee_shop');
+            if ($db) {
+                mysqli_set_charset($db, 'utf8mb4');
+            }
 
-            // Nếu người dùng truy cập trang 'reviews', nạp dữ liệu đánh giá và sản phẩm
-            if ($this->page === 'reviews') {
+            if ($this->page === 'accounts') {
+                if ($db) {
+                    $accQuery = "SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.HoTen, tk.TrangThai, tk.MaVaiTro, vt.TenVaiTro 
+                                 FROM taikhoan tk
+                                 LEFT JOIN vaitro vt ON tk.MaVaiTro = vt.MaVaiTro
+                                 ORDER BY tk.MaTaiKhoan ASC";
+                    $resAcc = $db->query($accQuery);
+                    if ($resAcc) {
+                        while ($row = $resAcc->fetch_assoc()) {
+                            $data['accounts'][] = $row;
+                        }
+                    }
+
+                    $resRoles = $db->query("SELECT * FROM vaitro ORDER BY MaVaiTro ASC");
+                    if ($resRoles) {
+                        while ($r = $resRoles->fetch_assoc()) {
+                            $data['roles'][] = $r;
+                        }
+                    }
+                }
+            } elseif ($this->page === 'reviews') {
                 $surveyData  = $model->loadPage('surveys');
                 $productData = $model->loadPage('products');
 
@@ -107,33 +142,27 @@ class AdminController
                 $data['dashboard']['average_rating'] = $surveyData['dashboard']['average_rating'] ?? 0.0;
                 $data['dashboard']['feedback_count'] = count($data['feedback']);
 
-                // Truy vấn trực tiếp từ bảng PhanHoi phòng trường hợp Model trả về rỗng
-                if (empty($data['feedback'])) {
-                    $db = @mysqli_connect('localhost', 'root', '', 'coffee_shop_db') 
-                          ?: @mysqli_connect('localhost', 'root', '', 'coffee_shop');
-                    if ($db) {
-                        mysqli_set_charset($db, 'utf8mb4');
-                        $sql = "SELECT ph.*, sp.TenSP, kh.HoTen, kh.Sdt 
-                                FROM PhanHoi ph
-                                LEFT JOIN SanPham sp ON ph.MaSP = sp.MaSP
-                                LEFT JOIN KhachHang kh ON ph.MaKH = kh.MaKH
-                                ORDER BY ph.NgayGui DESC";
-                        $res = $db->query($sql);
-                        if ($res) {
-                            $fbs = [];
-                            $rCounts = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
-                            $rSum = 0;
-                            while ($r = $res->fetch_assoc()) {
-                                $fbs[] = $r;
-                                $star = max(1, min(5, (int)($r['DanhGia'] ?? 5)));
-                                $rCounts[$star]++;
-                                $rSum += $star;
-                            }
-                            $data['feedback'] = $fbs;
-                            $data['dashboard']['rating_counts'] = $rCounts;
-                            $data['dashboard']['average_rating'] = count($fbs) > 0 ? round($rSum / count($fbs), 1) : 0.0;
-                            $data['dashboard']['feedback_count'] = count($fbs);
+                if (empty($data['feedback']) && $db) {
+                    $sql = "SELECT ph.*, sp.TenSP, COALESCE(kh.HoTen, 'Khách vãng lai') AS HoTen, COALESCE(kh.Sdt, '') AS Sdt 
+                            FROM PhanHoi ph
+                            LEFT JOIN SanPham sp ON ph.MaSP = sp.MaSP
+                            LEFT JOIN KhachHang kh ON ph.MaKH = kh.MaKH
+                            ORDER BY ph.NgayGui DESC";
+                    $res = $db->query($sql);
+                    if ($res) {
+                        $fbs = [];
+                        $rCounts = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+                        $rSum = 0;
+                        while ($r = $res->fetch_assoc()) {
+                            $fbs[] = $r;
+                            $star = max(1, min(5, (int)($r['DanhGia'] ?? 5)));
+                            $rCounts[$star]++;
+                            $rSum += $star;
                         }
+                        $data['feedback'] = $fbs;
+                        $data['dashboard']['rating_counts'] = $rCounts;
+                        $data['dashboard']['average_rating'] = count($fbs) > 0 ? round($rSum / count($fbs), 1) : 0.0;
+                        $data['dashboard']['feedback_count'] = count($fbs);
                     }
                 }
             } else {
@@ -141,7 +170,7 @@ class AdminController
             }
         } catch (Throwable $exception) {
             error_log('Admin data load failed: ' . $exception->getMessage());
-            $data['adminError'] = 'Không thể tải dữ liệu quản trị. Hãy kiểm tra kết nối CSDL.';
+            $data['adminError'] = 'Không thể tải dữ liệu quản trị.';
         }
 
         return $data;
@@ -175,6 +204,12 @@ class AdminController
 
         try {
             $model = new AdminModel();
+            $db = @mysqli_connect('localhost', 'root', '', 'coffee_shop_db') 
+                  ?: @mysqli_connect('localhost', 'root', '', 'coffee_shop');
+            if ($db) {
+                mysqli_set_charset($db, 'utf8mb4');
+            }
+
             if ($action === 'create_product') {
                 $this->createProduct($model);
                 $this->message = 'Đã thêm sản phẩm.';
@@ -196,14 +231,7 @@ class AdminController
             } elseif ($action === 'update_feedback_status') {
                 $feedbackId = filter_var($_POST['feedback_id'] ?? null, FILTER_VALIDATE_INT);
                 $newStatus   = trim((string)($_POST['status'] ?? 'Đã xử lý'));
-                if (!$feedbackId || $feedbackId < 1) {
-                    throw new InvalidArgumentException('Mã phản hồi không hợp lệ.');
-                }
-
-                $db = @mysqli_connect('localhost', 'root', '', 'coffee_shop_db') 
-                      ?: @mysqli_connect('localhost', 'root', '', 'coffee_shop');
-                if ($db) {
-                    mysqli_set_charset($db, 'utf8mb4');
+                if ($db && $feedbackId) {
                     $stmt = $db->prepare("UPDATE PhanHoi SET TrangThaiXL = ? WHERE MaPhanHoi = ?");
                     if ($stmt) {
                         $stmt->bind_param("si", $newStatus, $feedbackId);
@@ -211,12 +239,74 @@ class AdminController
                         $stmt->close();
                     }
                 }
-                $this->message = 'Đã cập nhật trạng thái phản hồi #' . $feedbackId . ' thành "' . $newStatus . '".';
-            // ==============================================================
-            
-            }else {
+                $this->message = 'Đã cập nhật trạng thái phản hồi.';
+            } elseif (in_array($action, ['create_account', 'update_account_role', 'toggle_account_status'], true)) {
+                $currentRole = (string) ($_SESSION['admin_role_name'] ?? '');
+                if (strcasecmp($currentRole, 'Admin') !== 0) {
+                    throw new InvalidArgumentException('Bạn không có quyền thực hiện thao tác quản trị tài khoản.');
+                }
+
+                if ($action === 'create_account') {
+                    $username = trim((string)($_POST['username'] ?? ''));
+                    $fullname = trim((string)($_POST['fullname'] ?? ''));
+                    $password = trim((string)($_POST['password'] ?? ''));
+                    $roleId   = filter_var($_POST['role_id'] ?? null, FILTER_VALIDATE_INT);
+
+                    if ($username === '' || $fullname === '' || $password === '' || !$roleId) {
+                        throw new InvalidArgumentException('Vui lòng điền đầy đủ thông tin tài khoản.');
+                    }
+
+                    if ($db) {
+                        $chk = $db->prepare("SELECT MaTaiKhoan FROM taikhoan WHERE TenDangNhap = ? LIMIT 1");
+                        $chk->bind_param("s", $username);
+                        $chk->execute();
+                        if ($chk->get_result()->fetch_assoc()) {
+                            $chk->close();
+                            throw new InvalidArgumentException('Tên đăng nhập này đã được sử dụng.');
+                        }
+                        $chk->close();
+
+                        $hash = password_hash($password, PASSWORD_DEFAULT);
+                        $ins = $db->prepare("INSERT INTO taikhoan (MaVaiTro, TenDangNhap, MatKhau, HoTen, TrangThai) VALUES (?, ?, ?, ?, 1)");
+                        $ins->bind_param("isss", $roleId, $username, $hash, $fullname);
+                        $ins->execute();
+                        $ins->close();
+                    }
+                    $this->message = 'Đã thêm tài khoản mới thành công.';
+                } elseif ($action === 'update_account_role') {
+                    $accId  = filter_var($_POST['account_id'] ?? null, FILTER_VALIDATE_INT);
+                    $roleId = filter_var($_POST['role_id'] ?? null, FILTER_VALIDATE_INT);
+
+                    if (!$accId || !$roleId) {
+                        throw new InvalidArgumentException('Dữ liệu phân quyền không hợp lệ.');
+                    }
+                    if ($db) {
+                        $stmt = $db->prepare("UPDATE taikhoan SET MaVaiTro = ? WHERE MaTaiKhoan = ?");
+                        $stmt->bind_param("ii", $roleId, $accId);
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                    $this->message = 'Đã cập nhật vai trò phân quyền cho tài khoản.';
+                } elseif ($action === 'toggle_account_status') {
+                    $accId     = filter_var($_POST['account_id'] ?? null, FILTER_VALIDATE_INT);
+                    $newStatus = filter_var($_POST['new_status'] ?? 0, FILTER_VALIDATE_INT);
+
+                    if ($accId === (int)$_SESSION['admin_account_id']) {
+                        throw new InvalidArgumentException('Bạn không thể tự khóa tài khoản của chính mình.');
+                    }
+
+                    if ($db && $accId) {
+                        $stmt = $db->prepare("UPDATE taikhoan SET TrangThai = ? WHERE MaTaiKhoan = ?");
+                        $stmt->bind_param("ii", $newStatus, $accId);
+                        $stmt->execute();
+                        $stmt->close();
+                    }
+                    $this->message = $newStatus === 1 ? 'Đã kích hoạt lại tài khoản.' : 'Đã khóa tài khoản thành công.';
+                }
+            } else {
                 throw new InvalidArgumentException('Thao tác không hợp lệ.');
             }
+
             $_SESSION['admin_message'] = $this->message;
             $_SESSION['admin_message_type'] = 'success';
             $this->redirect('index.php?page=' . rawurlencode($this->page));

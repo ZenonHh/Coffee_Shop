@@ -41,38 +41,48 @@ class AdminModel extends BaseModel
         return $row[0] ?? null;
     }
 
-    public function authenticateAdmin(string $username): ?array
+  public function authenticateAdmin(string $username): ?array
     {
-        $statement = $this->query(
-            "SELECT tk.MaTaiKhoan, tk.MaVaiTro, tk.TenDangNhap, tk.MatKhau, tk.HoTen, vt.TenVaiTro
-             FROM TaiKhoan AS tk
-             INNER JOIN VaiTro AS vt ON vt.MaVaiTro = tk.MaVaiTro
-             WHERE tk.TenDangNhap = ?
-               AND tk.TrangThai = 1
-               AND LOWER(TRIM(vt.TenVaiTro)) IN ('admin', 'quản trị viên')
-             LIMIT 1",
-            's',
-            [$username]
-        );
-        $account = $statement->get_result()->fetch_assoc();
-        return $account ?: null;
+        $sql = "SELECT tk.MaTaiKhoan, tk.MaVaiTro, tk.TenDangNhap, tk.MatKhau, tk.HoTen, vt.TenVaiTro
+                FROM taikhoan tk
+                INNER JOIN vaitro vt ON tk.MaVaiTro = vt.MaVaiTro
+                WHERE tk.TenDangNhap = ? 
+                  AND tk.TrangThai = 1 
+                  AND (LOWER(vt.TenVaiTro) = 'admin' OR LOWER(vt.TenVaiTro) = 'manager' OR LOWER(vt.TenVaiTro) = 'quản lý')
+                LIMIT 1";
+        
+        $conn = $this->db->getConnection();
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            return null;
+        }
+        $stmt->bind_param('s', $username);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $result ?: null;
     }
 
     public function findActiveAdmin(int $accountId): ?array
     {
-        $statement = $this->query(
-            "SELECT tk.MaTaiKhoan, tk.MaVaiTro, tk.TenDangNhap, tk.HoTen, vt.TenVaiTro
-             FROM TaiKhoan AS tk
-             INNER JOIN VaiTro AS vt ON vt.MaVaiTro = tk.MaVaiTro
-             WHERE tk.MaTaiKhoan = ?
-               AND tk.TrangThai = 1
-               AND LOWER(TRIM(vt.TenVaiTro)) IN ('admin', 'quản trị viên')
-             LIMIT 1",
-            'i',
-            [$accountId]
-        );
-        $account = $statement->get_result()->fetch_assoc();
-        return $account ?: null;
+        $sql = "SELECT tk.MaTaiKhoan, tk.MaVaiTro, tk.TenDangNhap, tk.HoTen, vt.TenVaiTro
+                FROM taikhoan tk
+                INNER JOIN vaitro vt ON tk.MaVaiTro = vt.MaVaiTro
+                WHERE tk.MaTaiKhoan = ? 
+                  AND tk.TrangThai = 1 
+                  AND (LOWER(vt.TenVaiTro) = 'admin' OR LOWER(vt.TenVaiTro) = 'manager' OR LOWER(vt.TenVaiTro) = 'quản lý')
+                LIMIT 1";
+                
+        $conn = $this->db->getConnection();
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            return null;
+        }
+        $stmt->bind_param('i', $accountId);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        return $result ?: null;
     }
 
     public function createProduct(int $categoryId, string $name, string $size, float $price, string $imageName): void
