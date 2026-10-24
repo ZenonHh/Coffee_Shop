@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
+using CoffeeShop.Helpers;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
 
@@ -13,10 +14,12 @@ namespace CoffeeShop.Controllers
     public class AccountController : Controller
     {
         private readonly CoffeeShopDbContext _context;
+        private readonly PersistentCartStore _cartStore;
 
-        public AccountController(CoffeeShopDbContext context)
+        public AccountController(CoffeeShopDbContext context, PersistentCartStore cartStore)
         {
             _context = context;
+            _cartStore = cartStore;
         }
 
         [HttpGet]
@@ -79,6 +82,7 @@ namespace CoffeeShop.Controllers
                 };
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+                await _cartStore.AssociateGuestCartWithCustomerAsync(customer.MaKH);
 
                 if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl) && !model.ReturnUrl.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase))
                 {
@@ -145,6 +149,7 @@ namespace CoffeeShop.Controllers
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            await _cartStore.AssociateGuestCartWithCustomerAsync(customer.MaKH);
 
             return RedirectToAction("Index", "Home");
         }
@@ -196,6 +201,9 @@ namespace CoffeeShop.Controllers
 
         public async Task<IActionResult> Logout()
         {
+            if (int.TryParse(User.FindFirstValue("CustomerId"), out var customerId) && customerId > 0)
+                await _cartStore.AssociateGuestCartWithCustomerAsync(customerId);
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index", "Home");
         }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
+using CoffeeShop.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,9 +73,26 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<PersistentCartStore>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<CoffeeShopDbContext>();
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        IF OBJECT_ID(N'dbo.CoffeeShopBrowserCart', N'U') IS NULL
+        BEGIN
+            CREATE TABLE dbo.CoffeeShopBrowserCart
+            (
+                Id uniqueidentifier NOT NULL CONSTRAINT PK_CoffeeShopBrowserCart PRIMARY KEY,
+                CartJson nvarchar(max) NOT NULL,
+                UpdatedAtUtc datetime2 NOT NULL
+            );
+        END
+        """);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

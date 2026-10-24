@@ -8,13 +8,14 @@ namespace CoffeeShop.Controllers
 {
     public class CartController : Controller
     {
-        private const string CartSessionKey = "CoffeeShop_Cart";
         private readonly CoffeeShopDbContext _context;
+        private readonly PersistentCartStore _cartStore;
 
-        public CartController(CoffeeShopDbContext context) => _context = context;
-
-        private CartViewModel GetCart() => HttpContext.Session.GetObject<CartViewModel>(CartSessionKey) ?? new CartViewModel();
-        private void SaveCart(CartViewModel cart) => HttpContext.Session.SetObject(CartSessionKey, cart);
+        public CartController(CoffeeShopDbContext context, PersistentCartStore cartStore)
+        {
+            _context = context;
+            _cartStore = cartStore;
+        }
 
         private static decimal CalculateAutomaticDiscount(decimal subtotal) => subtotal switch
         {
@@ -47,9 +48,9 @@ namespace CoffeeShop.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             await RefreshDiscounts(cart);
-            SaveCart(cart);
+            await _cartStore.SaveCartAsync(cart);
             return View(cart);
         }
 
@@ -63,7 +64,7 @@ namespace CoffeeShop.Controllers
             toppingIds ??= new List<int>();
             var toppings = await _context.Products.Include(p => p.Variants).Where(p => toppingIds.Contains(p.MaSP)).ToListAsync();
             var toppingPrice = toppings.Sum(top => top.Variants.FirstOrDefault()?.GiaBan ?? 10000);
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             var newItem = new CartItemViewModel
             {
                 ProductId = product.MaSP, ProductName = product.TenSP, ProductImage = product.HinhAnh,
@@ -75,14 +76,14 @@ namespace CoffeeShop.Controllers
             if (existingItem != null) existingItem.Quantity += newItem.Quantity;
             else cart.Items.Add(newItem);
             await RefreshDiscounts(cart);
-            SaveCart(cart);
+            await _cartStore.SaveCartAsync(cart);
             return Json(new { success = true, message = $"Đã thêm {product.TenSP} vào giỏ hàng!", cartCount = cart.Items.Sum(i => i.Quantity), cartTotal = cart.GrandTotal });
         }
 
         [HttpPost]
         public async Task<IActionResult> UpdateQuantity(string itemKey, int quantity)
         {
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             var item = cart.Items.FirstOrDefault(i => i.ItemKey == itemKey);
             if (item != null)
             {
@@ -90,30 +91,30 @@ namespace CoffeeShop.Controllers
                 else item.Quantity = quantity;
             }
             await RefreshDiscounts(cart);
-            SaveCart(cart);
+            await _cartStore.SaveCartAsync(cart);
             return Json(new { success = true, cartCount = cart.Items.Sum(i => i.Quantity), subTotal = cart.SubTotal, automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal, itemTotal = item?.TotalPrice ?? 0, voucherCode = cart.VoucherCode });
         }
 
         [HttpPost]
         public async Task<IActionResult> RemoveItem(string itemKey)
         {
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             var item = cart.Items.FirstOrDefault(i => i.ItemKey == itemKey);
             if (item != null) cart.Items.Remove(item);
             await RefreshDiscounts(cart);
-            SaveCart(cart);
+            await _cartStore.SaveCartAsync(cart);
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         public async Task<IActionResult> ApplyVoucher(string voucherCode)
         {
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             if (string.IsNullOrWhiteSpace(voucherCode))
             {
                 cart.VoucherCode = null;
                 await RefreshDiscounts(cart);
-                SaveCart(cart);
+                await _cartStore.SaveCartAsync(cart);
                 return Json(new { success = false, message = "Vui lòng nhập mã giảm giá.", automaticDiscount = cart.AutomaticDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal });
             }
 
@@ -127,11 +128,15 @@ namespace CoffeeShop.Controllers
 
             cart.VoucherCode = voucher.MaCode;
             await RefreshDiscounts(cart);
-            SaveCart(cart);
+            await _cartStore.SaveCartAsync(cart);
             return Json(new { success = true, message = $"Đã áp dụng {voucher.MaCode}{(string.IsNullOrWhiteSpace(voucher.TenChuongTrinh) ? "" : $" - {voucher.TenChuongTrinh}")}.", automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal });
         }
 
         [HttpGet]
-        public IActionResult GetCartCount() => Json(new { count = GetCart().Items.Sum(i => i.Quantity) });
+        public async Task<IActionResult> GetCartCount()
+        {
+            var cart = await _cartStore.GetCartAsync();
+            return Json(new { count = cart.Items.Sum(i => i.Quantity) });
+        }
     }
 }

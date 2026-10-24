@@ -17,12 +17,12 @@
     </div>
 </section>
 
-<section class="ftco-section">
+<section class="ftco-section checkout-page">
     <div class="container">
-        <form asp-action="PlaceOrder" method="post" class="billing-form ftco-bg-dark p-4 p-md-5 rounded border border-secondary">
+        <form asp-action="PlaceOrder" method="post" class="billing-form checkout-form p-4 p-md-5 rounded border border-secondary">
             @Html.AntiForgeryToken()
             <div class="row justify-content-center">
-                <div class="col-xl-7 ftco-animate">
+                <div class="col-xl-7">
                     <h3 class="mb-4 billing-heading text-white">Thông Tin Nhận Hàng</h3>
                     
                     @if (!ViewData.ModelState.IsValid)
@@ -67,7 +67,7 @@
                 </div>
 
                 <div class="col-xl-5">
-                    <div class="row mt-5 pt-3">
+                    <div class="row checkout-summary-column">
                         <div class="col-md-12 d-flex">
                             <div class="cart-detail cart-total ftco-bg-dark p-3 p-md-4 border border-secondary rounded w-100">
                                 <h3 class="billing-heading mb-4 text-white">Tóm Tắt Đơn Hàng</h3>

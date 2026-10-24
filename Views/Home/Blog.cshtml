@@ -87,10 +87,7 @@
                                 <div class="blog-entry align-self-stretch w-100" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
                                     <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="block-20" style="background-image: url('@imagePath'); height: 260px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #12100e;"></a>
                                     <div class="text py-4 px-3 d-block text-center">
-                                        <div class="meta mb-2">
-                                            <span class="badge badge-warning text-dark font-weight-bold py-1 px-2">@category.TenLoaiSP</span>
-                                            <span class="text-primary ml-2 font-weight-bold">@price</span>
-                                        </div>
+                                       
                                         <h3 class="heading mt-2">
                                             <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" style="color: #fff; font-size: 19px;">@product.TenSP</a>
                                         </h3>

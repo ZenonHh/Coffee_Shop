@@ -10,22 +10,18 @@ namespace CoffeeShop.Controllers
 {
     public class CheckoutController : Controller
     {
-        private const string CartSessionKey = "CoffeeShop_Cart";
         private readonly CoffeeShopDbContext _context;
+        private readonly PersistentCartStore _cartStore;
 
-        public CheckoutController(CoffeeShopDbContext context)
+        public CheckoutController(CoffeeShopDbContext context, PersistentCartStore cartStore)
         {
             _context = context;
-        }
-
-        private CartViewModel GetCart()
-        {
-            return HttpContext.Session.GetObject<CartViewModel>(CartSessionKey) ?? new CartViewModel();
+            _cartStore = cartStore;
         }
 
         public async Task<IActionResult> Index()
         {
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             if (!cart.Items.Any())
             {
                 return RedirectToAction("Index", "Shop");
@@ -57,7 +53,7 @@ namespace CoffeeShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
         {
-            var cart = GetCart();
+            var cart = await _cartStore.GetCartAsync();
             if (!cart.Items.Any())
             {
                 ModelState.AddModelError(string.Empty, "Giỏ hàng của bạn đang trống.");
@@ -171,7 +167,7 @@ namespace CoffeeShop.Controllers
             }
 
             // Xóa giỏ hàng
-            HttpContext.Session.Remove(CartSessionKey);
+            await _cartStore.ClearCartAsync();
 
             return RedirectToAction(nameof(Success), new { id = order.MaHD });
         }

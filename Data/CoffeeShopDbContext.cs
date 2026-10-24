@@ -21,6 +21,7 @@ namespace CoffeeShop.Data
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
         public DbSet<OrderDetailTopping> OrderDetailToppings { get; set; } = null!;
+        public DbSet<CartSnapshot> CartSnapshots { get; set; } = null!;
         public DbSet<Feedback> Feedbacks { get; set; } = null!;
         public DbSet<Survey> Surveys { get; set; } = null!;
         public DbSet<SurveyQuestion> SurveyQuestions { get; set; } = null!;

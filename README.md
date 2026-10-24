@@ -20,7 +20,7 @@ c:\Xampp\htdocs\Coffee_Shop\
 ├── Controllers/                         # Các Controller chính của Storefront
 │   ├── HomeController.cs                # Trang chủ, Giới thiệu, Dịch vụ, Bài viết, Liên hệ
 │   ├── ShopController.cs                # Thực đơn, bộ lọc danh mục, chi tiết món uống
-│   ├── CartController.cs                # Giỏ hàng Session, cập nhật số lượng, Voucher
+│   ├── CartController.cs                # Giỏ hàng lưu bền vững, cập nhật số lượng, Voucher
 │   ├── CheckoutController.cs            # Đặt hàng, chi tiết đơn, tích điểm thành viên
 │   ├── AccountController.cs             # Đăng nhập, đăng ký, hồ sơ tích điểm CRM
 │   └── CrmControllers.cs                # Đánh giá món uống & khảo sát ý kiến khách hàng
@@ -88,6 +88,6 @@ Mở trình duyệt truy cập:
 
 1. **Giao diện Storefront hoàn chỉnh**: Tương thích tốt trên cả máy tính và điện thoại.
 2. **Đặt món linh hoạt**: Chọn kích cỡ (Size M, L), topping đi kèm, tính giá động theo thời gian thực.
-3. **Giỏ hàng Session & Voucher**: Áp dụng mã giảm giá như `COFFEE10` (giảm 10%), `GIAM30K` (giảm 30.000đ).
+3. **Giỏ hàng lưu bền vững & Voucher**: Giỏ hàng được lưu trong SQL Server tối đa 30 ngày; giỏ của khách vãng lai chỉ hiện khi chưa đăng nhập, còn giỏ thành viên được khôi phục khi đăng nhập lại và không hiển thị khi đăng xuất. Giỏ được xóa sau khi đặt hàng thành công. Áp dụng mã giảm giá như `COFFEE10` (giảm 10%), `GIAM30K` (giảm 30.000đ).
 4. **CRM & Tích điểm thành viên**: Tự động tích lũy điểm khi hoàn tất đơn hàng, tự động thăng hạng hội viên.
 5. **Trang Quản trị trực quan**: Dashboard thống kê doanh thu, cập nhật tiến độ đơn hàng và trạng thái món.

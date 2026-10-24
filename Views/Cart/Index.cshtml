@@ -17,14 +17,14 @@
     </div>
 </section>
 
-<section class="ftco-section ftco-cart">
+<section class="ftco-section ftco-cart cart-page">
     <div class="container">
         @if (Model.Items.Any())
         {
             <div class="row">
                 <div class="col-md-12 ftco-animate">
                     <div class="cart-list table-responsive">
-                        <table class="table text-center">
+                        <table class="table text-center cart-table">
                             <thead class="thead-primary">
                                 <tr class="text-center">
                                     <th>&nbsp;</th>
@@ -80,23 +80,18 @@
             </div>
 
             <div class="row justify-content-end mt-4">
-                <!-- Mã giảm giá -->
-                <div class="col col-lg-5 col-md-6 mt-5 cart-wrap ftco-animate">
-                    <div class="cart-total mb-3 p-4 bg-dark border border-secondary rounded">
-                        <h4 class="text-white mb-3">Mã giảm giá (Voucher)</h4>
-                        <div class="input-group">
-                            <input type="text" id="voucherCodeInput" value="@Model.VoucherCode" class="form-control" placeholder="Nhập mã voucher (VD: COFFEE10)...">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="button" onclick="applyVoucher()">Áp dụng</button>
+                <div class="col col-lg-5 col-md-7 mt-4 cart-wrap ftco-animate">
+                    <div class="cart-total cart-summary mb-3 p-4 bg-dark border border-secondary rounded">
+                        <div class="cart-voucher">
+                            <h4 class="text-white mb-3">Mã giảm giá (Voucher)</h4>
+                            <div class="input-group">
+                                <input type="text" id="voucherCodeInput" value="@Model.VoucherCode" class="form-control" placeholder="Nhập mã voucher (VD: COFFEE10)...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" onclick="applyVoucher()">Áp dụng</button>
+                                </div>
                             </div>
+                            <div id="voucherMsg" class="mt-2 small text-warning"></div>
                         </div>
-                        <div id="voucherMsg" class="mt-2 small text-warning"></div>
-                    </div>
-                </div>
-
-                <!-- Tóm tắt thanh toán -->
-                <div class="col col-lg-5 col-md-6 mt-5 cart-wrap ftco-animate">
-                    <div class="cart-total mb-3 p-4 bg-dark border border-secondary rounded">
                         <h4 class="text-white mb-3">Tổng thanh toán giỏ hàng</h4>
                         <p class="d-flex justify-content-between text-white">
                             <span>Tạm tính</span>

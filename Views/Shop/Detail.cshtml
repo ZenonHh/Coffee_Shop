@@ -17,15 +17,15 @@
     </div>
 </section>
 
-<section class="ftco-section">
+<section class="ftco-section product-detail-page">
     <div class="container">
-        <div class="row">
-            <div class="col-lg-6 mb-5 ftco-animate">
-                <div class="border rounded p-3 text-center bg-dark">
-                    <img src="~/picture/@Model.Product.HinhAnh" class="img-fluid" style="max-height: 450px;" alt="@Model.Product.TenSP">
+        <div class="row product-detail-layout">
+            <div class="col-lg-6 mb-5 product-detail-media">
+                <div class="product-image-card">
+                    <img src="~/picture/@Model.Product.HinhAnh" class="img-fluid" alt="@Model.Product.TenSP">
                 </div>
             </div>
-            <div class="col-lg-6 product-details pl-md-5 ftco-animate">
+            <div class="col-lg-6 product-details product-detail-info">
                 <h2 class="text-white">@Model.Product.TenSP</h2>
                 <div class="rating d-flex mb-3">
                     <p class="text-left mr-4">
@@ -42,13 +42,13 @@
                     <input type="hidden" name="productId" value="@Model.Product.MaSP" />
 
                     <!-- Chọn Kích cỡ (Size) -->
-                    <div class="form-group mb-4">
+                    <div class="form-group product-option-group mb-4">
                         <label class="text-white font-weight-bold">1. Chọn Kích Cỡ (Size):</label>
-                        <div class="d-flex flex-wrap gap-3">
+                        <div class="d-flex flex-wrap product-size-options">
                             @for (int i = 0; i < Model.Variants.Count; i++)
                             {
                                 var variant = Model.Variants[i];
-                                <div class="custom-control custom-radio mr-4">
+                                <div class="custom-control custom-radio">
                                     <input type="radio" id="variant_@variant.MaBienThe" name="variantId" value="@variant.MaBienThe" 
                                            data-price="@variant.GiaBan" class="custom-control-input variant-radio" @(i == 0 ? "checked" : "")>
                                     <label class="custom-control-label text-white" for="variant_@variant.MaBienThe">
@@ -62,13 +62,13 @@
                     <!-- Chọn Topping -->
                     @if (Model.AvailableToppings.Any())
                     {
-                        <div class="form-group mb-4">
+                        <div class="form-group product-option-group mb-4">
                             <label class="text-white font-weight-bold">2. Thêm Topping Yêu Thích:</label>
-                            <div class="row">
+                            <div class="row product-topping-options">
                                 @foreach (var top in Model.AvailableToppings)
                                 {
                                     var topPrice = top.Variants.FirstOrDefault()?.GiaBan ?? 10000;
-                                    <div class="col-md-6 mb-2">
+                                    <div class="col-md-6 col-sm-6 mb-2">
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" id="top_@top.MaSP" name="toppingIds" value="@top.MaSP" 
                                                    data-price="@topPrice" class="custom-control-input topping-check">
@@ -83,10 +83,10 @@
                     }
 
                     <!-- Số lượng -->
-                    <div class="form-group mb-4 row align-items-center">
-                        <label class="col-md-3 text-white font-weight-bold">3. Số lượng:</label>
-                        <div class="col-md-4">
-                            <div class="input-group">
+                    <div class="form-group product-quantity-row mb-4">
+                        <label class="text-white font-weight-bold">3. Số lượng:</label>
+                        <div class="product-quantity-control">
+                            <div class="input-group product-quantity-input">
                                 <div class="input-group-prepend">
                                     <button class="btn btn-outline-secondary text-white btn-qty-minus" type="button">-</button>
                                 </div>
@@ -108,49 +108,75 @@
             </div>
         </div>
 
-        <!-- Đánh giá món uống -->
-        <div id="reviews" class="row mt-5 pt-4 border-top">
-            <div class="col-md-12">
-                <h3 class="text-white mb-4">Đánh giá từ khách hàng (@Model.TotalReviews)</h3>
-                @if (Model.Reviews.Any())
-                {
-                    <div class="row">
-                        @foreach (var review in Model.Reviews)
+        <section id="reviews" class="product-reviews-section">
+            <div class="product-reviews-heading">
+                <div>
+                    <span class="product-reviews-eyebrow">Ý kiến khách hàng</span>
+                    <h3 class="text-white mb-0">Đánh giá &amp; Nhận xét món uống</h3>
+                </div>
+                <span class="product-reviews-count">@Model.TotalReviews đánh giá</span>
+            </div>
+            <div class="row product-reviews-columns">
+                <div class="col-lg-5 mb-4 mb-lg-0">
+                    <div class="product-review-form">
+                        <h4 class="mb-3">Gửi cảm nhận của bạn</h4>
+                        <form asp-controller="Feedback" asp-action="SubmitFeedback" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.Product.MaSP" />
+                            <div class="form-group">
+                                <label for="productReviewRating">Mức độ hài lòng</label>
+                                <select id="productReviewRating" name="rating" class="form-control">
+                                    <option value="5">★★★★★ - Rất hài lòng</option>
+                                    <option value="4">★★★★ - Hài lòng</option>
+                                    <option value="3">★★★ - Bình thường</option>
+                                    <option value="2">★★ - Chưa hài lòng</option>
+                                    <option value="1">★ - Không hài lòng</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="productReviewContent">Nhận xét của bạn</label>
+                                <textarea id="productReviewContent" name="content" class="form-control" rows="3" required placeholder="Chia sẻ cảm nhận về món này..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="product-review-list">
+                        <h4 class="text-white mb-3">Nhận xét gần đây (@Model.TotalReviews)</h4>
+                        @if (Model.Reviews.Any())
                         {
-                            <div class="col-md-6 mb-3">
-                                <div class="p-3 bg-dark rounded border border-secondary">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <h5 class="text-white mb-0">@(review.Customer?.HoTen ?? "Khách hàng")</h5>
-                                        <span class="text-warning">
-                                            @for (int s = 1; s <= (review.DanhGia ?? 5); s++) { <i class="icon-star"></i> }
-                                        </span>
+                            <div class="row">
+                                @foreach (var review in Model.Reviews)
+                                {
+                                    <div class="col-md-6 mb-3">
+                                        <div class="product-review-card">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h5 class="text-white mb-0">@(review.Customer?.HoTen ?? "Khách hàng")</h5>
+                                                <span class="text-warning">
+                                                    @for (int s = 1; s <= (review.DanhGia ?? 5); s++) { <i class="icon-star"></i> }
+                                                </span>
+                                            </div>
+                                            <p class="text-muted small mb-2">@review.NgayGui.ToString("dd/MM/yyyy HH:mm")</p>
+                                            <p class="text-light mb-0">@review.NoiDung</p>
+                                        </div>
                                     </div>
-                                    <p class="text-muted small mb-2">@review.NgayGui.ToString("dd/MM/yyyy HH:mm")</p>
-                                    <p class="text-light mb-0">@review.NoiDung</p>
-                                </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="product-review-empty">
+                                <span class="icon-coffee"></span>
+                                <p class="mb-0">Chưa có nhận xét nào cho món này. Hãy là người đầu tiên chia sẻ cảm nhận!</p>
                             </div>
                         }
                     </div>
-                }
-                else
-                {
-                    <p class="text-muted">Chưa có đánh giá nào cho món này. Hãy là người đầu tiên trải nghiệm và để lại nhận xét!</p>
-                }
+                </div>
             </div>
-        </div>
+        </section>
     </div>
-        <div class="row mt-4 pt-4 border-top">
-            <div class="col-md-8 mx-auto"><div class="p-4 bg-dark rounded border border-secondary">
-                <h4 class="text-white mb-3">Đánh giá món này</h4>
-                <form asp-controller="Feedback" asp-action="SubmitFeedback" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="productId" value="@Model.Product.MaSP" />
-                    <div class="form-group"><label class="text-white">Mức độ hài lòng</label><select name="rating" class="form-control"><option value="5">★★★★★ - Rất hài lòng</option><option value="4">★★★★ - Hài lòng</option><option value="3">★★★ - Bình thường</option><option value="2">★★ - Chưa hài lòng</option><option value="1">★ - Không hài lòng</option></select></div>
-                    <div class="form-group"><label class="text-white">Nhận xét của bạn</label><textarea name="content" class="form-control" rows="4" required placeholder="Chia sẻ cảm nhận về món này..."></textarea></div>
-                    <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
-                </form>
-            </div></div>
-        </div></section>
+</section>
 
 @section Scripts {
 <script>

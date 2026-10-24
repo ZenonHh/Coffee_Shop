@@ -17,29 +17,29 @@
     </div>
 </section>
 
-<section class="ftco-section">
+<section class="ftco-section shop-page">
     <div class="container">
         <!-- Bộ lọc danh mục & Tìm kiếm -->
-        <div class="row mb-5">
+        <div class="row shop-toolbar">
             <div class="col-md-8">
-                <div class="d-flex flex-wrap gap-2">
-                    <a asp-action="Index" class="btn @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary") mr-2 mb-2">Tất cả</a>
+                <div class="d-flex flex-wrap shop-category-list">
+                    <a asp-action="Index" class="shop-category-filter @(Model.SelectedCategoryId == null ? "is-active" : "")">Tất cả</a>
                     @foreach (var cat in Model.Categories)
                     {
-                        <a asp-action="Index" asp-route-categoryId="@cat.MaLoaiSP" class="btn @(Model.SelectedCategoryId == cat.MaLoaiSP ? "btn-primary" : "btn-outline-primary") mr-2 mb-2">
+                        <a asp-action="Index" asp-route-categoryId="@cat.MaLoaiSP" class="shop-category-filter @(Model.SelectedCategoryId == cat.MaLoaiSP ? "is-active" : "")">
                             @cat.TenLoaiSP
                         </a>
                     }
                 </div>
             </div>
             <div class="col-md-4">
-                <form asp-action="Index" method="get" class="d-flex">
+                <form asp-action="Index" method="get" class="shop-search">
                     @if (Model.SelectedCategoryId.HasValue)
                     {
                         <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId.Value" />
                     }
-                    <input type="text" name="keyword" value="@Model.Keyword" class="form-control mr-2" placeholder="Tìm kiếm món uống..." />
-                    <button type="submit" class="btn btn-primary px-3"><i class="icon-search"></i></button>
+                    <input type="text" name="keyword" value="@Model.Keyword" class="form-control shop-search-input" placeholder="Tìm kiếm món uống..." />
+                    <button type="submit" class="btn btn-primary shop-search-button" aria-label="Tìm kiếm"><i class="icon-search"></i></button>
                 </form>
             </div>
         </div>

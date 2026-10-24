@@ -197,6 +197,13 @@ CREATE TABLE dbo.[giohang] (
     CONSTRAINT [PK_giohang] PRIMARY KEY ([MaGioHang])
 );
 GO
+CREATE TABLE dbo.[CoffeeShopBrowserCart] (
+    [Id] UNIQUEIDENTIFIER NOT NULL,
+    [CartJson] NVARCHAR(MAX) NOT NULL,
+    [UpdatedAtUtc] DATETIME2 NOT NULL,
+    CONSTRAINT [PK_CoffeeShopBrowserCart] PRIMARY KEY ([Id])
+);
+GO
 CREATE TABLE dbo.[hoadon] (
     [MaHD] INT IDENTITY(1,1) NOT NULL,
     [MaCaLam] INT NULL,
