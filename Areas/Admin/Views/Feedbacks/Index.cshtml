@@ -1,0 +1,125 @@
+@model AdminFeedbackViewModel
+@{
+    ViewData["Title"] = "Đánh giá khách hàng";
+}
+
+<div class="welcome-row page-title-row">
+    <div>
+        <div class="eyebrow">CHĂM SÓC KHÁCH HÀNG</div>
+        <h1>Đánh giá khách hàng</h1>
+        <p class="page-subtitle">Theo dõi mức độ hài lòng, duyệt phản hồi và quản lý nội dung hiển thị trên cửa hàng.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3 mb-3"><section class="panel h-100"><div class="eyebrow">TỔNG ĐÁNH GIÁ</div><h2 class="mt-2 mb-0">@Model.TotalFeedbacks</h2></section></div>
+    <div class="col-md-3 mb-3"><section class="panel h-100"><div class="eyebrow">CHỜ XỬ LÝ</div><h2 class="mt-2 mb-0">@Model.PendingFeedbacks</h2></section></div>
+    <div class="col-md-3 mb-3"><section class="panel h-100"><div class="eyebrow">ĐÃ DUYỆT</div><h2 class="mt-2 mb-0">@Model.ApprovedFeedbacks</h2></section></div>
+    <div class="col-md-3 mb-3"><section class="panel h-100"><div class="eyebrow">TRUNG BÌNH ĐÃ DUYỆT</div><h2 class="mt-2 mb-0">@(Model.AverageRating.ToString("0.0")) <small class="text-warning">★</small></h2></section></div>
+</div>
+
+<section class="panel mb-4">
+    <div class="panel-heading mb-3">
+        <div><h2>Phân bố số sao</h2><p>Số đánh giá theo mức sao, tính trên toàn bộ đánh giá.</p></div>
+    </div>
+    <div class="row">
+        @for (var star = 5; star >= 1; star--)
+        {
+            <div class="col">
+                <a class="d-block text-decoration-none" asp-action="Index" asp-route-rating="@star">
+                    <span class="text-warning">@star ★</span>
+                    <strong class="d-block mt-1">@Model.RatingCounts[star - 1]</strong>
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="panel table-panel">
+    <div class="panel-heading p-4">
+        <div><h2>Danh sách phản hồi</h2><p>@Model.Feedbacks.Count trên @Model.FilteredFeedbacks kết quả phù hợp (tổng @Model.TotalFeedbacks đánh giá).</p></div>
+    </div>
+    <form method="get" class="d-flex flex-wrap align-items-end px-4 pb-4" style="gap: 12px;">
+        <label class="mb-0">Tìm kiếm
+            <input type="search" name="keyword" value="@Model.Keyword" class="form-control" placeholder="Nội dung, khách hàng, món" />
+        </label>
+        <label class="mb-0">Trạng thái
+            <select name="status" class="form-control">
+                <option value="">Tất cả</option>
+                @foreach (var status in new[] { "Chờ xử lý", "Đã duyệt", "Từ chối" })
+                {
+                    <option value="@status" selected="@(Model.Status == status)">@status</option>
+                }
+            </select>
+        </label>
+        <label class="mb-0">Số sao
+            <select name="rating" class="form-control">
+                <option value="">Tất cả</option>
+                @for (var star = 5; star >= 1; star--)
+                {
+                    <option value="@star" selected="@(Model.Rating == star)">@star sao</option>
+                }
+            </select>
+        </label>
+        <button class="button button-primary" type="submit">Lọc</button>
+        <a asp-action="Index" class="button button-outline">Xóa lọc</a>
+    </form>
+
+    <div class="table-scroll">
+        <table class="data-table">
+            <thead><tr><th>KHÁCH HÀNG / THỜI GIAN</th><th>MÓN</th><th>ĐÁNH GIÁ</th><th>NỘI DUNG</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead>
+            <tbody>
+                @foreach (var feedback in Model.Feedbacks)
+                {
+                    <tr>
+                        <td><strong>@(feedback.Customer?.HoTen ?? "Khách hàng")</strong><div class="muted-cell">@feedback.NgayGui.ToString("dd/MM/yyyy HH:mm")</div></td>
+                        <td>@(feedback.Product?.TenSP ?? "Đánh giá cửa hàng")</td>
+                        <td><span class="text-warning">@(feedback.DanhGia.HasValue ? new string('★', feedback.DanhGia.Value) : "Chưa chấm sao")</span></td>
+                        <td style="white-space: normal; min-width: 220px;">@feedback.NoiDung</td>
+                        <td>
+                            <span class="status @(feedback.TrangThaiXL == "Đã duyệt" ? "status-success" : feedback.TrangThaiXL == "Chờ xử lý" ? "status-warning" : "status-muted")"><i></i>@feedback.TrangThaiXL</span>
+                        </td>
+                        <td>
+                            <form asp-action="UpdateStatus" method="post" class="d-flex mb-2" style="gap: 6px;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@feedback.MaPhanHoi" />
+                                <select name="status" class="form-control form-control-sm" aria-label="Trạng thái đánh giá">
+                                    @foreach (var status in new[] { "Chờ xử lý", "Đã duyệt", "Từ chối" })
+                                    {
+                                        <option value="@status" selected="@(feedback.TrangThaiXL == status)">@status</option>
+                                    }
+                                </select>
+                                <button class="button button-small button-outline" type="submit">Lưu</button>
+                            </form>
+                            <form asp-action="Delete" method="post" onsubmit="return confirm('Bạn chắc chắn muốn xóa đánh giá này?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@feedback.MaPhanHoi" />
+                                <button class="button button-small button-outline text-danger" type="submit">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Feedbacks.Any())
+                {
+                    <tr><td colspan="6" class="text-center py-4 muted-cell">Không tìm thấy phản hồi phù hợp.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-between align-items-center p-4">
+            <span class="muted-cell">Trang @Model.Page / @Model.TotalPages</span>
+            <div class="d-flex" style="gap: 8px;">
+                @if (Model.Page > 1)
+                {
+                    <a class="button button-small button-outline" asp-action="Index" asp-route-status="@Model.Status" asp-route-rating="@Model.Rating" asp-route-keyword="@Model.Keyword" asp-route-page="@(Model.Page - 1)">Trước</a>
+                }
+                @if (Model.Page < Model.TotalPages)
+                {
+                    <a class="button button-small button-outline" asp-action="Index" asp-route-status="@Model.Status" asp-route-rating="@Model.Rating" asp-route-keyword="@Model.Keyword" asp-route-page="@(Model.Page + 1)">Sau</a>
+                }
+            </div>
+        </div>
+    }
+</section>

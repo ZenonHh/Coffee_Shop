@@ -47,7 +47,7 @@ namespace CoffeeShop.Controllers
             }
 
             var username = model.Username?.Trim() ?? string.Empty;
-            var password = model.Password?.Trim() ?? string.Empty;
+            var password = model.Password ?? string.Empty;
 
             // Tài khoản nhân viên phải đăng nhập tại khu vực Admin riêng.
             var staffAccount = await _context.Accounts
@@ -62,8 +62,14 @@ namespace CoffeeShop.Controllers
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => c.TaiKhoan == username);
 
-            if (customer != null && (customer.MatKhau == password || BCryptVerify(password, customer.MatKhau ?? string.Empty)))
+            if (customer != null && PasswordHashing.Verify(password, customer.MatKhau, out var needsRehash))
             {
+                if (needsRehash)
+                {
+                    customer.MatKhau = PasswordHashing.Hash(password);
+                    await _context.SaveChangesAsync();
+                }
+
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                 var claims = new List<Claim>
@@ -126,7 +132,7 @@ namespace CoffeeShop.Controllers
             var customer = new Customer
             {
                 TaiKhoan = model.Username,
-                MatKhau = model.Password, // Có thể băm mật khẩu
+                MatKhau = PasswordHashing.Hash(model.Password),
                 HoTen = model.FullName,
                 Sdt = model.Phone,
                 Email = model.Email,
@@ -213,10 +219,5 @@ namespace CoffeeShop.Controllers
             return View();
         }
 
-        private bool BCryptVerify(string password, string hash)
-        {
-            // Dự phòng nếu hash từ PHP $2y$... hoặc plain text
-            return password == hash;
-        }
     }
 }

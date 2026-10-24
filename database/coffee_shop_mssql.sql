@@ -147,6 +147,10 @@ CREATE TABLE dbo.[voucher] (
     [MaCode] NVARCHAR(50) NOT NULL,
     [PhanLoaiGiam] NVARCHAR(20) NULL DEFAULT N'PERCENT',
     [GiaTriGiam] DECIMAL(12,2) NOT NULL,
+    [TenChuongTrinh] NVARCHAR(150) NULL,
+    [NgayBatDau] DATETIME2 NULL,
+    [NgayKetThuc] DATETIME2 NULL,
+    [DonToiThieu] DECIMAL(12,2) NOT NULL CONSTRAINT [DF_Voucher_DonToiThieu] DEFAULT (0),
     [TrangThai] BIT NULL DEFAULT 1,
     CONSTRAINT [PK_voucher] PRIMARY KEY ([MaVoucher]),
     CONSTRAINT [UQ_voucher_MaCode] UNIQUE ([MaCode])

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
+using CoffeeShop.Helpers;
 using CoffeeShop.Models.ViewModels;
 
 namespace CoffeeShop.Areas.Admin.Controllers;
@@ -42,17 +43,24 @@ public class AccountController : Controller
         }
 
         var username = model.Username.Trim();
-        var password = model.Password.Trim();
+        var password = model.Password;
         var account = await _context.Accounts
             .Include(a => a.Role)
             .FirstOrDefaultAsync(a => a.TenDangNhap == username && a.TrangThai);
 
         var isStaff = account != null && (account.Role?.TenVaiTro == "Admin" || account.Role?.TenVaiTro == "NhanVien");
-        var passwordValid = account != null && (account.MatKhau == password || password == account.MatKhau);
+        var needsRehash = false;
+        var passwordValid = account != null && PasswordHashing.Verify(password, account.MatKhau, out needsRehash);
         if (!isStaff || !passwordValid)
         {
             ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu quản trị không chính xác.");
             return View(model);
+        }
+
+        if (needsRehash)
+        {
+            account!.MatKhau = PasswordHashing.Hash(password);
+            await _context.SaveChangesAsync();
         }
 
         await HttpContext.SignOutAsync("AdminCookie");

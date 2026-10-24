@@ -71,7 +71,7 @@ namespace CoffeeShop.Controllers
 
             var reviews = await _context.Feedbacks
                 .Include(f => f.Customer)
-                .Where(f => f.MaSP == id)
+                .Where(f => f.MaSP == id && f.TrangThaiXL == "Đã duyệt")
                 .OrderByDescending(f => f.NgayGui)
                 .ToListAsync();
 

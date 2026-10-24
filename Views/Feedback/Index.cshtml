@@ -44,6 +44,8 @@
             <div class="col-lg-5 mb-5 ftco-animate">
                 <div class="p-4 bg-dark border border-secondary rounded">
                     <h3 class="text-white mb-4">Gửi Nhận Xét Của Bạn</h3>
+                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Customer"))
+                    {
                     <form asp-action="SubmitFeedback" method="post">
                         @Html.AntiForgeryToken()
                         
@@ -76,6 +78,11 @@
 
                         <button type="submit" class="btn btn-primary py-3 px-4 w-100">Gửi Đánh Giá Ngay</button>
                     </form>
+                    }
+                    else
+                    {
+                        <p class="text-light">Vui lòng <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Feedback">đăng nhập bằng tài khoản khách hàng</a> để gửi đánh giá.</p>
+                    }
                 </div>
             </div>
 

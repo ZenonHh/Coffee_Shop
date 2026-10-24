@@ -39,6 +39,9 @@
             <a class="side-link @(controller == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
                 <span class="side-icon" aria-hidden="true">▣</span><span>Đơn hàng</span>
             </a>
+            <a class="side-link @(controller == "Feedbacks" ? "active" : "")" asp-area="Admin" asp-controller="Feedbacks" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">★</span><span>Đánh giá</span>
+            </a>
         </nav>
 
         <div class="side-caption side-caption-spaced">HỆ THỐNG</div>

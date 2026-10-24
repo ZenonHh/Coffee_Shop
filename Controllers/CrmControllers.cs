@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
@@ -20,6 +21,7 @@ namespace CoffeeShop.Controllers
             var feedbacks = await _context.Feedbacks
                 .Include(f => f.Customer)
                 .Include(f => f.Product)
+                .Where(f => f.TrangThaiXL == "Đã duyệt")
                 .OrderByDescending(f => f.NgayGui)
                 .Take(20)
                 .ToListAsync();
@@ -28,32 +30,38 @@ namespace CoffeeShop.Controllers
             return View(feedbacks);
         }
 
+        [Authorize(Roles = "Customer")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitFeedback(int? productId, int rating, string content)
         {
-            if (string.IsNullOrWhiteSpace(content))
+            if (string.IsNullOrWhiteSpace(content) || rating is < 1 or > 5)
             {
-                TempData["Error"] = "Vui lòng nhập nội dung đánh giá/phản hồi.";
+                TempData["Error"] = "Vui lòng nhập nội dung và chọn mức đánh giá từ 1 đến 5 sao.";
                 return RedirectToAction(nameof(Index));
             }
 
-            int customerId = 1; // Default
-            if (User.Identity?.IsAuthenticated == true)
+            if (productId.HasValue && !await _context.Products.AnyAsync(p => p.MaSP == productId.Value && p.TrangThai))
             {
-                var username = User.Identity.Name;
-                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == username);
-                if (customer != null) customerId = customer.MaKH;
+                TempData["Error"] = "Món được chọn không tồn tại hoặc hiện không được bán.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var username = User.Identity?.Name;
+            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == username);
+            if (customer == null)
+            {
+                return Forbid();
             }
 
             var feedback = new Feedback
             {
-                MaKH = customerId,
+                MaKH = customer.MaKH,
                 MaSP = productId,
-                DanhGia = Math.Clamp(rating, 1, 5),
+                DanhGia = rating,
                 NoiDung = content,
                 NgayGui = DateTime.Now,
-                TrangThaiXL = "Đã duyệt"
+                TrangThaiXL = "Chờ xử lý"
             };
 
             _context.Feedbacks.Add(feedback);
