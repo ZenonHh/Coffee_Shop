@@ -72,7 +72,17 @@ namespace CoffeeShop.Areas.Admin.Controllers
             return View(orders);
         }
 
-        [HttpPost]
+                public async Task<IActionResult> Details(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.OrderDetails).ThenInclude(d => d.Product)
+                .Include(o => o.OrderDetails).ThenInclude(d => d.Variant)
+                .Include(o => o.OrderDetails).ThenInclude(d => d.Toppings).ThenInclude(t => t.ToppingProduct)
+                .FirstOrDefaultAsync(o => o.MaHD == id);
+            return order == null ? NotFound() : View(order);
+        }
+[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {

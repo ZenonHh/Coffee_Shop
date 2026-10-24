@@ -373,3 +373,25 @@ h1 > span { color: #c68f4c; font-size: 17px; vertical-align: 2px; }
 .order-preview-title { margin-bottom: 7px; color: #6f4e37; font-size: 13px; font-weight: 800; }
 .order-preview hr { margin: 8px 0; border: 0; border-top: 1px solid #eee8e2; }
 .order-preview-total { margin-top: 9px; padding-top: 8px; border-top: 1px solid #eee8e2; color: #6f4e37; font-weight: 700; }
+.order-preview { position: fixed; top: auto; left: auto; display: none; pointer-events: none; }
+.order-preview.is-visible { display: block; }
+.order-id-cell:hover .order-preview { display: none; }
+.order-id-cell:hover .order-preview.is-visible { display: block; }
+.order-detail-info p, .order-summary p { margin: 0 0 10px; color: #665f56; font-size: 12px; }
+.order-detail-info strong, .order-summary span { color: #8a8177; font-weight: 500; }
+.order-summary p { display: flex; justify-content: space-between; gap: 20px; }
+.order-summary hr { border: 0; border-top: 1px solid #eee8e2; }
+.order-grand-total { color: var(--coffee) !important; font-size: 16px !important; font-weight: 700; }
+.dashboard-overview .dashboard-card { border: 1px solid #eadfd3; background: #f4eadf !important; color: #4d392b !important; box-shadow: 0 8px 25px rgba(111,78,55,.08); }
+.dashboard-overview .dashboard-card h6, .dashboard-overview .dashboard-card h3 { color: #4d392b !important; }
+.dashboard-overview .dashboard-card .opacity-50 { color: #8b674e; opacity: .8; }
+.dashboard-card-revenue { background: #ead8c5 !important; }
+.dashboard-card-orders { background: #f0e2d2 !important; }
+.dashboard-card-customers { background: #eee0d1 !important; }
+.dashboard-card-products { background: #e8d5c1 !important; }
+.dashboard-recent { border-color: #eadfd3; background: #fffaf6; }
+.dashboard-card-header { border-bottom: 1px solid #eadfd3; background: #f7eee6 !important; color: #5a4232; }
+.dashboard-recent .table thead th { background: #f4e8dc; color: #806b59; border-color: #eadfd3; }
+.dashboard-recent .table td { border-color: #f0e5db; color: #65594f; }
+.dashboard-recent .table-hover tbody tr:hover { background: #fff4e9; }
+.dashboard-overview .stat-card { min-height: 120px; }

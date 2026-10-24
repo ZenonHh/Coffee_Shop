@@ -92,7 +92,7 @@ namespace CoffeeShop.Controllers
                 TienGiamGia = cart.DiscountAmount,
                 PhiGiao = (int)cart.ShippingFee,
                 TongTien = cart.GrandTotal,
-                TrangThai = "Đã xác nhận",
+                TrangThai = "Hoàn tất",
                 NgayTao = DateTime.Now,
                 HoTenNguoiNhan = model.FullName,
                 SdtNguoiNhan = model.Phone,

@@ -141,4 +141,19 @@
             showToast('Trạng thái phản hồi sẽ được lưu khi kết nối dữ liệu khảo sát.');
         });
     });
-}());
+
+    document.querySelectorAll('.order-id-cell').forEach(function (cell) {
+        var preview = cell.querySelector('.order-preview');
+        if (!preview) return;
+        cell.addEventListener('mouseenter', function () {
+            preview.classList.add('is-visible');
+            var rect = cell.getBoundingClientRect();
+            var width = 330;
+            var left = Math.min(Math.max(10, rect.left), window.innerWidth - width - 10);
+            var top = rect.bottom + 8;
+            if (top + preview.offsetHeight > window.innerHeight - 10) top = Math.max(10, rect.top - preview.offsetHeight - 8);
+            preview.style.left = left + 'px';
+            preview.style.top = top + 'px';
+        });
+        cell.addEventListener('mouseleave', function () { preview.classList.remove('is-visible'); });
+    });}());

@@ -104,7 +104,7 @@ CREATE TABLE HoaDon (
     TienGiamGia DECIMAL(12,2) DEFAULT 0.00,
     TamTinh INT DEFAULT 0,
     PhiGiao INT DEFAULT 0,
-    TrangThai NVARCHAR(50) DEFAULT N'Đã xác nhận',
+    TrangThai NVARCHAR(50) DEFAULT N'Hoàn tất',
     NgayTao DATETIME2 DEFAULT GETDATE(),
     HoTenNguoiNhan NVARCHAR(100) NOT NULL,
     SdtNguoiNhan NVARCHAR(15) NOT NULL,
