@@ -1,0 +1,113 @@
+@model CoffeeShop.Models.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Bảng Điều Khiển Tổng Quan";
+}
+
+<!-- Thống kê Card -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card bg-primary text-white p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Tổng Doanh Thu</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
+                </div>
+                <i class="fas fa-money-bill-wave fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-success text-white p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Tổng Đơn Hàng</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.TotalOrders</h3>
+                </div>
+                <i class="fas fa-receipt fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-info text-white p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Khách Hàng</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.TotalCustomers</h3>
+                </div>
+                <i class="fas fa-users fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-warning text-white p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Món Uống Đang Bán</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.TotalProducts</h3>
+                </div>
+                <i class="fas fa-coffee fa-2x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Đơn hàng gần đây -->
+<div class="card stat-card mb-4">
+    <div class="card-header bg-white font-weight-bold d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-list-alt text-primary mr-2"></i> Đơn Hàng Mới Nhất</span>
+        <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả đơn &rarr;</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Số Điện Thoại</th>
+                        <th>Địa Chỉ Nhận</th>
+                        <th>Tổng Tiền</th>
+                        <th>Thời Gian</th>
+                        <th>Trạng Thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RecentOrders.Any())
+                    {
+                        foreach (var order in Model.RecentOrders)
+                        {
+                            <tr>
+                                <td><strong>#@order.MaHD</strong></td>
+                                <td>@order.HoTenNguoiNhan</td>
+                                <td>@order.SdtNguoiNhan</td>
+                                <td>@order.DiaChiGiao</td>
+                                <td class="text-primary font-weight-bold">@order.TongTien.ToString("N0") đ</td>
+                                <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (order.TrangThai == "Hoàn tất")
+                                    {
+                                        <span class="badge badge-success">@order.TrangThai</span>
+                                    }
+                                    else if (order.TrangThai == "Đã hủy")
+                                    {
+                                        <span class="badge badge-danger">@order.TrangThai</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-warning">@order.TrangThai</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">Chưa có đơn hàng nào được ghi nhận.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

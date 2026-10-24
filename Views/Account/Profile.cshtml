@@ -1,0 +1,154 @@
+@model CoffeeShop.Models.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Trang Cá Nhân & Điểm Tích Lũy - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Hồ Sơ Khách Hàng</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Tài khoản</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Message"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Thẻ Hội viên & Điểm tích lũy -->
+            <div class="col-lg-4 mb-4 ftco-animate">
+                <div class="p-4 bg-dark border border-warning rounded text-center">
+                    <div class="rounded-circle bg-secondary d-inline-flex justify-content-center align-items-center mb-3" style="width: 80px; height: 80px;">
+                        <span class="icon-person" style="font-size: 40px; color: #c49b63;"></span>
+                    </div>
+                    <h4 class="text-white mb-1">@Model.Customer.HoTen</h4>
+                    <p class="text-muted mb-3">Tài khoản: @@(@Model.Customer.TaiKhoan)</p>
+
+                    <div class="p-3 bg-secondary rounded mb-3">
+                        <span class="text-muted d-block small">HẠNG THÀNH VIÊN</span>
+                        <h3 class="text-warning font-weight-bold mb-0">@Model.Customer.HangTV</h3>
+                    </div>
+
+                    <div class="p-3 bg-secondary rounded">
+                        <span class="text-muted d-block small">ĐIỂM TÍCH LŨY HIỆN CÓ</span>
+                        <h2 class="text-primary font-weight-bold mb-0">@Model.Customer.DiemTichLuy <small style="font-size: 16px;">điểm</small></h2>
+                        <small class="text-muted d-block mt-1">(Tích lũy 1 điểm mỗi 10.000 đ đơn hàng)</small>
+                    </div>
+                </div>
+
+                <!-- Lịch sử điểm -->
+                <div class="p-4 bg-dark border border-secondary rounded mt-4">
+                    <h5 class="text-white mb-3">Biến Động Điểm Gần Đây</h5>
+                    @if (Model.PointHistories.Any())
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var point in Model.PointHistories)
+                            {
+                                <li class="border-bottom border-secondary pb-2 mb-2 text-light small d-flex justify-content-between">
+                                    <div>
+                                        <div>@point.LyDo</div>
+                                        <div class="text-muted" style="font-size: 11px;">@point.NgayThucHien.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                    <span class="text-success font-weight-bold">+@point.DiemThayDoi</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">Chưa có lịch sử cộng điểm nào.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Cập nhật thông tin & Lịch sử đơn hàng -->
+            <div class="col-lg-8 ftco-animate">
+                <div class="p-4 bg-dark border border-secondary rounded mb-4">
+                    <h4 class="text-white mb-4">Thông Tin Cá Nhân</h4>
+                    <form asp-action="UpdateProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Họ và tên</label>
+                                <input type="text" name="fullName" value="@Model.Customer.HoTen" class="form-control" required />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Số điện thoại</label>
+                                <input type="tel" name="phone" value="@Model.Customer.Sdt" class="form-control" required />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Email</label>
+                                <input type="email" name="email" value="@Model.Customer.Email" class="form-control" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Địa chỉ giao mặc định</label>
+                                <input type="text" name="address" value="@Model.Customer.DiaChi" class="form-control" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary py-2 px-4 mt-2">Lưu Thay Đổi</button>
+                    </form>
+                </div>
+
+                <!-- Đơn hàng đã đặt -->
+                <div class="p-4 bg-dark border border-secondary rounded">
+                    <h4 class="text-white mb-4">Lịch Sử Đơn Hàng Đã Đặt (@Model.RecentOrders.Count)</h4>
+                    @if (Model.RecentOrders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table text-white text-center">
+                                <thead class="thead-primary">
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Món đã đặt</th>
+                                        <th>Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.RecentOrders)
+                                    {
+                                        <tr>
+                                            <td class="font-weight-bold text-primary">#@order.MaHD</td>
+                                            <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td class="text-left small">
+                                                @foreach (var detail in order.OrderDetails)
+                                                {
+                                                    <div>• @detail.Product?.TenSP x @detail.SoLuong</div>
+                                                }
+                                            </td>
+                                            <td class="text-warning font-weight-bold">@order.TongTien.ToString("N0") đ</td>
+                                            <td>
+                                                <span class="badge badge-info">@order.TrangThai</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Bạn chưa có đơn hàng nào tại cửa hàng.</p>
+                        <a asp-controller="Shop" asp-action="Index" class="btn btn-outline-primary btn-sm">Đặt món ngay</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

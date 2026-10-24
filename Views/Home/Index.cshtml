@@ -1,0 +1,143 @@
+@model CoffeeShop.Models.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_1.jpg);">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading">Chào mừng bạn đến với</span>
+                    <h1 class="mb-4">Coffee Blend</h1>
+                    <p class="mb-4 mb-md-5">Thưởng thức những giọt cà phê đậm đà cùng không gian ấm áp, thư thái mỗi ngày.</p>
+                    <p><a asp-controller="Shop" asp-action="Index" class="btn btn-primary p-3 px-xl-4 py-xl-3">Đặt món ngay</a> <a asp-controller="Shop" asp-action="Index" class="btn btn-white btn-outline-white p-3 px-xl-4 py-xl-3">Xem thực đơn</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slider-item" style="background-image: url(/images/bg_2.jpg);">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" data-scrollax-parent="true">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-4">Cà Phê &amp; Trà Tươi</h1>
+                    <p class="mb-4 mb-md-5">Chọn lọc từ những hạt cà phê hảo hạng và lá trà tươi nguyên bản từ cao nguyên.</p>
+                    <p><a asp-controller="Shop" asp-action="Index" class="btn btn-primary p-3 px-xl-4 py-xl-3">Xem thực đơn</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-intro">
+    <div class="container-wrap">
+        <div class="wrap d-md-flex align-items-xl-end">
+            <div class="info">
+                <div class="row no-gutters">
+                    <div class="col-md-4 d-flex ftco-animate">
+                        <div class="icon"><span class="icon-phone"></span></div>
+                        <div class="text">
+                            <h3>0909 090 909</h3>
+                            <p>Đặt hàng hỏa tốc qua hotline</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex ftco-animate">
+                        <div class="icon"><span class="icon-my_location"></span></div>
+                        <div class="text">
+                            <h3>120 Yên Lãng, Đống Đa</h3>
+                            <p>Hà Nội, Việt Nam</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex ftco-animate">
+                        <div class="icon"><span class="icon-clock-o"></span></div>
+                        <div class="text">
+                            <h3>Mở cửa: Thứ 2 - Chủ Nhật</h3>
+                            <p>07:00 sáng - 22:30 tối</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="book p-4">
+                <h3>Đặt đồ uống nhanh</h3>
+                <form asp-controller="Shop" asp-action="Index" method="get" class="appointment-form">
+                    <div class="d-md-flex">
+                        <div class="form-group">
+                            <input type="text" name="keyword" class="form-control" placeholder="Tìm tên đồ uống...">
+                        </div>
+                    </div>
+                    <div class="d-md-flex">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary py-3 px-4 w-100">Tìm kiếm ngay</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 pr-md-5">
+                <div class="heading-section text-md-right ftco-animate">
+                    <span class="subheading">Khám phá</span>
+                    <h2 class="mb-4">Thực đơn nổi bật</h2>
+                    <p class="mb-4">Những món uống được yêu thích nhất tại Coffee Blend, kết hợp giữa truyền thống và sáng tạo hiện đại.</p>
+                    <p><a asp-controller="Shop" asp-action="Index" class="btn btn-primary btn-outline-primary px-4 py-3">Xem toàn bộ thực đơn</a></p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="menu-entry">
+                            <a href="#" class="img" style="background-image: url(/picture/me-sua.png);"></a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="menu-entry mt-lg-4">
+                            <a href="#" class="img" style="background-image: url(/picture/matcha-latte.png);"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5 pb-3">
+            <div class="col-md-7 heading-section ftco-animate text-center">
+                <span class="subheading">Menu Tuyển Chọn</span>
+                <h2 class="mb-4">Sản Phẩm Bán Chạy Nhất</h2>
+                <p>Thưởng thức trọn vẹn từng giọt hương vị tinh tế được pha chế tỉ mỉ.</p>
+            </div>
+        </div>
+        <div class="row">
+            @if (Model.FeaturedProducts.Any())
+            {
+                foreach (var product in Model.FeaturedProducts)
+                {
+                    var defaultVariant = product.Variants.FirstOrDefault();
+                    var price = defaultVariant != null ? defaultVariant.GiaBan.ToString("N0") : "Liên hệ";
+                    <div class="col-md-3">
+                        <div class="menu-entry">
+                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="img" style="background-image: url(/picture/@product.HinhAnh);"></a>
+                            <div class="text text-center pt-4">
+                                <h3><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
+                                <p class="text-muted small">@product.Category?.TenLoaiSP</p>
+                                <p class="price"><span>@price đ</span></p>
+                                <p><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary">Chi tiết / Chọn món</a></p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>

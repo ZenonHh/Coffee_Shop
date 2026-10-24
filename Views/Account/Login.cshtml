@@ -1,0 +1,68 @@
+@model CoffeeShop.Models.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập khách hàng - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Đăng Nhập</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Tài khoản</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 ftco-animate">
+                <div class="p-4 p-md-5 bg-dark border border-secondary rounded">
+                    <h3 class="text-white text-center mb-4">Đăng nhập khách hàng</h3>
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger mb-0" })
+                        </div>
+                    }
+
+                    <form asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ReturnUrl" />
+                        
+                        <div class="form-group mb-3">
+                            <label class="text-white">Tên đăng nhập *</label>
+                            <input type="text" asp-for="Username" class="form-control" placeholder="Tên đăng nhập..." required />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="text-white">Mật khẩu *</label>
+                            <input type="password" asp-for="Password" class="form-control" placeholder="Mật khẩu..." required />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-group d-flex justify-content-between align-items-center mb-4">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" asp-for="RememberMe" class="custom-control-input" id="rememberMe">
+                                <label class="custom-control-label text-light" for="rememberMe">Ghi nhớ đăng nhập</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary py-3 px-4 w-100">Đăng Nhập</button>
+
+                        <div class="text-center mt-4 text-light">
+                            Chưa có tài khoản? <a asp-action="Register" class="text-primary font-weight-bold">Đăng ký thành viên ngay</a>
+                        </div>
+                    </form>
+                        <div class="text-center mt-3"><a asp-area="Admin" asp-controller="Account" asp-action="Login" class="text-warning small">Đăng nhập khu vực quản trị</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

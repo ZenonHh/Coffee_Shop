@@ -4,7 +4,16 @@ tmp/
 
 # Cấu hình riêng của IDE và Windows
 .vscode/
+.vs/
 Thumbs.db
 Desktop.ini
 .DS_Store
 config.local.php
+
+# .NET / C# Build Artifacts
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates

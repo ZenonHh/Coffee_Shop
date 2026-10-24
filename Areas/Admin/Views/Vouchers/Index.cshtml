@@ -1,0 +1,28 @@
+@model List<CoffeeShop.Models.Entities.Voucher>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Quản lý Voucher";
+    var editing = ViewBag.EditVoucher as CoffeeShop.Models.Entities.Voucher;
+    string DateValue(DateTime? value) => value?.ToString("yyyy-MM-ddTHH:mm") ?? "";
+}
+<div class="welcome-row page-title-row"><div><div class="eyebrow">KHUYẾN MÃI</div><h1>Quản lý voucher</h1><p class="page-subtitle">Quản lý mã giảm giá, thời hạn, chương trình và điều kiện áp dụng.</p></div></div>
+@if (ViewBag.FormError != null) { <div class="alert alert-danger">@ViewBag.FormError</div> }
+<div class="dashboard-grid">
+<section class="panel"><div class="panel-heading"><div><h2>@(editing == null ? "Tạo voucher mới" : "Chỉnh sửa voucher")</h2><p>Mã có thể giảm theo phần trăm hoặc số tiền cố định.</p></div></div>
+<form asp-action="@(editing == null ? "Create" : "Edit")" method="post" class="dialog-form px-0">
+@Html.AntiForgeryToken()
+@if (editing != null) { <input type="hidden" name="MaVoucher" value="@editing.MaVoucher" /> }
+<label>Mã voucher<input name="MaCode" value="@(editing?.MaCode ?? "")" maxlength="50" required placeholder="VD: COFFEE10" /></label>
+<label>Tên chương trình<input name="TenChuongTrinh" value="@(editing?.TenChuongTrinh ?? "")" maxlength="150" placeholder="VD: Khuyến mãi cuối tuần" /></label>
+<div class="dialog-fields"><label>Loại giảm<select name="PhanLoaiGiam"><option value="PERCENT" selected="@(editing?.PhanLoaiGiam == "PERCENT" || editing == null)">Phần trăm (%)</option><option value="AMOUNT" selected="@(editing?.PhanLoaiGiam == "AMOUNT")">Số tiền (đ)</option></select></label><label>Giá trị giảm<input name="GiaTriGiam" type="number" min="0" step="0.01" value="@(editing?.GiaTriGiam.ToString(CultureInfo.InvariantCulture) ?? "")" required /></label></div>
+<div class="dialog-fields"><label>Bắt đầu<input name="NgayBatDau" type="datetime-local" value="@DateValue(editing?.NgayBatDau)" /></label><label>Kết thúc<input name="NgayKetThuc" type="datetime-local" value="@DateValue(editing?.NgayKetThuc)" /></label></div>
+<label>Đơn tối thiểu (đ)<input name="DonToiThieu" type="number" min="0" step="1000" value="@(editing?.DonToiThieu.ToString(CultureInfo.InvariantCulture) ?? "0")" /></label>
+@if (editing != null) { <label class="d-flex flex-row align-items-center" style="gap:8px;"><input name="TrangThai" type="checkbox" value="true" checked="@editing.TrangThai" /> Đang hoạt động</label> }
+<div class="dialog-actions">@if (editing != null) { <a asp-action="Index" class="button button-outline">Hủy</a> }<button class="button button-primary" type="submit">@(editing == null ? "Tạo voucher" : "Lưu thay đổi")</button></div>
+</form></section>
+<section class="panel"><div class="panel-heading"><div><h2>Quy tắc áp dụng</h2><p>Điều kiện được kiểm tra ngay tại giỏ hàng.</p></div></div><div class="category-note mt-4"><strong>Giảm tự động:</strong> đơn từ 200.000đ giảm 5.000đ, từ 300.000đ giảm 15.000đ, từ 500.000đ giảm 30.000đ.</div><div class="category-note mt-3"><strong>Voucher:</strong> chỉ dùng trong thời gian bắt đầu–kết thúc, đúng trạng thái và đạt đơn tối thiểu.</div><div class="category-note mt-3">Có thể sửa, bật/tắt hoặc xóa từng chương trình ở danh sách bên dưới.</div></section>
+</div>
+<section class="panel table-panel"><div class="panel-heading table-heading"><div><h2>Danh sách voucher</h2><p>@Model.Count mã giảm giá trong hệ thống.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>MÃ CODE</th><th>CHƯƠNG TRÌNH</th><th>GIẢM</th><th>THỜI HẠN</th><th>ĐƠN TỐI THIỂU</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>
+@foreach (var voucher in Model) { var activeTime = (!voucher.NgayBatDau.HasValue || voucher.NgayBatDau <= DateTime.Now) && (!voucher.NgayKetThuc.HasValue || voucher.NgayKetThuc >= DateTime.Now); <tr><td class="order-id">@voucher.MaCode</td><td>@(voucher.TenChuongTrinh ?? "—")</td><td class="money-cell">@voucher.GiaTriGiam.ToString("N0")@(voucher.PhanLoaiGiam == "PERCENT" ? "%" : " đ")</td><td>@(voucher.NgayBatDau?.ToString("dd/MM/yyyy HH:mm") ?? "Không giới hạn")<br /><span class="muted-cell">→ @(voucher.NgayKetThuc?.ToString("dd/MM/yyyy HH:mm") ?? "Không giới hạn")</span></td><td>@voucher.DonToiThieu.ToString("N0") đ</td><td><span class="status @(voucher.TrangThai && activeTime ? "status-success" : "status-muted")"><i></i>@(voucher.TrangThai ? (activeTime ? "Đang áp dụng" : "Ngoài thời hạn") : "Đang tắt")</span></td><td><a asp-action="Index" asp-route-editId="@voucher.MaVoucher" class="button button-small button-outline">Sửa</a> <form asp-action="ToggleStatus" method="post" class="d-inline">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@voucher.MaVoucher" /><button class="button button-small button-outline" type="submit">@(voucher.TrangThai ? "Tắt" : "Bật")</button></form> <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xóa voucher này?');">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@voucher.MaVoucher" /><button class="button button-small button-outline text-danger" type="submit">Xóa</button></form></td></tr> }
+@if (!Model.Any()) { <tr><td colspan="7" class="text-center py-4 muted-cell">Chưa có voucher nào.</td></tr> }
+</tbody></table></div></section>

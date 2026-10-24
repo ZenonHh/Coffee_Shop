@@ -1,0 +1,117 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+    var currentTitle = ViewData["Title"]?.ToString() ?? "Quản trị";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Khu vực quản trị Coffee Blend" />
+    <title>@currentTitle - Coffee Blend Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link rel="stylesheet" href="~/admin/admin.css" />
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="sidebar" id="sidebar">
+        <a class="brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" aria-label="Coffee Blend Admin">
+            <span class="brand-mark">C</span>
+            <span class="brand-copy">Coffee<small>Blend · ADMIN</small></span>
+        </a>
+
+        <div class="side-caption">MENU CHÍNH</div>
+        <nav class="side-nav" aria-label="Điều hướng quản trị">
+            <a class="side-link @(controller == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">◫</span><span>Tổng quan</span>
+            </a>
+            <a class="side-link @(controller == "Products" ? "active" : "")" asp-area="Admin" asp-controller="Products" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">▤</span><span>Sản phẩm</span>
+            </a>
+            <a class="side-link @(controller == "Vouchers" ? "active" : "")" asp-area="Admin" asp-controller="Vouchers" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">%</span><span>Voucher</span>
+            </a>
+            <a class="side-link @(controller == "Surveys" ? "active" : "")" asp-area="Admin" asp-controller="Surveys" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">▧</span><span>Khảo sát ý kiến</span>
+            </a>
+            <a class="side-link @(controller == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">▣</span><span>Đơn hàng</span>
+            </a>
+        </nav>
+
+        <div class="side-caption side-caption-spaced">HỆ THỐNG</div>
+        <a class="side-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+            <span class="side-icon" aria-hidden="true">↗</span><span>Xem cửa hàng</span>
+        </a>
+
+        <div class="sidebar-bottom">
+            <div class="help-card">
+                <span class="help-mark">?</span>
+                <strong>Cần hỗ trợ?</strong>
+                <span>Liên hệ quản trị viên hệ thống.</span>
+            </div>
+            <a class="store-link" asp-area="Admin" asp-controller="Account" asp-action="Logout">
+                <span aria-hidden="true">↪</span> Đăng xuất
+            </a>
+            <div class="admin-profile">
+                <div class="avatar avatar-admin">AD</div>
+                <div class="profile-copy">
+                    <strong>@(User.Identity?.Name ?? "Quản trị viên")</strong>
+                    <span>Quản trị hệ thống</span>
+                </div>
+                <span class="profile-dots" aria-hidden="true">···</span>
+            </div>
+        </div>
+    </aside>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <main class="main-area">
+        <header class="topbar">
+            <button class="icon-button menu-toggle" id="menuToggle" type="button" aria-label="Mở menu" aria-expanded="false">☰</button>
+            <div class="breadcrumb">
+                <span>Admin</span><span class="crumb-separator">/</span><strong>@currentTitle</strong>
+            </div>
+            <div class="topbar-actions">
+                <label class="global-search">
+                    <span aria-hidden="true">⌕</span>
+                    <input type="search" id="tableSearch" placeholder="Tìm kiếm..." aria-label="Tìm kiếm trong bảng" />
+                    <kbd>⌘ K</kbd>
+                </label>
+                <button class="icon-button notification-button" type="button" aria-label="Thông báo">♧<i></i></button>
+                <div class="topbar-divider"></div>
+                <div class="topbar-user">
+                    <div class="avatar avatar-admin">AD</div>
+                    <span>@(User.Identity?.Name ?? "Admin")</span>
+                    <span class="chevron">⌄</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="page-content">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["Success"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Đóng">&times;</button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["Error"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Đóng">&times;</button>
+                </div>
+            }
+            @RenderBody()
+        </div>
+    </main>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/admin/admin.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

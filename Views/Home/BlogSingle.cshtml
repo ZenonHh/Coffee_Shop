@@ -1,0 +1,158 @@
+@{
+    ViewData["Title"] = "Nghệ Thuật Thưởng Thức Cà Phê - Coffee Blend";
+    var recentProducts = ViewBag.RecentProducts as List<CoffeeShop.Models.Entities.Product> ?? new List<CoffeeShop.Models.Entities.Product>();
+    var featuredProduct = ViewBag.Product as CoffeeShop.Models.Entities.Product;
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Chi Tiết Bài Viết</h1>
+                    <p class="breadcrumbs">
+                        <span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> 
+                        <span class="mr-2"><a asp-controller="Home" asp-action="Blog">Bài viết</a></span> 
+                        <span>Chi tiết</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 ftco-animate">
+                <h2 class="mb-3">Bí Quyết Thưởng Thức Cà Phê Chuẩn Vị Cùng Coffee Blend</h2>
+                <p>Một ly cà phê ngon không đơn thuần là một thức uống khởi đầu ngày mới, mà là cả một nghệ thuật kết hợp giữa chất lượng hạt rang, nhiệt độ nước và tâm huyết của người pha chế. Tại Coffee Blend, chúng tôi luôn trân trọng từng hạt cà phê Robusta và Arabica thu hoạch từ vùng cao nguyên đất đỏ bazan màu mỡ.</p>
+                
+                <p>
+                    <img src="/images/image_1.jpg" alt="Thưởng thức cà phê" class="img-fluid rounded my-3">
+                </p>
+
+                <h3 class="mb-3 mt-4 text-primary">1. Hương thơm nồng nàn và tầng vị phong phú</h3>
+                <p>Khi thưởng thức một tách espresso hoặc phin truyền thống, hãy để bản thân chậm lại vài giây để cảm nhận làn khói nghi ngút bốc lên. Hương caramel thoang thoảng, một chút đắng dịu thanh khi chạm vào đầu lưỡi và cuối cùng là vị ngọt hậu kéo dài nơi cuống họng. Đó chính là bản giao hưởng hương vị mà chỉ những hạt cà phê rang mộc chuẩn mới có thể mang lại.</p>
+
+                <p>
+                    <img src="/images/image_2.jpg" alt="Cà phê rang mộc" class="img-fluid rounded my-3">
+                </p>
+
+                <h3 class="mb-3 mt-4 text-primary">2. Xu hướng Cold Brew mát lạnh cho ngày hè</h3>
+                <p>Bên cạnh cà phê phin truyền thống, dòng Cold Brew (cà phê ủ lạnh) của Coffee Blend đang là sự lựa chọn yêu thích của giới trẻ. Được ủ lạnh liên tục suốt 16-24 tiếng ở nhiệt độ chuẩn, cà phê chiết xuất chậm rãi giữ lại trọn vẹn vị mượt mà, ít vị chua gắt và cực kỳ êm dịu cho dạ dày.</p>
+
+                <div class="tag-widget post-tag-container mb-5 mt-5">
+                    <div class="tagcloud">
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">Cà phê rang mộc</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">Cold Brew</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">Trà sữa</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">Bánh ngọt</a>
+                    </div>
+                </div>
+                
+                <div class="about-author d-flex p-4 bg-dark rounded">
+                    <div class="bio align-self-md-center mr-4">
+                        <img src="/images/person_4.jpg" alt="Barista tác giả" class="img-fluid rounded-circle" style="width: 90px; height: 90px; object-fit: cover;">
+                    </div>
+                    <div class="desc align-self-md-center">
+                        <h4 class="text-white mb-1">Chuyên Gia Barista Coffee Blend</h4>
+                        <p class="text-muted small mb-0">Hơn 8 năm kinh nghiệm trong ngành cà phê đặc sản, đam mê lan tỏa văn hóa cà phê sạch và chuẩn vị đến cộng đồng.</p>
+                    </div>
+                </div>
+
+                <div class="pt-5 mt-4">
+                    <h3 class="mb-4">Bình luận từ bạn đọc (3)</h3>
+                    <ul class="comment-list list-unstyled">
+                        <li class="comment mb-4 pb-3 border-bottom border-secondary">
+                            <div class="vcard bio float-left mr-3">
+                                <img src="/images/person_2.jpg" alt="Avatar" class="rounded-circle" style="width: 50px; height: 50px;">
+                            </div>
+                            <div class="comment-body">
+                                <h5 class="text-white mb-1">Thanh Phong</h5>
+                                <div class="meta text-muted small mb-2">24 Tháng 10, 2026 lúc 08:30</div>
+                                <p class="text-light">Bài viết rất ý nghĩa! Mình đã thử món Cold Brew chanh vàng ở quán và thực sự bị chinh phục hoàn toàn.</p>
+                            </div>
+                        </li>
+                        <li class="comment mb-4 pb-3 border-bottom border-secondary">
+                            <div class="vcard bio float-left mr-3">
+                                <img src="/images/person_3.jpg" alt="Avatar" class="rounded-circle" style="width: 50px; height: 50px;">
+                            </div>
+                            <div class="comment-body">
+                                <h5 class="text-white mb-1">Kim Oanh</h5>
+                                <div class="meta text-muted small mb-2">23 Tháng 10, 2026 lúc 15:45</div>
+                                <p class="text-light">Không gian quán ở Yên Lãng rất yên tĩnh và view đẹp, cà phê bắp béo ngậy uống rất lạ miệng!</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4 sidebar ftco-animate">
+                <div class="sidebar-box">
+                    <form asp-controller="Shop" asp-action="Index" method="get" class="search-form">
+                        <div class="form-group">
+                            <div class="icon">
+                                <span class="icon-search"></span>
+                            </div>
+                            <input type="text" name="keyword" class="form-control" placeholder="Tìm kiếm món...">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="sidebar-box ftco-animate">
+                    <div class="categories">
+                        <h3>Danh Mục Món</h3>
+                        <li><a asp-controller="Shop" asp-action="Index">Cà Phê Truyền Thống</a></li>
+                        <li><a asp-controller="Shop" asp-action="Index">Cold Brew Ủ Lạnh</a></li>
+                        <li><a asp-controller="Shop" asp-action="Index">Trà Sữa & Matcha</a></li>
+                        <li><a asp-controller="Shop" asp-action="Index">Trà Trái Cây Thanh Mát</a></li>
+                        <li><a asp-controller="Shop" asp-action="Index">Bánh Ngọt Ăn Kèm</a></li>
+                    </div>
+                </div>
+
+                <div class="sidebar-box ftco-animate">
+                    <h3>Gợi Ý Thưởng Thức</h3>
+                    @if (recentProducts.Any())
+                    {
+                        foreach (var prod in recentProducts)
+                        {
+                            var img = !string.IsNullOrEmpty(prod.HinhAnh) ? $"/picture/{prod.HinhAnh}" : "/images/menu-1.jpg";
+                            <div class="block-21 mb-4 d-flex align-items-center">
+                                <a asp-controller="Shop" asp-action="Detail" asp-route-id="@prod.MaSP" class="blog-img mr-3 rounded" style="background-image: url('@img'); width: 80px; height: 80px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #1a1a1a;"></a>
+                                <div class="text">
+                                    <h5 class="heading mb-1"><a asp-controller="Shop" asp-action="Detail" asp-route-id="@prod.MaSP" class="text-white">@prod.TenSP</a></h5>
+                                    <div class="meta">
+                                        <small class="text-primary font-weight-bold">@prod.Category?.TenLoaiSP</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="block-21 mb-4 d-flex">
+                            <a asp-controller="Shop" asp-action="Index" class="blog-img mr-4" style="background-image: url(/images/image_1.jpg);"></a>
+                            <div class="text">
+                                <h3 class="heading"><a asp-controller="Shop" asp-action="Index">Cà phê rang mộc hương vị nguyên bản</a></h3>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div class="sidebar-box ftco-animate">
+                    <h3>Từ Khóa</h3>
+                    <div class="tagcloud">
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">cà phê</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">trà sữa</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">cold brew</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">matcha</a>
+                        <a asp-controller="Shop" asp-action="Index" class="tag-cloud-link">bánh ngọt</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

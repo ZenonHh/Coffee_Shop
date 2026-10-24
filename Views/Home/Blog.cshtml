@@ -1,0 +1,110 @@
+@model List<CoffeeShop.Models.Entities.Category>
+@{
+    ViewData["Title"] = "Bài Viết & Khám Phá Món Ngon - Coffee Blend";
+
+    var descriptionTemplates = new Dictionary<string, string>
+    {
+        { "Cà Phê", "Đậm đà, thơm nồng và phù hợp cho những ai yêu hương vị cà phê nguyên bản." },
+        { "Cold Brew", "Cà phê ủ lạnh êm dịu, thanh mát, thích hợp để thưởng thức trong ngày nắng ráo." },
+        { "Trà Trái Cây", "Trà thanh mát kết hợp vị trà thanh nhã cùng trái cây tươi mát, giải nhiệt tức thì." },
+        { "Trà Sữa", "Trà sữa thơm béo, dễ uống, là lựa chọn lý tưởng cho những phút giây trò chuyện thư thái." },
+        { "Matcha", "Matcha thơm dịu, béo nhẹ và mang đến trải nghiệm thanh tao cho người yêu đồ uống xanh." },
+        { "Bánh Ngọt", "Món bánh mềm mịn, thơm ngon, là sự kết hợp hoàn hảo khi dùng kèm với tách cà phê." }
+    };
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Khám Phá Món Ngon</h1>
+                    <p class="breadcrumbs">
+                        <span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> 
+                        <span>Bài viết</span>
+                    </p>
+                    <p>Thưởng thức những món đồ uống và bánh ngon hảo hạng được pha chế tươi mới mỗi ngày.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 heading-section text-center ftco-animate">
+                <span class="subheading">Gợi Ý Hôm Nay</span>
+                <h2 class="mb-4">Món Ngon Tại Coffee Blend</h2>
+                <p>Khám phá bộ sưu tập phong phú từ cà phê rang mộc, trà cao nguyên đến bánh ngọt tươi ngon.</p>
+            </div>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="row justify-content-center">
+                <div class="col-md-8 text-center">
+                    <p class="text-muted">Hiện chưa có món nào đang được phục vụ. Vui lòng quay lại sau.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            foreach (var category in Model)
+            {
+                var activeProducts = category.Products?.Where(p => p.TrangThai).ToList();
+                if (activeProducts == null || !activeProducts.Any())
+                {
+                    continue;
+                }
+
+                string desc = "Một lựa chọn tuyệt vời cho ngày mới tràn đầy năng lượng tại Coffee Blend.";
+                foreach (var pair in descriptionTemplates)
+                {
+                    if (category.TenLoaiSP.Contains(pair.Key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        desc = pair.Value;
+                        break;
+                    }
+                }
+
+                <div class="mb-5">
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-8 heading-section text-center">
+                            <h3 class="text-primary font-weight-bold" style="letter-spacing: 1px;">@category.TenLoaiSP</h3>
+                            <p class="text-muted small">@desc</p>
+                        </div>
+                    </div>
+                    <div class="row d-flex">
+                        @foreach (var product in activeProducts)
+                        {
+                            var defaultVariant = product.Variants.FirstOrDefault();
+                            var price = defaultVariant != null ? defaultVariant.GiaBan.ToString("N0") + " đ" : "Liên hệ";
+                            var imagePath = !string.IsNullOrEmpty(product.HinhAnh) ? $"/picture/{product.HinhAnh}" : "/images/menu-1.jpg";
+
+                            <div class="col-md-6 col-lg-4 d-flex ftco-animate">
+                                <div class="blog-entry align-self-stretch w-100" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
+                                    <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="block-20" style="background-image: url('@imagePath'); height: 260px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #12100e;"></a>
+                                    <div class="text py-4 px-3 d-block text-center">
+                                        <div class="meta mb-2">
+                                            <span class="badge badge-warning text-dark font-weight-bold py-1 px-2">@category.TenLoaiSP</span>
+                                            <span class="text-primary ml-2 font-weight-bold">@price</span>
+                                        </div>
+                                        <h3 class="heading mt-2">
+                                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" style="color: #fff; font-size: 19px;">@product.TenSP</a>
+                                        </h3>
+                                        <p class="text-muted small" style="min-height: 40px;">@desc</p>
+                                        <p class="mt-3">
+                                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm px-3 py-2">Xem chi tiết & Đặt món</a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</section>

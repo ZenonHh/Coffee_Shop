@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Không Có Quyền Truy Cập - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Truy Cập Bị Từ Chối</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Lỗi quyền hạn</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-7 text-center">
+                <div class="p-5 bg-dark border border-warning rounded shadow">
+                    <div class="mb-4">
+                        <span class="icon-lock text-warning" style="font-size: 60px;"></span>
+                    </div>
+                    <h3 class="text-white mb-3">Yêu Cầu Quyền Quản Trị Viên (Admin)</h3>
+                    <p class="text-light mb-4">
+                        Tài khoản hiện tại của bạn không có quyền truy cập vào <strong>Trang Quản Trị</strong>.<br/>
+                        Vui lòng đăng xuất và đăng nhập bằng tài khoản Quản trị viên của quán:
+                    </p>
+                    <div class="p-3 rounded mb-4 text-left d-inline-block text-white" style="background: rgba(255, 255, 255, 0.08); border: 1px dashed #c49b63;">
+                        <p class="mb-1"><strong>Tài khoản Quản trị:</strong> <code class="text-warning font-weight-bold" style="font-size: 16px;">admin</code></p>
+                        <p class="mb-0"><strong>Mật khẩu:</strong> <code class="text-warning font-weight-bold" style="font-size: 16px;">admin123</code></p>
+                    </div>
+                    <div>
+                        <a asp-controller="Account" asp-action="Logout" class="btn btn-primary py-3 px-4 mr-2">Đăng Xuất & Đăng Nhập Lại</a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-white py-3 px-4">Về Trang Chủ</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

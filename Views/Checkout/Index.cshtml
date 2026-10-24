@@ -1,0 +1,138 @@
+@model CoffeeShop.Models.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Thanh Toán Đơn Hàng - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Xác Nhận &amp; Thanh Toán</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span class="mr-2"><a asp-controller="Cart" asp-action="Index">Giỏ hàng</a></span> <span>Thanh toán</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <form asp-action="PlaceOrder" method="post" class="billing-form ftco-bg-dark p-4 p-md-5 rounded border border-secondary">
+            @Html.AntiForgeryToken()
+            <div class="row justify-content-center">
+                <div class="col-xl-7 ftco-animate">
+                    <h3 class="mb-4 billing-heading text-white">Thông Tin Nhận Hàng</h3>
+                    
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-0" })
+                        </div>
+                    }
+
+                    <div class="row align-items-end">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="text-white">Họ và tên người nhận *</label>
+                                <input type="text" asp-for="FullName" class="form-control" placeholder="Nhập họ tên đầy đủ..." required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="text-white">Số điện thoại *</label>
+                                <input type="tel" asp-for="Phone" class="form-control" placeholder="Số điện thoại nhận hàng..." required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="text-white">Địa chỉ Email</label>
+                                <input type="email" asp-for="Email" class="form-control" placeholder="Nhận hóa đơn điện tử...">
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="text-white">Địa chỉ giao hàng chi tiết *</label>
+                                <input type="text" asp-for="DeliveryAddress" class="form-control" placeholder="Số nhà, ngõ/ngách, tên đường, phường/xã, quận/huyện..." required>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="text-white">Ghi chú cho quán (Tùy chọn)</label>
+                                <textarea asp-for="Note" class="form-control" rows="3" placeholder="Ví dụ: Giảm đường, nhiều đá, gọi trước khi giao..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-5">
+                    <div class="row mt-5 pt-3">
+                        <div class="col-md-12 d-flex">
+                            <div class="cart-detail cart-total ftco-bg-dark p-3 p-md-4 border border-secondary rounded w-100">
+                                <h3 class="billing-heading mb-4 text-white">Tóm Tắt Đơn Hàng</h3>
+                                
+                                <div class="mb-3">
+                                    @foreach (var item in Model.Cart.Items)
+                                    {
+                                        <div class="d-flex justify-content-between text-light small mb-2 border-bottom border-secondary pb-2">
+                                            <div>
+                                                <strong>@item.ProductName (Size @item.Size)</strong> x @item.Quantity
+                                                @if (item.SelectedToppingNames.Any())
+                                                {
+                                                    <div class="text-muted">+ @string.Join(", ", item.SelectedToppingNames)</div>
+                                                }
+                                            </div>
+                                            <span>@item.TotalPrice.ToString("N0") đ</span>
+                                        </div>
+                                    }
+                                </div>
+
+                                <p class="d-flex justify-content-between text-white">
+                                    <span>Tạm tính</span>
+                                    <span>@Model.Cart.SubTotal.ToString("N0") đ</span>
+                                </p>
+                                <p class="d-flex justify-content-between text-white">
+                                    <span>Giảm giá</span>
+                                    <span class="text-success">-@Model.Cart.DiscountAmount.ToString("N0") đ</span>
+                                </p>
+                                <p class="d-flex justify-content-between text-white">
+                                    <span>Phí giao hàng</span>
+                                    <span>@(Model.Cart.ShippingFee == 0 ? "Miễn phí" : Model.Cart.ShippingFee.ToString("N0") + " đ")</span>
+                                </p>
+                                <hr class="border-secondary">
+                                <p class="d-flex justify-content-between text-white font-weight-bold h5">
+                                    <span>Tổng thanh toán</span>
+                                    <span class="text-primary">@Model.Cart.GrandTotal.ToString("N0") đ</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="cart-detail ftco-bg-dark p-3 p-md-4 mt-3 border border-secondary rounded">
+                                <h3 class="billing-heading mb-4 text-white">Phương Thức Thanh Toán</h3>
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <div class="radio">
+                                            <label class="text-white"><input type="radio" asp-for="PaymentMethod" value="COD" checked class="mr-2"> Thanh toán khi nhận hàng (COD)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <div class="radio">
+                                            <label class="text-white"><input type="radio" asp-for="PaymentMethod" value="Transfer" class="mr-2"> Chuyển khoản ngân hàng qua mã QR</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="mt-4">
+                                    <button type="submit" class="btn btn-primary py-3 px-4 w-100">Xác Nhận &amp; Đặt Hàng</button>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>

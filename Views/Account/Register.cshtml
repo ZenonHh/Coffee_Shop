@@ -1,0 +1,77 @@
+@model CoffeeShop.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng Ký Thành Viên - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Đăng Ký Thành Viên</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Đăng ký</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 ftco-animate">
+                <div class="p-4 p-md-5 bg-dark border border-secondary rounded">
+                    <h3 class="text-white text-center mb-4">Tạo Tài Khoản Khách Hàng</h3>
+                    
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="alert alert-danger">
+                            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-0" })
+                        </div>
+                    }
+
+                    <form asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="form-group mb-3">
+                            <label class="text-white">Họ và tên *</label>
+                            <input type="text" asp-for="FullName" class="form-control" placeholder="Nguyễn Văn A..." required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="text-white">Tên đăng nhập *</label>
+                            <input type="text" asp-for="Username" class="form-control" placeholder="username123..." required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="text-white">Số điện thoại *</label>
+                            <input type="tel" asp-for="Phone" class="form-control" placeholder="0909xxxxxx..." required />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="text-white">Email (Tùy chọn)</label>
+                            <input type="email" asp-for="Email" class="form-control" placeholder="email@gmail.com..." />
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="text-white">Mật khẩu *</label>
+                            <input type="password" asp-for="Password" class="form-control" placeholder="Tối thiểu 6 ký tự..." required />
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="text-white">Xác nhận mật khẩu *</label>
+                            <input type="password" asp-for="ConfirmPassword" class="form-control" placeholder="Nhập lại mật khẩu..." required />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary py-3 px-4 w-100">Hoàn Tất Đăng Ký</button>
+
+                        <div class="text-center mt-4 text-light">
+                            Đã có tài khoản? <a asp-action="Login" class="text-primary font-weight-bold">Đăng nhập tại đây</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

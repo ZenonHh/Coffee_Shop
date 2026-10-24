@@ -1,0 +1,77 @@
+@model CoffeeShop.Models.ViewModels.ShopViewModel
+@{
+    ViewData["Title"] = "Thực đơn - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 400px; min-height: 400px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 400px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Thực Đơn Cửa Hàng</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Thực đơn</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <!-- Bộ lọc danh mục & Tìm kiếm -->
+        <div class="row mb-5">
+            <div class="col-md-8">
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-action="Index" class="btn @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary") mr-2 mb-2">Tất cả</a>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <a asp-action="Index" asp-route-categoryId="@cat.MaLoaiSP" class="btn @(Model.SelectedCategoryId == cat.MaLoaiSP ? "btn-primary" : "btn-outline-primary") mr-2 mb-2">
+                            @cat.TenLoaiSP
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="col-md-4">
+                <form asp-action="Index" method="get" class="d-flex">
+                    @if (Model.SelectedCategoryId.HasValue)
+                    {
+                        <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId.Value" />
+                    }
+                    <input type="text" name="keyword" value="@Model.Keyword" class="form-control mr-2" placeholder="Tìm kiếm món uống..." />
+                    <button type="submit" class="btn btn-primary px-3"><i class="icon-search"></i></button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <div class="row">
+            @if (Model.Products.Any())
+            {
+                foreach (var product in Model.Products)
+                {
+                    var defaultVariant = product.Variants.FirstOrDefault();
+                    var price = defaultVariant != null ? defaultVariant.GiaBan.ToString("N0") : "Liên hệ";
+                    <div class="col-md-3">
+                        <div class="menu-entry">
+                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="img" style="background-image: url(/picture/@product.HinhAnh);"></a>
+                            <div class="text text-center pt-4">
+                                <h3><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
+                                <p class="text-muted small">@product.Category?.TenLoaiSP</p>
+                                <p class="price"><span>@price đ</span></p>
+                                <p><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary">Chọn mua</a></p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center py-5">
+                    <h4>Không tìm thấy món uống phù hợp.</h4>
+                    <a asp-action="Index" class="btn btn-primary mt-3">Quay lại tất cả sản phẩm</a>
+                </div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Liên Hệ - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Liên Hệ Với Chúng Tôi</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Liên hệ</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section contact-section">
+    <div class="container mt-5">
+        <div class="row block-9">
+            <div class="col-md-4 contact-info ftco-animate">
+                <div class="row">
+                    <div class="col-md-12 mb-4">
+                        <h2 class="h4 text-white">Thông Tin Cửa Hàng</h2>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <p class="text-white"><span>Địa chỉ:</span> 120 Yên Lãng, Thịnh Quang, Đống Đa, Hà Nội</p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <p class="text-white"><span>Hotline:</span> <a href="tel:0909090909">0909 090 909</a></p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <p class="text-white"><span>Email:</span> <a href="mailto:contact@coffeeblend.com">contact@coffeeblend.com</a></p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <p class="text-white"><span>Giờ hoạt động:</span> 07:00 - 22:30 hàng ngày</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-6 ftco-animate">
+                <form action="#" class="contact-form p-4 p-md-5 bg-dark border border-secondary rounded">
+                    <h3 class="text-white mb-4">Gửi Lời Nhắn</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Họ và tên của bạn" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input type="email" class="form-control" placeholder="Email của bạn" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Chủ đề lời nhắn">
+                    </div>
+                    <div class="form-group">
+                        <textarea cols="30" rows="5" class="form-control" placeholder="Nội dung lời nhắn..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Gửi tin nhắn" class="btn btn-primary py-3 px-5">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

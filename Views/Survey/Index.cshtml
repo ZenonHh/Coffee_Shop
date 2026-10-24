@@ -1,0 +1,62 @@
+@model List<CoffeeShop.Models.Entities.Survey>
+@{
+    ViewData["Title"] = "Khảo Sát Khách Hàng - Coffee Blend";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Khảo Sát Ý Kiến</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Khảo sát CRM</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        @if (Model.Any())
+        {
+            foreach (var survey in Model)
+            {
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-8 ftco-animate">
+                        <div class="p-4 p-md-5 bg-dark border border-secondary rounded">
+                            <h3 class="text-white mb-2">@survey.TieuDe</h3>
+                            <p class="text-muted mb-4">@survey.MoTa</p>
+
+                            <form asp-action="SubmitSurvey" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="surveyId" value="@survey.MaKhaoSat" />
+
+                                @foreach (var q in survey.Questions)
+                                {
+                                    <div class="form-group mb-4 pb-3 border-bottom border-secondary">
+                                        <label class="text-white font-weight-bold">Câu hỏi: @q.NoiDungCauHoi</label>
+                                        <textarea name="answers[@q.MaCauHoi]" class="form-control" rows="3" placeholder="Ý kiến đóng góp của bạn..." required></textarea>
+                                    </div>
+                                }
+
+                                <button type="submit" class="btn btn-primary py-3 px-5">Gửi Kết Quả Khảo Sát</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-12 text-center py-5">
+                    <h3 class="text-white">Hiện tại chưa có đợt khảo sát mới nào</h3>
+                    <p class="text-muted">Cảm ơn bạn đã luôn đồng hành và ủng hộ Coffee Blend!</p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Quay lại Trang Chủ</a>
+                </div>
+            </div>
+        }
+    </div>
+</section>

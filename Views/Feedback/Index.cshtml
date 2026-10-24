@@ -1,0 +1,116 @@
+@model List<CoffeeShop.Models.Entities.Feedback>
+@{
+    ViewData["Title"] = "Đánh Giá & Ý Kiến Khách Hàng - Coffee Blend";
+    var products = ViewBag.Products as List<CoffeeShop.Models.Entities.Product> ?? new();
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+                <div class="col-md-7 col-sm-12 text-center ftco-animate">
+                    <h1 class="mb-3 mt-5 bread">Ý Kiến Khách Hàng</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Phản hồi &amp; Đánh giá</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Form gửi phản hồi -->
+            <div class="col-lg-5 mb-5 ftco-animate">
+                <div class="p-4 bg-dark border border-secondary rounded">
+                    <h3 class="text-white mb-4">Gửi Nhận Xét Của Bạn</h3>
+                    <form asp-action="SubmitFeedback" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="form-group mb-3">
+                            <label class="text-white">Chọn món uống (Tùy chọn)</label>
+                            <select name="productId" class="form-control">
+                                <option value="">-- Đánh giá chung toàn cửa hàng --</option>
+                                @foreach (var prod in products)
+                                {
+                                    <option value="@prod.MaSP">@prod.TenSP</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="text-white">Mức độ hài lòng *</label>
+                            <select name="rating" class="form-control" required>
+                                <option value="5" selected>⭐⭐⭐⭐⭐ - Cực kỳ hài lòng (5 sao)</option>
+                                <option value="4">⭐⭐⭐⭐ - Hài lòng (4 sao)</option>
+                                <option value="3">⭐⭐⭐ - Bình thường (3 sao)</option>
+                                <option value="2">⭐⭐ - Chưa hài lòng (2 sao)</option>
+                                <option value="1">⭐ - Không hài lòng (1 sao)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label class="text-white">Nội dung nhận xét *</label>
+                            <textarea name="content" class="form-control" rows="4" placeholder="Cảm nhận của bạn về hương vị đồ uống, không gian quán và phục vụ..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary py-3 px-4 w-100">Gửi Đánh Giá Ngay</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Danh sách các phản hồi gần đây -->
+            <div class="col-lg-7 ftco-animate">
+                <h3 class="text-white mb-4">Nhận Xét Từ Khách Hàng</h3>
+                @if (Model.Any())
+                {
+                    <div class="row">
+                        @foreach (var fb in Model)
+                        {
+                            <div class="col-12 mb-3">
+                                <div class="p-4 bg-dark border border-secondary rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h5 class="text-white mb-0">@(fb.Customer?.HoTen ?? "Khách hàng ẩn danh")</h5>
+                                        <span class="text-warning">
+                                            @for (int s = 1; s <= (fb.DanhGia ?? 5); s++) { <i class="icon-star"></i> }
+                                        </span>
+                                    </div>
+                                    @if (fb.Product != null)
+                                    {
+                                        <div class="badge badge-primary mb-2">Món uống: @fb.Product.TenSP</div>
+                                    }
+                                    <p class="text-light mb-2">@fb.NoiDung</p>
+                                    <small class="text-muted">@fb.NgayGui.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">Chưa có phản hồi nào.</p>
+                }
+            </div>
+        </div>
+    </div>
+</section>
