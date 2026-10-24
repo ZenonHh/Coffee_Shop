@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2026 at 09:26 AM
+-- Generation Time: Oct 13, 2026 at 10:51 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -20,6 +20,104 @@ SET time_zone = "+00:00";
 --
 -- Database: `coffee_shop_db`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `bienthesanpham`
+--
+
+CREATE TABLE `bienthesanpham` (
+  `MaBienThe` int(11) NOT NULL,
+  `MaSP` int(11) NOT NULL,
+  `KichCo` varchar(10) NOT NULL,
+  `GiaBan` decimal(12,2) NOT NULL,
+  `TrangThai` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `bienthesanpham`
+--
+
+INSERT INTO `bienthesanpham` (`MaBienThe`, `MaSP`, `KichCo`, `GiaBan`, `TrangThai`) VALUES
+(1, 1, 'M', 29000.00, 1),
+(2, 1, 'L', 35000.00, 1),
+(3, 2, 'M', 32000.00, 1),
+(4, 2, 'L', 39000.00, 1),
+(5, 3, 'M', 32000.00, 1),
+(6, 3, 'L', 39000.00, 1),
+(7, 4, 'M', 39000.00, 1),
+(8, 4, 'L', 45000.00, 1),
+(9, 5, 'M', 35000.00, 1),
+(10, 5, 'L', 42000.00, 1),
+(11, 6, 'M', 32000.00, 1),
+(12, 6, 'L', 39000.00, 1),
+(13, 7, 'M', 35000.00, 1),
+(14, 7, 'L', 42000.00, 1),
+(15, 8, 'M', 38000.00, 1),
+(16, 8, 'L', 45000.00, 1),
+(17, 9, 'M', 45000.00, 1),
+(18, 9, 'L', 52000.00, 1),
+(19, 10, 'M', 49000.00, 1),
+(20, 10, 'L', 56000.00, 1),
+(21, 11, 'M', 45000.00, 1),
+(22, 11, 'L', 52000.00, 1),
+(23, 12, 'M', 45000.00, 1),
+(24, 12, 'L', 52000.00, 1),
+(25, 13, 'M', 49000.00, 1),
+(26, 13, 'L', 56000.00, 1),
+(27, 14, 'M', 45000.00, 1),
+(28, 14, 'L', 55000.00, 1),
+(29, 15, 'M', 49000.00, 1),
+(30, 15, 'L', 59000.00, 1),
+(31, 16, 'M', 49000.00, 1),
+(32, 16, 'L', 59000.00, 1),
+(33, 17, 'M', 52000.00, 1),
+(34, 17, 'L', 62000.00, 1),
+(35, 18, 'M', 39000.00, 1),
+(36, 18, 'L', 49000.00, 1),
+(37, 19, 'M', 39000.00, 1),
+(38, 19, 'L', 49000.00, 1),
+(39, 20, 'M', 45000.00, 1),
+(40, 20, 'L', 55000.00, 1),
+(41, 21, 'M', 42000.00, 1),
+(42, 21, 'L', 52000.00, 1),
+(43, 22, 'M', 45000.00, 1),
+(44, 22, 'L', 55000.00, 1),
+(45, 23, 'M', 39000.00, 1),
+(46, 23, 'L', 49000.00, 1),
+(47, 24, 'M', 39000.00, 1),
+(48, 24, 'L', 49000.00, 1),
+(49, 25, 'M', 45000.00, 1),
+(50, 25, 'L', 55000.00, 1),
+(51, 26, 'M', 42000.00, 1),
+(52, 26, 'L', 52000.00, 1),
+(53, 27, 'M', 42000.00, 1),
+(54, 27, 'L', 52000.00, 1),
+(55, 28, 'M', 45000.00, 1),
+(56, 28, 'L', 55000.00, 1),
+(57, 29, 'Mặc định', 25000.00, 1),
+(58, 30, 'Mặc định', 22000.00, 1),
+(59, 31, 'Mặc định', 25000.00, 1),
+(60, 32, 'Mặc định', 35000.00, 1),
+(61, 33, 'Mặc định', 38000.00, 1),
+(62, 34, 'Mặc định', 29000.00, 1),
+(63, 35, 'Mặc định', 25000.00, 1),
+(64, 36, 'Mặc định', 39000.00, 1),
+(65, 37, 'Mặc định', 42000.00, 1),
+(66, 38, 'Mặc định', 45000.00, 1),
+(67, 39, 'Mặc định', 10000.00, 1),
+(68, 40, 'Mặc định', 12000.00, 1),
+(69, 41, 'Mặc định', 12000.00, 1),
+(70, 42, 'Mặc định', 10000.00, 1),
+(71, 43, 'Mặc định', 12000.00, 1),
+(72, 44, 'Mặc định', 10000.00, 1),
+(73, 45, 'Mặc định', 10000.00, 1),
+(74, 46, 'Mặc định', 10000.00, 1),
+(75, 47, 'M', 47000.00, 1),
+(76, 47, 'L', 69000.00, 1),
+(77, 48, 'M', 45000.00, 1),
+(78, 1, 'L', 65000.00, 1);
 
 -- --------------------------------------------------------
 
@@ -73,10 +171,36 @@ CREATE TABLE `cautraloi` (
 CREATE TABLE `chitietgiohang` (
   `MaCTGH` int(11) NOT NULL,
   `MaGioHang` int(11) NOT NULL,
+  `MaBienThe` int(11) NOT NULL,
   `MaSP` int(11) NOT NULL,
   `SoLuong` int(11) DEFAULT 1,
-  `TongTien` decimal(12,2) NOT NULL
+  `KhoaDong` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chitietgiohang`
+--
+
+INSERT INTO `chitietgiohang` (`MaCTGH`, `MaGioHang`, `MaBienThe`, `MaSP`, `SoLuong`, `KhoaDong`) VALUES
+(3, 5, 13, 7, 1, '13:42');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chitietgiohang_topping`
+--
+
+CREATE TABLE `chitietgiohang_topping` (
+  `MaCTGH` int(11) NOT NULL,
+  `MaSP` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `chitietgiohang_topping`
+--
+
+INSERT INTO `chitietgiohang_topping` (`MaCTGH`, `MaSP`) VALUES
+(3, 42);
 
 -- --------------------------------------------------------
 
@@ -88,10 +212,31 @@ CREATE TABLE `chitiethoadon` (
   `MaCTHD` int(11) NOT NULL,
   `MaHD` int(11) NOT NULL,
   `MaSP` int(11) NOT NULL,
+  `MaBienThe` int(11) NOT NULL,
   `SoLuong` int(11) NOT NULL,
   `GiaBan` decimal(12,2) NOT NULL,
-  `ThanhTien` decimal(12,2) NOT NULL
+  `ThanhTien` decimal(12,2) NOT NULL,
+  `TienTopping` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chitiethoadon`
+--
+
+INSERT INTO `chitiethoadon` (`MaCTHD`, `MaHD`, `MaSP`, `MaBienThe`, `SoLuong`, `GiaBan`, `ThanhTien`, `TienTopping`) VALUES
+(1, 2, 7, 13, 3, 35000.00, 105000.00, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chitiethoadon_topping`
+--
+
+CREATE TABLE `chitiethoadon_topping` (
+  `MaCTHD` int(11) NOT NULL,
+  `MaSP` int(11) NOT NULL,
+  `GiaBan` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -177,6 +322,13 @@ CREATE TABLE `giohang` (
   `NgayTao` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `giohang`
+--
+
+INSERT INTO `giohang` (`MaGioHang`, `MaKH`, `NgayTao`) VALUES
+(5, 1, '2026-10-10 22:27:01');
+
 -- --------------------------------------------------------
 
 --
@@ -193,8 +345,21 @@ CREATE TABLE `hoadon` (
   `TongTien` decimal(12,2) DEFAULT 0.00,
   `TienGiamGia` decimal(12,2) DEFAULT 0.00,
   `TrangThai` varchar(50) DEFAULT 'Đã thanh toán',
-  `NgayTao` datetime DEFAULT current_timestamp()
+  `NgayTao` datetime DEFAULT current_timestamp(),
+  `PhiGiao` int(11) NOT NULL DEFAULT 0,
+  `HoTenNguoiNhan` varchar(100) NOT NULL DEFAULT '',
+  `SdtNguoiNhan` varchar(15) NOT NULL DEFAULT '',
+  `DiaChiGiao` varchar(255) DEFAULT NULL,
+  `GhiChu` varchar(255) DEFAULT NULL,
+  `TamTinh` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `hoadon`
+--
+
+INSERT INTO `hoadon` (`MaHD`, `MaCaLam`, `MaKH`, `MaNV`, `MaCTKM`, `LoaiDonHang`, `TongTien`, `TienGiamGia`, `TrangThai`, `NgayTao`, `PhiGiao`, `HoTenNguoiNhan`, `SdtNguoiNhan`, `DiaChiGiao`, `GhiChu`, `TamTinh`) VALUES
+(2, NULL, 1, NULL, NULL, '1', 105000.00, 0.00, 'Hoàn tất', '2026-10-12 09:26:09', 0, 'nguyen van a', '0909090909', '120 yen lang thanh pho ha noi', NULL, 105000);
 
 -- --------------------------------------------------------
 
@@ -208,10 +373,20 @@ CREATE TABLE `khachhang` (
   `MatKhau` varchar(255) DEFAULT NULL,
   `HoTen` varchar(100) NOT NULL,
   `Sdt` varchar(20) NOT NULL,
+  `Email` varchar(100) DEFAULT NULL,
   `DiemTichLuy` int(11) DEFAULT 0,
   `HangTV` varchar(20) DEFAULT 'Đồng',
-  `NgayTao` datetime DEFAULT current_timestamp()
+  `NgayTao` datetime DEFAULT current_timestamp(),
+  `DiaChi` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `khachhang`
+--
+
+INSERT INTO `khachhang` (`MaKH`, `TaiKhoan`, `MatKhau`, `HoTen`, `Sdt`, `Email`, `DiemTichLuy`, `HangTV`, `NgayTao`, `DiaChi`) VALUES
+(1, 'user01', '$2y$10$x0gqtT./APiYudtODvg/IewGSv2PxjNDxDWQVq8GuMcz7mGeL8Yxy', 'nguyen van a', '0909090909', '', 0, 'Đồng', '2026-10-06 14:44:33', NULL),
+(2, 'user02', '$2y$10$EntbLUusT30vc/LeUP.3RegMY4E8djOnX6ojiS9ehBwkGDMxiD88.', 'Nguyen van b', '0909090909222', 'user02@gmail.com', 0, 'Đồng', '2026-10-13 13:35:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -238,7 +413,6 @@ CREATE TABLE `lichsudiem` (
   `MaLSD` int(11) NOT NULL,
   `MaHD` int(11) DEFAULT NULL,
   `MaKH` int(11) NOT NULL,
-  ``
   `DiemThayDoi` int(11) NOT NULL,
   `LyDo` varchar(255) DEFAULT NULL,
   `NgayThucHien` datetime DEFAULT current_timestamp()
@@ -255,6 +429,21 @@ CREATE TABLE `loaisanpham` (
   `TenLoaiSP` varchar(100) NOT NULL,
   `ThuTuHienThi` int(11) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `loaisanpham`
+--
+
+INSERT INTO `loaisanpham` (`MaLoaiSP`, `TenLoaiSP`, `ThuTuHienThi`) VALUES
+(1, 'Cà Phê Espresso', 10),
+(2, 'Cà Phê Phin Mê', 20),
+(3, 'Cold Brew', 30),
+(4, 'Matcha', 40),
+(5, 'Trà Sữa', 50),
+(6, 'Trà Trái Cây', 60),
+(7, 'Fruit Boost', 70),
+(8, 'Bánh Ngọt', 80),
+(9, 'Topping', 90);
 
 -- --------------------------------------------------------
 
@@ -365,10 +554,63 @@ CREATE TABLE `sanpham` (
   `MaSP` int(11) NOT NULL,
   `MaLoaiSP` int(11) NOT NULL,
   `TenSP` varchar(100) NOT NULL,
-  `KichCo` varchar(10) DEFAULT 'M',
-  `GiaBan` decimal(12,2) NOT NULL,
-  `TrangThai` tinyint(1) DEFAULT 1
+  `TrangThai` tinyint(1) DEFAULT 1,
+  `HinhAnh` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sanpham`
+--
+
+INSERT INTO `sanpham` (`MaSP`, `MaLoaiSP`, `TenSP`, `TrangThai`, `HinhAnh`) VALUES
+(1, 2, 'Phin Mê Đen', 1, 'me-den.png'),
+(2, 2, 'Phin Mê Sữa', 1, 'me-sua.png'),
+(3, 2, 'Phin Mê Xỉu', 1, 'me-xiu.png'),
+(4, 2, 'Phin Mê Dừa Non', 1, 'me-dua-non.png'),
+(5, 1, 'Americano', 1, 'americano.png'),
+(6, 1, 'Espresso Đen Đá', 1, 'espresso-den-da.png'),
+(7, 1, 'Espresso Sữa Đá', 1, 'espresso-sua-da.png'),
+(8, 1, 'Espresso Bạc Xỉu', 1, 'espresso-bac-xiu.png'),
+(9, 1, 'Latte Nguyên Bản', 1, 'latte-nguyen-ban.png'),
+(10, 1, 'Cà Phê Kem Mây Chanh Vàng', 1, 'cafe-kem-may-chanh-vang.png'),
+(11, 3, 'Cold Brew Chanh', 1, 'cold-brew-chanh.png'),
+(12, 3, 'Cold Brew Quýt', 1, 'cold-brew-quyt.png'),
+(13, 3, 'Cold Brew Tằm', 1, 'cold-brew-tam.png'),
+(14, 4, 'Matcha Latte', 1, 'matcha-latte.png'),
+(15, 4, 'Matcha Dừa Xiêm', 1, 'matcha-dua-xiem.png'),
+(16, 4, 'Matcha Bắp Bắp', 1, 'matcha-bap-bi.png'),
+(17, 4, 'Matcha Tofu', 1, 'matcha-tofu.png'),
+(18, 5, 'Trà Sữa Oolong Nướng', 1, 'tra-sua-oolong-nuong.png'),
+(19, 5, 'Trà Sữa Oolong Ba Lá', 1, 'tra-sua-oolong-ba-la.png'),
+(20, 5, 'Trà Sữa Chôm Chôm', 1, 'tra-sua-chom-chom.png'),
+(21, 5, 'Trà Sữa Thanh Hương', 1, 'tra-sua-thanh-huong.png'),
+(22, 5, 'Nhài Sữa Dẻ Cười', 1, 'nhai-sua-de-cuoi.png'),
+(23, 6, 'Trà Đào Hồng Đài', 1, 'tra-dao-hong-dai.png'),
+(24, 6, 'Trà Quýt', 1, 'tra-quyt.png'),
+(25, 6, 'Cóc Cóc Đác Đác', 1, 'coc-coc-dac-dac.png'),
+(26, 6, 'Lệ Chi Thanh Trà', 1, 'le-chi-thanh-tra.png'),
+(27, 7, 'Socola', 1, 'so-co-la.png'),
+(28, 7, 'Sữa Chua Tằm', 1, 'sua-chua-tam.png'),
+(29, 8, 'Bánh Chuối', 1, 'banh-chuoi.png'),
+(30, 8, 'Bánh Tráng Muối Tỏi', 1, 'banh-trang-muoi-toi.png'),
+(31, 8, 'Bánh Tráng Tôm Hành', 1, 'banh-trang-tom-hanh.png'),
+(32, 8, 'Bông Lan Trứng Muối', 1, 'bong-lan-trung-muoi.png'),
+(33, 8, 'Bông Lan Trứng Muối Dầu Trứng', 1, 'bong-lan-trung-muoi-dau-trung.png'),
+(34, 8, 'Crème Flan', 1, 'creme-plan.png'),
+(35, 8, 'Bánh Flan', 1, 'plan.png'),
+(36, 8, 'Bánh Phô Mai Chanh Dây', 1, 'pho-mai-chanh-day.png'),
+(37, 8, 'Bánh Phô Mai Tan Chảy', 1, 'pho-mai-tan-chay.png'),
+(38, 8, 'Bánh Phô Mai Tom & Jerry', 1, 'tom-and-jerry.png'),
+(39, 9, 'Huyền Châu', 1, 'huyen-chau.png'),
+(40, 9, 'Phô Mai Dẻo', 1, 'pho-mai-deo.png'),
+(41, 9, 'Tofu', 1, 'tofu.png'),
+(42, 9, 'Thạch Hồng Đài', 1, 'thach-hong-dai.png'),
+(43, 9, 'Thốt Nốt', 1, 'thot-not.png'),
+(44, 9, 'Trân Châu Dừa', 1, 'tran-chau-dua.png'),
+(45, 9, 'Trân Châu Matcha', 1, 'tran-chau-matcha.png'),
+(46, 9, 'Trân Châu Trắng', 1, 'tranchau-trang.png'),
+(47, 7, 'Bơ Già Dừa Non', 1, 'bo-dua-non.png'),
+(48, 7, ' Bơ Sáp Khoai Môn Macchiato', 1, 'bo-khoaimon.png');
 
 -- --------------------------------------------------------
 
@@ -385,6 +627,13 @@ CREATE TABLE `taikhoan` (
   `TrangThai` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `taikhoan`
+--
+
+INSERT INTO `taikhoan` (`MaTaiKhoan`, `MaVaiTro`, `TenDangNhap`, `MatKhau`, `HoTen`, `TrangThai`) VALUES
+(4, 4, 'admin', '$2y$10$k23UXslDcs947rkCallV5OIgKO6A2HZCBtD9WUev7buorq8oVtz1i', 'Quản trị viên', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -397,8 +646,16 @@ CREATE TABLE `thanhtoan` (
   `PhuongThuc` varchar(50) DEFAULT 'Tiền mặt',
   `SoTien` decimal(12,2) NOT NULL,
   `MaGiaoDich` varchar(100) DEFAULT NULL,
-  `ThoiGian` datetime DEFAULT current_timestamp()
+  `ThoiGian` datetime DEFAULT current_timestamp(),
+  `TrangThai` tinyint(4) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `thanhtoan`
+--
+
+INSERT INTO `thanhtoan` (`MaThanhToan`, `MaHD`, `PhuongThuc`, `SoTien`, `MaGiaoDich`, `ThoiGian`, `TrangThai`) VALUES
+(1, 2, 'COD', 105000.00, NULL, '2026-10-12 09:26:09', 0);
 
 -- --------------------------------------------------------
 
@@ -411,6 +668,13 @@ CREATE TABLE `vaitro` (
   `TenVaiTro` varchar(50) NOT NULL,
   `MoTa` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vaitro`
+--
+
+INSERT INTO `vaitro` (`MaVaiTro`, `TenVaiTro`, `MoTa`) VALUES
+(4, 'Admin', 'Quản trị hệ thống');
 
 -- --------------------------------------------------------
 
@@ -429,6 +693,13 @@ CREATE TABLE `voucher` (
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `bienthesanpham`
+--
+ALTER TABLE `bienthesanpham`
+  ADD PRIMARY KEY (`MaBienThe`),
+  ADD KEY `fk_bienthe_sanpham` (`MaSP`);
 
 --
 -- Indexes for table `calam`
@@ -458,8 +729,15 @@ ALTER TABLE `cautraloi`
 --
 ALTER TABLE `chitietgiohang`
   ADD PRIMARY KEY (`MaCTGH`),
-  ADD KEY `fk_ctgh_giohang` (`MaGioHang`),
+  ADD UNIQUE KEY `uq_dong` (`MaGioHang`,`KhoaDong`),
   ADD KEY `fk_ctgh_sanpham` (`MaSP`);
+
+--
+-- Indexes for table `chitietgiohang_topping`
+--
+ALTER TABLE `chitietgiohang_topping`
+  ADD PRIMARY KEY (`MaCTGH`,`MaSP`),
+  ADD KEY `MaSP` (`MaSP`);
 
 --
 -- Indexes for table `chitiethoadon`
@@ -468,6 +746,13 @@ ALTER TABLE `chitiethoadon`
   ADD PRIMARY KEY (`MaCTHD`),
   ADD KEY `fk_cthd_hoadon` (`MaHD`),
   ADD KEY `fk_cthd_sanpham` (`MaSP`);
+
+--
+-- Indexes for table `chitiethoadon_topping`
+--
+ALTER TABLE `chitiethoadon_topping`
+  ADD PRIMARY KEY (`MaCTHD`,`MaSP`),
+  ADD KEY `MaSP` (`MaSP`);
 
 --
 -- Indexes for table `chitietkm`
@@ -528,7 +813,8 @@ ALTER TABLE `hoadon`
 ALTER TABLE `khachhang`
   ADD PRIMARY KEY (`MaKH`),
   ADD UNIQUE KEY `Sdt` (`Sdt`),
-  ADD UNIQUE KEY `TaiKhoan` (`TaiKhoan`);
+  ADD UNIQUE KEY `TaiKhoan` (`TaiKhoan`),
+  ADD UNIQUE KEY `Email` (`Email`);
 
 --
 -- Indexes for table `khaosat`
@@ -640,6 +926,12 @@ ALTER TABLE `voucher`
 --
 
 --
+-- AUTO_INCREMENT for table `bienthesanpham`
+--
+ALTER TABLE `bienthesanpham`
+  MODIFY `MaBienThe` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+
+--
 -- AUTO_INCREMENT for table `calam`
 --
 ALTER TABLE `calam`
@@ -661,13 +953,13 @@ ALTER TABLE `cautraloi`
 -- AUTO_INCREMENT for table `chitietgiohang`
 --
 ALTER TABLE `chitietgiohang`
-  MODIFY `MaCTGH` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaCTGH` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `chitiethoadon`
 --
 ALTER TABLE `chitiethoadon`
-  MODIFY `MaCTHD` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaCTHD` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `chitietkm`
@@ -703,19 +995,19 @@ ALTER TABLE `danhmucluachon`
 -- AUTO_INCREMENT for table `giohang`
 --
 ALTER TABLE `giohang`
-  MODIFY `MaGioHang` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaGioHang` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `hoadon`
 --
 ALTER TABLE `hoadon`
-  MODIFY `MaHD` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaHD` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `khachhang`
 --
 ALTER TABLE `khachhang`
-  MODIFY `MaKH` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaKH` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `khaosat`
@@ -733,7 +1025,7 @@ ALTER TABLE `lichsudiem`
 -- AUTO_INCREMENT for table `loaisanpham`
 --
 ALTER TABLE `loaisanpham`
-  MODIFY `MaLoaiSP` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaLoaiSP` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `loimoikhaosat`
@@ -781,25 +1073,25 @@ ALTER TABLE `phieunhap`
 -- AUTO_INCREMENT for table `sanpham`
 --
 ALTER TABLE `sanpham`
-  MODIFY `MaSP` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaSP` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `taikhoan`
 --
 ALTER TABLE `taikhoan`
-  MODIFY `MaTaiKhoan` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaTaiKhoan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `thanhtoan`
 --
 ALTER TABLE `thanhtoan`
-  MODIFY `MaThanhToan` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaThanhToan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `vaitro`
 --
 ALTER TABLE `vaitro`
-  MODIFY `MaVaiTro` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `MaVaiTro` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `voucher`
@@ -810,6 +1102,12 @@ ALTER TABLE `voucher`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `bienthesanpham`
+--
+ALTER TABLE `bienthesanpham`
+  ADD CONSTRAINT `fk_bienthe_sanpham` FOREIGN KEY (`MaSP`) REFERENCES `sanpham` (`MaSP`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `calam`
@@ -839,11 +1137,25 @@ ALTER TABLE `chitietgiohang`
   ADD CONSTRAINT `fk_ctgh_sanpham` FOREIGN KEY (`MaSP`) REFERENCES `sanpham` (`MaSP`);
 
 --
+-- Constraints for table `chitietgiohang_topping`
+--
+ALTER TABLE `chitietgiohang_topping`
+  ADD CONSTRAINT `chitietgiohang_topping_ibfk_1` FOREIGN KEY (`MaCTGH`) REFERENCES `chitietgiohang` (`MaCTGH`) ON DELETE CASCADE,
+  ADD CONSTRAINT `chitietgiohang_topping_ibfk_2` FOREIGN KEY (`MaSP`) REFERENCES `sanpham` (`MaSP`);
+
+--
 -- Constraints for table `chitiethoadon`
 --
 ALTER TABLE `chitiethoadon`
   ADD CONSTRAINT `fk_cthd_hoadon` FOREIGN KEY (`MaHD`) REFERENCES `hoadon` (`MaHD`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_cthd_sanpham` FOREIGN KEY (`MaSP`) REFERENCES `sanpham` (`MaSP`);
+
+--
+-- Constraints for table `chitiethoadon_topping`
+--
+ALTER TABLE `chitiethoadon_topping`
+  ADD CONSTRAINT `chitiethoadon_topping_ibfk_1` FOREIGN KEY (`MaCTHD`) REFERENCES `chitiethoadon` (`MaCTHD`) ON DELETE CASCADE,
+  ADD CONSTRAINT `chitiethoadon_topping_ibfk_2` FOREIGN KEY (`MaSP`) REFERENCES `sanpham` (`MaSP`);
 
 --
 -- Constraints for table `chitietphieunhap`

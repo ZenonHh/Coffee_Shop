@@ -5,10 +5,8 @@ using CoffeeShop.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Cấu hình DbContext kết nối SQL Server
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-    ?? "Server=localhost;Database=CoffeeShopDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true;";
 builder.Services.AddDbContext<CoffeeShopDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 // 2. Cấu hình Session (dành cho Giỏ hàng)
 builder.Services.AddDistributedMemoryCache();
