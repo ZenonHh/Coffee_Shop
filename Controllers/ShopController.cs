@@ -16,10 +16,10 @@ namespace CoffeeShop.Controllers
 
         public async Task<IActionResult> Index(int? categoryId, string? keyword)
         {
+            keyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
             var query = _context.Products
-                .Include(p => p.Variants)
-                .Include(p => p.Category)
-                .Where(p => p.TrangThai && p.Category!.TenLoaiSP != "Topping");
+                .AsNoTracking()
+                .Where(p => p.TrangThai && p.MaLoaiSP != 9);
 
             if (categoryId.HasValue && categoryId.Value > 0)
             {
@@ -31,13 +31,38 @@ namespace CoffeeShop.Controllers
                 query = query.Where(p => p.TenSP.Contains(keyword));
             }
 
+            var categories = await _context.Categories
+                .AsNoTracking()
+                .Where(category => category.MaLoaiSP != 9)
+                .OrderBy(category => category.ThuTuHienThi)
+                .Select(category => new ShopCategoryViewModel
+                {
+                    MaLoaiSP = category.MaLoaiSP,
+                    TenLoaiSP = category.TenLoaiSP
+                })
+                .ToListAsync();
+
+            var products = await query
+                .OrderBy(product => product.TenSP)
+                .Select(product => new ShopProductCardViewModel
+                {
+                    MaSP = product.MaSP,
+                    TenSP = product.TenSP,
+                    HinhAnh = product.HinhAnh,
+                    TenLoaiSP = product.Category!.TenLoaiSP,
+                    GiaBan = product.Variants
+                        .Where(variant => variant.TrangThai)
+                        .OrderBy(variant => variant.MaBienThe)
+                        .Select(variant => (decimal?)variant.GiaBan)
+                        .FirstOrDefault(),
+                    SoLuongTon = product.SoLuongTon
+                })
+                .ToListAsync();
+
             var viewModel = new ShopViewModel
             {
-                Categories = await _context.Categories
-                    .Where(c => c.TenLoaiSP != "Topping")
-                    .OrderBy(c => c.ThuTuHienThi)
-                    .ToListAsync(),
-                Products = await query.ToListAsync(),
+                Categories = categories,
+                Products = products,
                 SelectedCategoryId = categoryId,
                 Keyword = keyword
             };
@@ -48,39 +73,68 @@ namespace CoffeeShop.Controllers
         public async Task<IActionResult> Detail(int id)
         {
             var product = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Variants.Where(v => v.TrangThai))
-                .FirstOrDefaultAsync(p => p.MaSP == id && p.TrangThai);
+                .AsNoTracking()
+                .Where(p => p.MaSP == id && p.TrangThai)
+                .Select(p => new ProductDetailProductViewModel
+                {
+                    MaSP = p.MaSP,
+                    TenSP = p.TenSP,
+                    HinhAnh = p.HinhAnh,
+                    TenLoaiSP = p.Category!.TenLoaiSP,
+                    SoLuongTon = p.SoLuongTon
+                })
+                .FirstOrDefaultAsync();
 
             if (product == null)
             {
                 return NotFound();
             }
 
-            var availableToppings = await _context.Products
-                .Include(p => p.Variants)
-                .Include(p => p.Category)
-                .Where(p => p.TrangThai && p.Category!.TenLoaiSP == "Topping")
+            var variants = await _context.ProductVariants
+                .AsNoTracking()
+                .Where(variant => variant.MaSP == id && variant.TrangThai)
+                .OrderBy(variant => variant.MaBienThe)
+                .Select(variant => new ProductVariantOptionViewModel
+                {
+                    MaBienThe = variant.MaBienThe,
+                    KichCo = variant.KichCo,
+                    GiaBan = variant.GiaBan
+                })
                 .ToListAsync();
 
-            var relatedProducts = await _context.Products
-                .Include(p => p.Variants)
-                .Where(p => p.TrangThai && p.MaLoaiSP == product.MaLoaiSP && p.MaSP != product.MaSP)
-                .Take(4)
+            var availableToppings = await _context.Products
+                .AsNoTracking()
+                .Where(p => p.TrangThai && p.SoLuongTon > 0 && p.MaLoaiSP == 9)
+                .OrderBy(p => p.TenSP)
+                .Select(p => new ToppingOptionViewModel
+                {
+                    MaSP = p.MaSP,
+                    TenSP = p.TenSP,
+                    GiaBan = p.Variants.Where(variant => variant.TrangThai)
+                        .OrderBy(variant => variant.MaBienThe)
+                        .Select(variant => (decimal?)variant.GiaBan)
+                        .FirstOrDefault() ?? 10000m
+                })
                 .ToListAsync();
 
             var reviews = await _context.Feedbacks
-                .Include(f => f.Customer)
+                .AsNoTracking()
                 .Where(f => f.MaSP == id)
                 .OrderByDescending(f => f.NgayGui)
+                .Select(f => new ProductReviewViewModel
+                {
+                    CustomerName = f.Customer != null ? f.Customer.HoTen : "Khách hàng",
+                    NoiDung = f.NoiDung,
+                    DanhGia = f.DanhGia,
+                    NgayGui = f.NgayGui
+                })
                 .ToListAsync();
 
             var viewModel = new ProductDetailViewModel
             {
                 Product = product,
-                Variants = product.Variants.ToList(),
+                Variants = variants,
                 AvailableToppings = availableToppings,
-                RelatedProducts = relatedProducts,
                 Reviews = reviews,
                 AverageRating = reviews.Any() ? reviews.Average(r => r.DanhGia ?? 5) : 5.0,
                 TotalReviews = reviews.Count

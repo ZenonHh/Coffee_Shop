@@ -23,23 +23,49 @@ namespace CoffeeShop.Controllers
             try
             {
                 viewModel.FeaturedProducts = await _context.Products
-                    .Include(p => p.Variants)
-                    .Include(p => p.Category)
-                    .Where(p => p.TrangThai && p.Category!.TenLoaiSP != "Topping")
+                    .AsNoTracking()
+                    .Where(p => p.TrangThai && p.MaLoaiSP != 9)
+                    .OrderBy(p => p.TenSP)
                     .Take(8)
+                    .Select(product => new ShopProductCardViewModel
+                    {
+                        MaSP = product.MaSP,
+                        TenSP = product.TenSP,
+                        HinhAnh = product.HinhAnh,
+                        TenLoaiSP = product.Category!.TenLoaiSP,
+                        GiaBan = product.Variants.Where(variant => variant.TrangThai)
+                            .OrderBy(variant => variant.MaBienThe)
+                            .Select(variant => (decimal?)variant.GiaBan)
+                            .FirstOrDefault(),
+                        SoLuongTon = product.SoLuongTon
+                    })
                     .ToListAsync();
 
                 viewModel.Categories = await _context.Categories
-                    .Where(c => c.TenLoaiSP != "Topping")
+                    .AsNoTracking()
+                    .Where(c => c.MaLoaiSP != 9)
                     .OrderBy(c => c.ThuTuHienThi)
+                    .Select(category => new ShopCategoryViewModel { MaLoaiSP = category.MaLoaiSP, TenLoaiSP = category.TenLoaiSP })
                     .ToListAsync();
 
                 viewModel.CustomerReviews = await _context.Feedbacks
-                    .Include(f => f.Customer)
+                    .AsNoTracking()
                     .Where(f => f.DanhGia >= 4)
                     .OrderByDescending(f => f.NgayGui)
                     .Take(4)
+                    .Select(feedback => new ProductReviewViewModel
+                    {
+                        CustomerName = feedback.Customer != null ? feedback.Customer.HoTen : "Khách hàng",
+                        NoiDung = feedback.NoiDung,
+                        DanhGia = feedback.DanhGia,
+                        NgayGui = feedback.NgayGui
+                    })
                     .ToListAsync();
+
+                viewModel.TotalProducts = await _context.Products.CountAsync(p => p.TrangThai && p.MaLoaiSP != 9);
+                viewModel.TotalOrders = await _context.Orders.CountAsync();
+                viewModel.TotalCustomers = await _context.Customers.CountAsync();
+                viewModel.TotalReviews = await _context.Feedbacks.CountAsync();
             }
             catch
             {
@@ -55,14 +81,31 @@ namespace CoffeeShop.Controllers
 
         public async Task<IActionResult> Blog()
         {
-            var categories = new List<Category>();
+            var categories = new List<HomeCategoryViewModel>();
             try
             {
                 categories = await _context.Categories
-                    .Include(c => c.Products.Where(p => p.TrangThai))
-                        .ThenInclude(p => p.Variants.Where(v => v.TrangThai))
-                    .Where(c => c.TenLoaiSP != "Topping")
+                    .AsNoTracking()
+                    .Where(c => c.MaLoaiSP != 9)
                     .OrderBy(c => c.ThuTuHienThi)
+                    .Select(category => new HomeCategoryViewModel
+                    {
+                        TenLoaiSP = category.TenLoaiSP,
+                        Products = category.Products.Where(product => product.TrangThai)
+                            .OrderBy(product => product.TenSP)
+                            .Select(product => new ShopProductCardViewModel
+                            {
+                                MaSP = product.MaSP,
+                                TenSP = product.TenSP,
+                                HinhAnh = product.HinhAnh,
+                                TenLoaiSP = category.TenLoaiSP,
+                                GiaBan = product.Variants.Where(variant => variant.TrangThai)
+                                    .OrderBy(variant => variant.MaBienThe)
+                                    .Select(variant => (decimal?)variant.GiaBan)
+                                    .FirstOrDefault(),
+                                SoLuongTon = product.SoLuongTon
+                            }).ToList()
+                    })
                     .ToListAsync();
             }
             catch
@@ -79,26 +122,26 @@ namespace CoffeeShop.Controllers
             {
                 if (id.HasValue)
                 {
-                    var product = await _context.Products
-                        .Include(p => p.Category)
-                        .Include(p => p.Variants)
-                        .FirstOrDefaultAsync(p => p.MaSP == id.Value);
-
-                    if (product != null)
-                    {
-                        ViewBag.Product = product;
-                    }
+                    ViewBag.ProductExists = await _context.Products.AsNoTracking().AnyAsync(p => p.MaSP == id.Value);
                 }
 
                 ViewBag.RecentProducts = await _context.Products
-                    .Include(p => p.Category)
-                    .Where(p => p.TrangThai && p.Category!.TenLoaiSP != "Topping")
+                    .AsNoTracking()
+                    .Where(p => p.TrangThai && p.MaLoaiSP != 9)
+                    .OrderBy(p => p.TenSP)
                     .Take(3)
+                    .Select(product => new ShopProductCardViewModel
+                    {
+                        MaSP = product.MaSP,
+                        TenSP = product.TenSP,
+                        HinhAnh = product.HinhAnh,
+                        TenLoaiSP = product.Category!.TenLoaiSP
+                    })
                     .ToListAsync();
             }
             catch
             {
-                ViewBag.RecentProducts = new List<Product>();
+                ViewBag.RecentProducts = new List<ShopProductCardViewModel>();
             }
 
             return View();

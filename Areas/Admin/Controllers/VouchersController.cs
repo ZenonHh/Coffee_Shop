@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
+using CoffeeShop.Models.ViewModels;
 
 namespace CoffeeShop.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin,NhanVien")]
+[Authorize(Roles = "Admin")]
 public class VouchersController : Controller
 {
     private readonly CoffeeShopDbContext _context;
@@ -15,8 +16,9 @@ public class VouchersController : Controller
 
     public async Task<IActionResult> Index(int? editId)
     {
-        var vouchers = await _context.Vouchers.OrderByDescending(v => v.MaVoucher).ToListAsync();
-        if (editId.HasValue) ViewBag.EditVoucher = vouchers.FirstOrDefault(v => v.MaVoucher == editId.Value);
+        var vouchers = await GetVouchersAsync();
+        if (editId.HasValue)
+            ViewBag.EditVoucher = await _context.Vouchers.AsNoTracking().FirstOrDefaultAsync(voucher => voucher.MaVoucher == editId.Value);
         return View(vouchers);
     }
 
@@ -26,7 +28,7 @@ public class VouchersController : Controller
         Normalize(voucher);
         ValidateVoucher(voucher);
         if (await _context.Vouchers.AnyAsync(v => v.MaCode == voucher.MaCode)) ModelState.AddModelError(nameof(Voucher.MaCode), "Mã voucher đã tồn tại.");
-        if (!ModelState.IsValid) return InvalidForm(voucher);
+        if (!ModelState.IsValid) return await InvalidFormAsync(voucher);
         _context.Vouchers.Add(voucher);
         await _context.SaveChangesAsync();
         TempData["Success"] = $"Đã tạo voucher {voucher.MaCode}.";
@@ -40,8 +42,10 @@ public class VouchersController : Controller
         var existing = await _context.Vouchers.FindAsync(voucher.MaVoucher);
         if (existing == null) return NotFound();
         ValidateVoucher(voucher);
+        if (voucher.SoLuongToiDa < existing.SoLuongDaDung)
+            ModelState.AddModelError(nameof(Voucher.SoLuongToiDa), "Số lượt tối đa không thể thấp hơn số lượt đã dùng.");
         if (await _context.Vouchers.AnyAsync(v => v.MaCode == voucher.MaCode && v.MaVoucher != voucher.MaVoucher)) ModelState.AddModelError(nameof(Voucher.MaCode), "Mã voucher đã tồn tại.");
-        if (!ModelState.IsValid) return InvalidForm(voucher);
+        if (!ModelState.IsValid) return await InvalidFormAsync(voucher);
 
         existing.MaCode = voucher.MaCode;
         existing.PhanLoaiGiam = voucher.PhanLoaiGiam;
@@ -50,6 +54,8 @@ public class VouchersController : Controller
         existing.NgayBatDau = voucher.NgayBatDau;
         existing.NgayKetThuc = voucher.NgayKetThuc;
         existing.DonToiThieu = voucher.DonToiThieu;
+        existing.GiamToiDa = voucher.GiamToiDa;
+        existing.SoLuongToiDa = voucher.SoLuongToiDa;
         existing.TrangThai = voucher.TrangThai;
         await _context.SaveChangesAsync();
         TempData["Success"] = $"Đã cập nhật voucher {voucher.MaCode}.";
@@ -68,22 +74,55 @@ public class VouchersController : Controller
     public async Task<IActionResult> Delete(int id)
     {
         var voucher = await _context.Vouchers.FindAsync(id);
-        if (voucher != null) { _context.Vouchers.Remove(voucher); await _context.SaveChangesAsync(); TempData["Success"] = $"Đã xóa voucher {voucher.MaCode}."; }
+        if (voucher != null)
+        {
+            if (await _context.Orders.AnyAsync(order => order.MaVoucher == id))
+                TempData["Error"] = "Voucher đã được dùng cho hóa đơn nên không thể xóa. Hãy tắt voucher thay thế.";
+            else
+            {
+                _context.Vouchers.Remove(voucher);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Đã xóa voucher {voucher.MaCode}.";
+            }
+        }
         return RedirectToAction(nameof(Index));
     }
 
-    private IActionResult InvalidForm(Voucher voucher)
+    private async Task<IActionResult> InvalidFormAsync(Voucher voucher)
     {
         ViewBag.EditVoucher = voucher.MaVoucher > 0 ? voucher : null;
         ViewBag.FormError = "Vui lòng kiểm tra lại thông tin voucher.";
-        return View("Index", _context.Vouchers.OrderByDescending(v => v.MaVoucher).ToList());
+        return View("Index", await GetVouchersAsync());
     }
+
+    private Task<List<VoucherListItemViewModel>> GetVouchersAsync() => _context.Vouchers
+        .AsNoTracking()
+        .OrderByDescending(voucher => voucher.MaVoucher)
+        .Select(voucher => new VoucherListItemViewModel
+        {
+            MaVoucher = voucher.MaVoucher,
+            MaCode = voucher.MaCode,
+            PhanLoaiGiam = voucher.PhanLoaiGiam,
+            GiaTriGiam = voucher.GiaTriGiam,
+            TenChuongTrinh = voucher.TenChuongTrinh,
+            NgayBatDau = voucher.NgayBatDau,
+            NgayKetThuc = voucher.NgayKetThuc,
+            DonToiThieu = voucher.DonToiThieu,
+            GiamToiDa = voucher.GiamToiDa,
+            SoLuongToiDa = voucher.SoLuongToiDa,
+            SoLuongDaDung = voucher.SoLuongDaDung,
+            TrangThai = voucher.TrangThai
+        })
+        .ToListAsync();
 
     private void ValidateVoucher(Voucher voucher)
     {
         if (voucher.PhanLoaiGiam == "PERCENT" && voucher.GiaTriGiam > 100) ModelState.AddModelError(nameof(Voucher.GiaTriGiam), "Phần trăm giảm không được vượt quá 100.");
         if (voucher.GiaTriGiam < 0) ModelState.AddModelError(nameof(Voucher.GiaTriGiam), "Giá trị giảm không được âm.");
         if (voucher.DonToiThieu < 0) ModelState.AddModelError(nameof(Voucher.DonToiThieu), "Đơn tối thiểu không được âm.");
+        if (voucher.GiamToiDa < 0) ModelState.AddModelError(nameof(Voucher.GiamToiDa), "Mức giảm tối đa không được âm.");
+        if (voucher.SoLuongToiDa < 1) ModelState.AddModelError(nameof(Voucher.SoLuongToiDa), "Số lượt tối đa phải ít nhất là 1.");
+        if (voucher.SoLuongDaDung < 0 || voucher.SoLuongDaDung > voucher.SoLuongToiDa) ModelState.AddModelError(nameof(Voucher.SoLuongDaDung), "Số lượt đã dùng không hợp lệ.");
         if (voucher.NgayBatDau.HasValue && voucher.NgayKetThuc.HasValue && voucher.NgayBatDau >= voucher.NgayKetThuc) ModelState.AddModelError(nameof(Voucher.NgayKetThuc), "Ngày kết thúc phải sau ngày bắt đầu.");
     }
 

@@ -1,6 +1,6 @@
 @model CoffeeShop.Models.ViewModels.AdminDashboardViewModel
 @{
-    ViewData["Title"] = "Bảng Điều Khiển Tổng Quan";
+    ViewData["Title"] = "Bảng điều khiển";
 }
 
 <!-- Thống kê Card -->
@@ -84,7 +84,7 @@
                                 <td class="text-primary font-weight-bold">@order.TongTien.ToString("N0") đ</td>
                                 <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>
-                                    @if (order.TrangThai == "Hoàn tất")
+                                    @if (order.TrangThai == "Hoàn thành")
                                     {
                                         <span class="badge badge-success">@order.TrangThai</span>
                                     }

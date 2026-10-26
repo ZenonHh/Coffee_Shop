@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Helpers;
+using CoffeeShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +75,7 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<PersistentCartStore>();
+builder.Services.AddScoped<OrderManagementService>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

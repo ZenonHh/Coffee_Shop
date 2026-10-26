@@ -1,0 +1,36 @@
+@model List<CoffeeShop.Models.ViewModels.InternalAccountListItemViewModel>
+@{
+    ViewData["Title"] = "Quản lý tài khoản nội bộ";
+    var formModel = ViewBag.FormModel as CoffeeShop.Models.ViewModels.InternalAccountCreateViewModel ?? new();
+    var roles = ViewBag.Roles as List<CoffeeShop.Models.ViewModels.RoleOptionViewModel> ?? new();
+}
+<div class="welcome-row page-title-row"><div><div class="eyebrow">HỆ THỐNG</div><h1>Tài khoản nội bộ</h1><p class="page-subtitle">Quản lý quyền truy cập của quản trị viên và nhân viên.</p></div></div>
+@if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="alert alert-danger"></div> }
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-heading"><div><h2>Tạo tài khoản</h2><p>Mật khẩu được băm trước khi lưu.</p></div></div>
+        <form asp-action="Create" method="post" class="dialog-form px-0">
+            @Html.AntiForgeryToken()
+            <label>Tên đăng nhập<input name="TenDangNhap" value="@formModel.TenDangNhap" maxlength="50" autocomplete="username" required /></label>
+            <label>Họ tên<input name="HoTen" value="@formModel.HoTen" maxlength="100" required /></label>
+            <label>Vai trò<select name="MaVaiTro" required>
+                @foreach (var role in roles)
+                {
+                    <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@role.TenVaiTro</option>
+                }
+            </select></label>
+            <label>Mật khẩu<input name="MatKhau" type="password" minlength="8" maxlength="72" autocomplete="new-password" required /></label>
+            <div class="dialog-actions"><button class="button button-primary" type="submit">Tạo tài khoản</button></div>
+        </form>
+    </section>
+    <section class="panel table-panel">
+        <div class="panel-heading"><div><h2>Danh sách tài khoản</h2><p>@Model.Count tài khoản nội bộ.</p></div></div>
+        <div class="table-scroll"><table class="data-table"><thead><tr><th>TÊN ĐĂNG NHẬP</th><th>HỌ TÊN</th><th>VAI TRÒ</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>
+        @foreach (var account in Model)
+        {
+            <tr><td class="order-id">@account.TenDangNhap</td><td>@account.HoTen</td><td>@account.TenVaiTro</td><td><span class="status @(account.TrangThai ? "status-success" : "status-muted")"><i></i>@(account.TrangThai ? "Đang hoạt động" : "Đã khóa")</span></td><td><form asp-action="ToggleStatus" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@account.MaTaiKhoan" /><button class="button button-small button-outline" type="submit">@(account.TrangThai ? "Khóa" : "Mở khóa")</button></form></td></tr>
+        }
+        @if (!Model.Any()) { <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có tài khoản nội bộ.</td></tr> }
+        </tbody></table></div>
+    </section>
+</div>

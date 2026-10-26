@@ -47,11 +47,11 @@ namespace CoffeeShop.Controllers
             }
 
             var username = model.Username?.Trim() ?? string.Empty;
-            var password = model.Password?.Trim() ?? string.Empty;
+            var password = model.Password ?? string.Empty;
 
             // Tài khoản nhân viên phải đăng nhập tại khu vực Admin riêng.
             var staffAccount = await _context.Accounts
-                .Include(a => a.Role)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.TenDangNhap == username && a.TrangThai);
             if (staffAccount != null)
             {
@@ -159,11 +159,20 @@ namespace CoffeeShop.Controllers
         {
             var username = User.Identity?.Name;
             var customer = await _context.Customers
-                .Include(c => c.Orders)
-                .ThenInclude(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
-                .Include(c => c.PointHistories)
-                .FirstOrDefaultAsync(c => c.TaiKhoan == username);
+                .AsNoTracking()
+                .Where(c => c.TaiKhoan == username)
+                .Select(c => new ProfileCustomerViewModel
+                {
+                    MaKH = c.MaKH,
+                    TaiKhoan = c.TaiKhoan,
+                    HoTen = c.HoTen,
+                    Sdt = c.Sdt,
+                    Email = c.Email,
+                    DiemTichLuy = c.DiemTichLuy,
+                    HangTV = c.HangTV,
+                    DiaChi = c.DiaChi
+                })
+                .FirstOrDefaultAsync();
 
             if (customer == null)
             {
@@ -173,8 +182,34 @@ namespace CoffeeShop.Controllers
             var viewModel = new ProfileViewModel
             {
                 Customer = customer,
-                RecentOrders = customer.Orders.OrderByDescending(o => o.NgayTao).Take(10).ToList(),
-                PointHistories = customer.PointHistories.OrderByDescending(p => p.NgayThucHien).Take(10).ToList()
+                RecentOrders = await _context.Orders.AsNoTracking()
+                    .Where(order => order.MaKH == customer.MaKH)
+                    .OrderByDescending(order => order.NgayTao)
+                    .Take(10)
+                    .Select(order => new ProfileOrderViewModel
+                    {
+                        MaHD = order.MaHD,
+                        NgayTao = order.NgayTao,
+                        TongTien = order.TongTien,
+                        TrangThai = order.TrangThai,
+                        OrderDetails = order.OrderDetails.Select(detail => new ProfileOrderLineViewModel
+                        {
+                            TenSP = detail.Product!.TenSP,
+                            SoLuong = detail.SoLuong
+                        }).ToList()
+                    })
+                    .ToListAsync(),
+                PointHistories = await _context.PointHistories.AsNoTracking()
+                    .Where(history => history.MaKH == customer.MaKH)
+                    .OrderByDescending(history => history.NgayThucHien)
+                    .Take(10)
+                    .Select(history => new ProfilePointHistoryViewModel
+                    {
+                        LyDo = history.LyDo,
+                        NgayThucHien = history.NgayThucHien,
+                        DiemThayDoi = history.DiemThayDoi
+                    })
+                    .ToListAsync()
             };
 
             return View(viewModel);
@@ -215,8 +250,9 @@ namespace CoffeeShop.Controllers
 
         private bool BCryptVerify(string password, string hash)
         {
-            // Dự phòng nếu hash từ PHP $2y$... hoặc plain text
-            return password == hash;
+            if (!hash.StartsWith("$2", StringComparison.Ordinal)) return false;
+            try { return BCrypt.Net.BCrypt.Verify(password, hash); }
+            catch { return false; }
         }
     }
 }

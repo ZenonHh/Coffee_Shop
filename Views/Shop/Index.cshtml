@@ -4,62 +4,81 @@
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 400px; min-height: 400px;">
+    <div class="slider-item" style="background-image: url('/images/bg_3.jpg');" data-stellar-background-ratio="0.5">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 400px;">
+            <div class="row slider-text justify-content-center align-items-center">
                 <div class="col-md-7 col-sm-12 text-center ftco-animate">
-                    <h1 class="mb-3 mt-5 bread">Thực Đơn Cửa Hàng</h1>
-                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Thực đơn</span></p>
+                    <h1 class="mb-3 mt-5 bread">Thực đơn cửa hàng</h1>
+                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span><span>Thực đơn</span></p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="ftco-section shop-page">
+<section class="ftco-section">
     <div class="container">
-        <!-- Bộ lọc danh mục & Tìm kiếm -->
-        <div class="row shop-toolbar">
-            <div class="col-md-8">
-                <div class="d-flex flex-wrap shop-category-list">
-                    <a asp-action="Index" class="shop-category-filter @(Model.SelectedCategoryId == null ? "is-active" : "")">Tất cả</a>
-                    @foreach (var cat in Model.Categories)
-                    {
-                        <a asp-action="Index" asp-route-categoryId="@cat.MaLoaiSP" class="shop-category-filter @(Model.SelectedCategoryId == cat.MaLoaiSP ? "is-active" : "")">
-                            @cat.TenLoaiSP
-                        </a>
-                    }
-                </div>
-            </div>
-            <div class="col-md-4">
-                <form asp-action="Index" method="get" class="shop-search">
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-7 col-md-9">
+                <form asp-action="Index" method="get" class="search-form">
                     @if (Model.SelectedCategoryId.HasValue)
                     {
                         <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId.Value" />
                     }
-                    <input type="text" name="keyword" value="@Model.Keyword" class="form-control shop-search-input" placeholder="Tìm kiếm món uống..." />
-                    <button type="submit" class="btn btn-primary shop-search-button" aria-label="Tìm kiếm"><i class="icon-search"></i></button>
+                    <div class="input-group">
+                        <input type="search" name="keyword" value="@Model.Keyword" class="form-control" placeholder="Tìm kiếm món uống..." aria-label="Tìm kiếm món uống" />
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary px-4" aria-label="Tìm kiếm"><span class="icon-search"></span></button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
 
-        <!-- Danh sách sản phẩm -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-12 text-center">
+                <p class="mb-2">
+                    <a asp-action="Index" asp-route-keyword="@Model.Keyword" class="btn btn-sm @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary") m-1">Tất cả</a>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <a asp-action="Index" asp-route-categoryId="@category.MaLoaiSP" asp-route-keyword="@Model.Keyword" class="btn btn-sm @(Model.SelectedCategoryId == category.MaLoaiSP ? "btn-primary" : "btn-outline-primary") m-1">@category.TenLoaiSP</a>
+                    }
+                </p>
+            </div>
+        </div>
+
         <div class="row">
             @if (Model.Products.Any())
             {
                 foreach (var product in Model.Products)
                 {
-                    var defaultVariant = product.Variants.FirstOrDefault();
-                    var price = defaultVariant != null ? defaultVariant.GiaBan.ToString("N0") : "Liên hệ";
-                    <div class="col-md-3">
-                        <div class="menu-entry">
-                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="img" style="background-image: url(/picture/@product.HinhAnh);"></a>
-                            <div class="text text-center pt-4">
-                                <h3><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
-                                <p class="text-muted small">@product.Category?.TenLoaiSP</p>
-                                <p class="price"><span>@price đ</span></p>
-                                <p><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary">Chọn mua</a></p>
+                    var isOutOfStock = product.SoLuongTon <= 0;
+                    var imageUrl = Url.Content("~/picture/" + (product.HinhAnh ?? string.Empty));
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex">
+                        <div class="menu-entry w-100 d-flex flex-column">
+                            <div class="position-relative">
+                                <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP"
+                                   class="block-20 d-block"
+                                   style="height:auto; aspect-ratio:1/1; background-image:url('@imageUrl'); background-size:contain; background-repeat:no-repeat; background-position:center; background-color:#171717; @(isOutOfStock ? "filter:opacity(.55);" : "")"
+                                   aria-label="@product.TenSP"></a>
+                                @if (isOutOfStock)
+                                {
+                                    <span class="badge badge-danger position-absolute" style="top:12px; right:12px;">HẾT HÀNG</span>
+                                }
+                            </div>
+                            <div class="text text-center pt-3 d-flex flex-column flex-grow-1">
+                                <h3 class="mb-1"><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
+                                <p class="text-muted small mb-2">@product.TenLoaiSP</p>
+                                <p class="price mt-auto mb-3"><span>@(product.GiaBan?.ToString("N0") ?? "Liên hệ") đ</span></p>
+                                @if (isOutOfStock)
+                                {
+                                    <button type="button" class="btn btn-secondary btn-sm disabled-stock-btn" data-name="@product.TenSP" aria-disabled="true">Hết hàng</button>
+                                }
+                                else
+                                {
+                                    <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm">Chọn mua</a>
+                                }
                             </div>
                         </div>
                     </div>
@@ -69,9 +88,19 @@
             {
                 <div class="col-12 text-center py-5">
                     <h4>Không tìm thấy món uống phù hợp.</h4>
-                    <a asp-action="Index" class="btn btn-primary mt-3">Quay lại tất cả sản phẩm</a>
+                    <a asp-action="Index" class="btn btn-primary mt-3">Xem toàn bộ thực đơn</a>
                 </div>
             }
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.disabled-stock-btn').forEach(function (button) {
+            button.addEventListener('click', function () {
+                alert('Món ' + this.dataset.name + ' hiện đã hết hàng. Vui lòng chọn món khác.');
+            });
+        });
+    </script>
+}

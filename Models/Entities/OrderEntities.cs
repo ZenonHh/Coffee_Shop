@@ -31,6 +31,13 @@ namespace CoffeeShop.Models.Entities
         [Column(TypeName = "decimal(12,2)")]
         public decimal DonToiThieu { get; set; } = 0;
 
+        [Column(TypeName = "decimal(12,2)")]
+        public decimal? GiamToiDa { get; set; }
+
+        public int SoLuongToiDa { get; set; } = 100;
+
+        public int SoLuongDaDung { get; set; }
+
         public bool TrangThai { get; set; } = true;
     }
 
@@ -51,12 +58,25 @@ namespace CoffeeShop.Models.Entities
         [Column(TypeName = "decimal(12,2)")]
         public decimal TienGiamGia { get; set; }
 
+        public int? MaVoucher { get; set; }
+
         public int TamTinh { get; set; }
 
         public int PhiGiao { get; set; }
 
         [MaxLength(50)]
         public string TrangThai { get; set; } = "Chờ xác nhận";
+
+        [MaxLength(500)]
+        public string? LyDoHuy { get; set; }
+
+        [MaxLength(100)]
+        public string? NguoiXuLy { get; set; }
+
+        public DateTime? NgayCapNhat { get; set; }
+
+        [MaxLength(50)]
+        public string PhuongThucThanhToan { get; set; } = "COD";
 
         public DateTime NgayTao { get; set; } = DateTime.Now;
 
@@ -76,6 +96,9 @@ namespace CoffeeShop.Models.Entities
 
         [ForeignKey("MaKH")]
         public virtual Customer? Customer { get; set; }
+
+        [ForeignKey("MaVoucher")]
+        public virtual Voucher? Voucher { get; set; }
 
         public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }

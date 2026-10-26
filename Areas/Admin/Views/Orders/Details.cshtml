@@ -1,5 +1,90 @@
-@model CoffeeShop.Models.Entities.Order
-@{ ViewData["Title"] = $"Chi tiết đơn hàng #{Model.MaHD}"; }
-<div class="welcome-row page-title-row"><div><div class="eyebrow">ĐƠN HÀNG</div><h1>Chi tiết đơn hàng #@Model.MaHD</h1><p class="page-subtitle">Đặt lúc @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p></div><a asp-action="Index" class="button button-outline"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a></div>
-<div class="dashboard-grid"><section class="panel"><div class="panel-heading"><div><h2>Thông tin nhận hàng</h2><p>Thông tin cơ bản của khách hàng.</p></div></div><div class="order-detail-info mt-4"><p><strong>Người nhận:</strong> @Model.HoTenNguoiNhan</p><p><strong>Số điện thoại:</strong> @Model.SdtNguoiNhan</p><p><strong>Địa chỉ:</strong> @Model.DiaChiGiao</p>@if (!string.IsNullOrWhiteSpace(Model.GhiChu)) { <p><strong>Ghi chú:</strong> @Model.GhiChu</p> }</div></section><section class="panel"><div class="panel-heading"><div><h2>Tổng thanh toán</h2><p>Đơn đã thu tiền và hoàn tất.</p></div></div><div class="order-summary mt-4"><p><span>Tạm tính</span><strong>@Model.TamTinh.ToString("N0") đ</strong></p><p><span>Giảm giá</span><strong class="text-success">-@Model.TienGiamGia.ToString("N0") đ</strong></p><p><span>Phí giao hàng</span><strong>@Model.PhiGiao.ToString("N0") đ</strong></p><hr /><p class="order-grand-total"><span>Tổng cộng</span><strong>@Model.TongTien.ToString("N0") đ</strong></p></div></section></div>
-<section class="panel table-panel"><div class="panel-heading table-heading"><div><h2>Các món trong đơn</h2><p>@Model.OrderDetails.Sum(d => d.SoLuong) sản phẩm</p></div><span class="status status-success"><i></i>@Model.TrangThai</span></div><div class="table-scroll"><table class="data-table"><thead><tr><th>MÓN</th><th>SIZE</th><th>SỐ LƯỢNG</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead><tbody>@foreach (var detail in Model.OrderDetails) { <tr><td><strong>@detail.Product?.TenSP</strong>@if (detail.Toppings.Any()) { <div class="muted-cell">Topping: @string.Join(", ", detail.Toppings.Select(t => t.ToppingProduct?.TenSP))</div> }</td><td>@detail.Variant?.KichCo</td><td>@detail.SoLuong</td><td>@detail.GiaBan.ToString("N0") đ</td><td class="money-cell">@detail.ThanhTien.ToString("N0") đ</td></tr>}</tbody></table></div></section>
+@model CoffeeShop.Models.ViewModels.OrderDetailViewModel
+@{
+    ViewData["Title"] = $"Chi tiết đơn hàng #{Model.MaHD}";
+    var statusClass = Model.TrangThai switch
+    {
+        "Chờ xác nhận" => "badge-warning",
+        "Đã xác nhận" => "badge-info",
+        "Đang giao" => "badge-primary",
+        "Hoàn thành" => "badge-success",
+        "Đã hủy" => "badge-danger",
+        _ => "badge-secondary"
+    };
+}
+
+<div class="welcome-row page-title-row">
+    <div><div class="eyebrow">ĐƠN HÀNG #@Model.MaHD</div><h1>Chi tiết đơn hàng</h1><p class="page-subtitle">Đặt lúc @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p></div>
+    <a asp-action="Index" class="button button-outline"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
+</div>
+
+@if (Model.TrangThai == "Đã hủy")
+{
+    <div class="alert alert-danger" role="alert">
+        <strong>Đơn hàng đã hủy.</strong> Lý do hủy đơn: @(string.IsNullOrWhiteSpace(Model.LyDoHuy) ? "Chưa ghi nhận" : Model.LyDoHuy)
+    </div>
+}
+
+<div class="dashboard-grid">
+    <section class="panel">
+        <div class="panel-heading"><div><h2>Thông tin người mua</h2><p>Thông tin người nhận và giao hàng.</p></div></div>
+        <div class="order-detail-info mt-4">
+            <p><strong>Người nhận:</strong> @Model.HoTenNguoiNhan</p>
+            <p><strong>Số điện thoại:</strong> @Model.SdtNguoiNhan</p>
+            @if (!string.IsNullOrWhiteSpace(Model.EmailKhachHang))
+            {
+                <p><strong>Email:</strong> @Model.EmailKhachHang</p>
+            }
+            <p><strong>Địa chỉ nhận hàng:</strong> @Model.DiaChiGiao</p>
+            @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+            {
+                <p><strong>Ghi chú:</strong> @Model.GhiChu</p>
+            }
+            <p><strong>Phương thức thanh toán:</strong> @(Model.PhuongThucThanhToan == "Transfer" ? "Chuyển khoản" : "COD")</p>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="panel-heading"><div><h2>Tổng thanh toán</h2><p><span class="badge @statusClass">@Model.TrangThai</span></p></div></div>
+        <div class="order-summary mt-4">
+            <p><span>Tạm tính</span><strong>@Model.TamTinh.ToString("N0") đ</strong></p>
+            <p><span>Giảm giá</span><strong class="text-success">-@Model.TienGiamGia.ToString("N0") đ</strong></p>
+            <p><span>Phí giao hàng</span><strong>@Model.PhiGiao.ToString("N0") đ</strong></p>
+            <hr />
+            <p class="order-grand-total"><span>Tổng cộng</span><strong>@Model.TongTien.ToString("N0") đ</strong></p>
+            @if (!string.IsNullOrWhiteSpace(Model.NguoiXuLy))
+            {
+                <p><span>Người xử lý</span><strong>@Model.NguoiXuLy</strong></p>
+            }
+            @if (Model.NgayCapNhat.HasValue)
+            {
+                <p><span>Cập nhật lúc</span><strong>@Model.NgayCapNhat.Value.ToString("dd/MM/yyyy HH:mm")</strong></p>
+            }
+        </div>
+    </section>
+</div>
+
+<section class="panel table-panel">
+    <div class="panel-heading table-heading"><div><h2>Các món trong đơn</h2><p>@Model.Details.Sum(detail => detail.SoLuong) sản phẩm</p></div></div>
+    <div class="table-scroll">
+        <table class="data-table">
+            <thead><tr><th>MÓN</th><th>SIZE</th><th>SỐ LƯỢNG</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead>
+            <tbody>
+                @foreach (var detail in Model.Details)
+                {
+                    <tr>
+                        <td>
+                            <strong>@detail.TenSP</strong>
+                            @if (detail.Toppings.Any())
+                            {
+                                <div class="muted-cell">Topping: @string.Join(", ", detail.Toppings)</div>
+                            }
+                        </td>
+                        <td>@detail.KichCo</td>
+                        <td>@detail.SoLuong</td>
+                        <td>@detail.GiaBan.ToString("N0") đ</td>
+                        <td class="money-cell">@detail.ThanhTien.ToString("N0") đ</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

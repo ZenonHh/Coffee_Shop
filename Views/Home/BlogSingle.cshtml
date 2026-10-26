@@ -1,7 +1,6 @@
 @{
     ViewData["Title"] = "Nghệ Thuật Thưởng Thức Cà Phê - Coffee Blend";
-    var recentProducts = ViewBag.RecentProducts as List<CoffeeShop.Models.Entities.Product> ?? new List<CoffeeShop.Models.Entities.Product>();
-    var featuredProduct = ViewBag.Product as CoffeeShop.Models.Entities.Product;
+    var recentProducts = ViewBag.RecentProducts as List<CoffeeShop.Models.ViewModels.ShopProductCardViewModel> ?? new List<CoffeeShop.Models.ViewModels.ShopProductCardViewModel>();
 }
 
 <section class="home-slider owl-carousel">
@@ -125,7 +124,7 @@
                                 <div class="text">
                                     <h5 class="heading mb-1"><a asp-controller="Shop" asp-action="Detail" asp-route-id="@prod.MaSP" class="text-white">@prod.TenSP</a></h5>
                                     <div class="meta">
-                                        <small class="text-primary font-weight-bold">@prod.Category?.TenLoaiSP</small>
+                                            <small class="text-primary font-weight-bold">@prod.TenLoaiSP</small>
                                     </div>
                                 </div>
                             </div>

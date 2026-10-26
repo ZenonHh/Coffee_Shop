@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
+using CoffeeShop.Models.ViewModels;
 
 namespace CoffeeShop.Areas.Admin.Controllers;
 
 [Area("Admin")]
-[Authorize(Roles = "Admin,NhanVien")]
+[Authorize(Roles = "Admin,Staff,NhanVien")]
 public class SurveysController : Controller
 {
     private readonly CoffeeShopDbContext _context;
@@ -15,8 +17,10 @@ public class SurveysController : Controller
 
     public async Task<IActionResult> Index(int? editId)
     {
-        var surveys = await _context.Surveys.Include(s => s.Questions).ThenInclude(q => q.Answers).OrderByDescending(s => s.NgayBatDau).ToListAsync();
-        ViewBag.EditSurvey = editId.HasValue ? surveys.FirstOrDefault(s => s.MaKhaoSat == editId.Value) : null;
+        var surveys = await GetSurveyListAsync();
+        ViewBag.EditSurvey = editId.HasValue
+            ? await _context.Surveys.AsNoTracking().FirstOrDefaultAsync(survey => survey.MaKhaoSat == editId.Value)
+            : null;
         return View(surveys);
     }
 
@@ -24,7 +28,7 @@ public class SurveysController : Controller
     public async Task<IActionResult> Create(Survey survey)
     {
         Normalize(survey);
-        if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return InvalidForm(survey);
+        if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return await InvalidForm(survey);
         survey.MaTaiKhoan = await CurrentAccountId();
         _context.Surveys.Add(survey);
         await _context.SaveChangesAsync();
@@ -38,7 +42,7 @@ public class SurveysController : Controller
         var existing = await _context.Surveys.FindAsync(survey.MaKhaoSat);
         if (existing == null) return NotFound();
         Normalize(survey);
-        if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return InvalidForm(survey);
+        if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return await InvalidForm(survey);
         existing.TieuDe = survey.TieuDe; existing.MoTa = survey.MoTa; existing.NgayBatDau = survey.NgayBatDau; existing.NgayKetThuc = survey.NgayKetThuc;
         await _context.SaveChangesAsync();
         TempData["Success"] = "Đã cập nhật khảo sát.";
@@ -73,18 +77,35 @@ public class SurveysController : Controller
         return RedirectToAction(nameof(Index), new { editId = surveyId });
     }
 
-    private async Task<int> CurrentAccountId()
+    private Task<List<SurveyListItemViewModel>> GetSurveyListAsync() => _context.Surveys
+        .AsNoTracking()
+        .OrderByDescending(survey => survey.NgayBatDau)
+        .Select(survey => new SurveyListItemViewModel
+        {
+            MaKhaoSat = survey.MaKhaoSat,
+            TieuDe = survey.TieuDe,
+            NgayBatDau = survey.NgayBatDau,
+            NgayKetThuc = survey.NgayKetThuc,
+            AnswerCount = survey.Questions.SelectMany(question => question.Answers).Count(),
+            Questions = survey.Questions.Select(question => new SurveyQuestionListItemViewModel
+            {
+                MaCauHoi = question.MaCauHoi,
+                NoiDungCauHoi = question.NoiDungCauHoi,
+                Answers = new SurveyAnswerCountViewModel { Count = question.Answers.Count }
+            }).ToList()
+        })
+        .ToListAsync();
+
+    private Task<int> CurrentAccountId()
     {
-        var username = User.Identity?.Name;
-        var account = await _context.Accounts.FirstOrDefaultAsync(a => a.TenDangNhap == username);
-        return account?.MaTaiKhoan ?? await _context.Accounts.Select(a => a.MaTaiKhoan).FirstOrDefaultAsync();
+        return Task.FromResult(int.TryParse(User.FindFirstValue("AccountId"), out var accountId) ? accountId : 0);
     }
 
-    private IActionResult InvalidForm(Survey survey)
+    private async Task<IActionResult> InvalidForm(Survey survey)
     {
         ViewBag.EditSurvey = survey.MaKhaoSat > 0 ? survey : null;
         ViewBag.FormError = "Vui lòng kiểm tra tiêu đề và thời gian khảo sát.";
-        return View("Index", _context.Surveys.Include(s => s.Questions).ThenInclude(q => q.Answers).OrderByDescending(s => s.NgayBatDau).ToList());
+        return View("Index", await GetSurveyListAsync());
     }
 
     private static void Normalize(Survey survey)

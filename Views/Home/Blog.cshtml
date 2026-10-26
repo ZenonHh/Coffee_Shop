@@ -53,7 +53,7 @@
         {
             foreach (var category in Model)
             {
-                var activeProducts = category.Products?.Where(p => p.TrangThai).ToList();
+                var activeProducts = category.Products;
                 if (activeProducts == null || !activeProducts.Any())
                 {
                     continue;
@@ -79,8 +79,6 @@
                     <div class="row d-flex">
                         @foreach (var product in activeProducts)
                         {
-                            var defaultVariant = product.Variants.FirstOrDefault();
-                            var price = defaultVariant != null ? defaultVariant.GiaBan.ToString("N0") + " đ" : "Liên hệ";
                             var imagePath = !string.IsNullOrEmpty(product.HinhAnh) ? $"/picture/{product.HinhAnh}" : "/images/menu-1.jpg";
 
                             <div class="col-md-6 col-lg-4 d-flex ftco-animate">

@@ -146,10 +146,10 @@
                     $('#qty_' + itemKey).val(newQty);
                     $('#total_' + itemKey).text(res.itemTotal.toLocaleString('vi-VN') + ' đ');
                     $('#subTotalText').text(res.subTotal.toLocaleString('vi-VN') + ' đ');
-                    $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' Ä‘');
-                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' Ä‘');
-                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' Ä‘');
-                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' Ä‘');
+                    $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' đ');
+                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
                     updateCartBadge();
                 }
             }
@@ -161,14 +161,18 @@
         $.ajax({
             url: '@Url.Action("ApplyVoucher", "Cart")',
             type: 'POST',
-            data: { voucherCode: code },
+            data: { code: code, subTotal: @Model.SubTotal.ToString(System.Globalization.CultureInfo.InvariantCulture) },
             success: function(res) {
                 $('#voucherMsg').text(res.message);
                 if (res.success) {
-                    $('#discountText').text('-' + res.discount.toLocaleString('vi-VN') + ' đ');
-                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' Ä‘');
-                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' Ä‘');
-                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' Ä‘');
+                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#grandTotalText').text((res.grandTotal || 0).toLocaleString('vi-VN') + ' đ');
+                } else if (res.grandTotal !== undefined) {
+                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' đ');
                 }
             }
         });

@@ -23,9 +23,11 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl)
     {
-        if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("NhanVien")))
+        if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("NhanVien") || User.IsInRole("Staff")))
         {
-            return RedirectToAction("Index", "Dashboard");
+            return User.IsInRole("Admin")
+                ? RedirectToAction("Index", "Dashboard")
+                : RedirectToAction("Index", "Orders");
         }
 
         return View(new LoginViewModel { ReturnUrl = returnUrl });
@@ -42,25 +44,32 @@ public class AccountController : Controller
         }
 
         var username = model.Username.Trim();
-        var password = model.Password.Trim();
+        var password = model.Password;
         var account = await _context.Accounts
             .Include(a => a.Role)
             .FirstOrDefaultAsync(a => a.TenDangNhap == username && a.TrangThai);
 
-        var isStaff = account != null && (account.Role?.TenVaiTro == "Admin" || account.Role?.TenVaiTro == "NhanVien");
-        var passwordValid = account != null && (account.MatKhau == password || password == account.MatKhau);
+        var isStaff = account != null && account.MaVaiTro is 2 or 3 or 4;
+        var passwordValid = account != null && VerifyPassword(password, account.MatKhau);
         if (!isStaff || !passwordValid)
         {
             ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu quản trị không chính xác.");
             return View(model);
         }
 
+        if (!account!.MatKhau.StartsWith("$2", StringComparison.Ordinal))
+        {
+            account.MatKhau = BCrypt.Net.BCrypt.HashPassword(password);
+            await _context.SaveChangesAsync();
+        }
+
         await HttpContext.SignOutAsync("AdminCookie");
+        var roleName = account.MaVaiTro == 4 ? "Admin" : account.MaVaiTro == 2 ? "Staff" : "NhanVien";
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, account!.TenDangNhap),
             new Claim(ClaimTypes.GivenName, account.HoTen),
-            new Claim(ClaimTypes.Role, account.Role!.TenVaiTro),
+            new Claim(ClaimTypes.Role, roleName),
             new Claim("AccountId", account.MaTaiKhoan.ToString())
         };
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -76,7 +85,9 @@ public class AccountController : Controller
             return Redirect(model.ReturnUrl);
         }
 
-        return RedirectToAction("Index", "Dashboard");
+        return account.MaVaiTro == 4
+            ? RedirectToAction("Index", "Dashboard")
+            : RedirectToAction("Index", "Orders");
     }
 
     [HttpGet]
@@ -84,5 +95,16 @@ public class AccountController : Controller
     {
         await HttpContext.SignOutAsync("AdminCookie");
         return RedirectToAction(nameof(Login));
+    }
+
+    private static bool VerifyPassword(string password, string storedPassword)
+    {
+        if (storedPassword.StartsWith("$2", StringComparison.Ordinal))
+        {
+            try { return BCrypt.Net.BCrypt.Verify(password, storedPassword); }
+            catch { return false; }
+        }
+
+        return string.Equals(password, storedPassword, StringComparison.Ordinal);
     }
 }

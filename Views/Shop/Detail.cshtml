@@ -1,79 +1,123 @@
 @model CoffeeShop.Models.ViewModels.ProductDetailViewModel
 @{
     ViewData["Title"] = $"{Model.Product.TenSP} - Coffee Blend";
+    var isOutOfStock = Model.Product.SoLuongTon <= 0;
+    var unavailable = isOutOfStock || !Model.Variants.Any();
+    int stepIndex = 1;
 }
 
+<!-- BANNER ĐẦU TRANG -->
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+    <div class="slider-item" style="background-image: url('/images/bg_3.jpg');" data-stellar-background-ratio="0.5">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+            <div class="row slider-text justify-content-center align-items-center">
                 <div class="col-md-7 col-sm-12 text-center ftco-animate">
                     <h1 class="mb-3 mt-5 bread">Chi Tiết Món Uống</h1>
-                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span class="mr-2"><a asp-controller="Shop" asp-action="Index">Thực đơn</a></span> <span>@Model.Product.TenSP</span></p>
+                    <p class="breadcrumbs">
+                        <span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> 
+                        <span class="mr-2"><a asp-controller="Shop" asp-action="Index">Thực đơn</a></span> 
+                        <span>@Model.Product.TenSP</span>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="ftco-section product-detail-page">
+<section class="ftco-section">
     <div class="container">
-        <div class="row product-detail-layout">
-            <div class="col-lg-6 mb-5 product-detail-media">
-                <div class="product-image-card">
-                    <img src="~/picture/@Model.Product.HinhAnh" class="img-fluid" alt="@Model.Product.TenSP">
+        <!-- PHẦN CHI TIẾT SẢN PHẨM -->
+        <div class="row align-items-start mb-5 pb-4 border-bottom" style="border-color: rgba(196, 155, 99, 0.2) !important;">
+            
+            <!-- CỘT ẢNH SẢN PHẨM (KÈM BADGE HẾT HÀNG NẾU HẾT) -->
+            <div class="col-lg-6 mb-5 ftco-animate">
+                <div style="position: relative; width: 100%; aspect-ratio: 1/1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(196, 155, 99, 0.3); border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                    <img src="@Url.Content("~/images/" + Model.Product.HinhAnh)" 
+                         class="img-fluid" 
+                         alt="@Model.Product.TenSP" 
+                         style="max-width: 100%; max-height: 100%; object-fit: contain; @(isOutOfStock ? "filter: grayscale(80%) opacity(0.5);" : "")">
+                    
+                    @if (isOutOfStock)
+                    {
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(26, 18, 14, 0.92); color: #c49b63; border: 2px solid #c49b63; padding: 10px 24px; font-weight: 800; border-radius: 8px; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 4px 20px rgba(0,0,0,0.6); pointer-events: none;">
+                            HẾT HÀNG
+                        </div>
+                    }
                 </div>
             </div>
-            <div class="col-lg-6 product-details product-detail-info">
-                <h2 class="text-white">@Model.Product.TenSP</h2>
-                <div class="rating d-flex mb-3">
-                    <p class="text-left mr-4">
-                        <a href="#reviews" class="mr-2 text-warning font-weight-bold">@Model.AverageRating.ToString("0.0") <i class="icon-star"></i></a>
+            
+            <!-- CỘT THÔNG TIN VÀ CHỌN MÓN -->
+            <div class="col-lg-6 product-details pl-md-5 ftco-animate">
+                <h2 class="text-white font-weight-bold mb-2">@Model.Product.TenSP</h2>
+                
+                <div class="rating d-flex align-items-center mb-3">
+                    <p class="text-left mr-4 mb-0">
+                        <a href="#reviews" class="mr-2" style="color: #c49b63; font-weight: bold; font-size: 15px;">
+                            @Model.AverageRating.ToString("0.0") 
+                            <i class="icon-star text-warning"></i>
+                        </a>
                         <span class="text-muted">(@Model.TotalReviews đánh giá)</span>
                     </p>
-                    <p class="text-left"><span class="badge badge-primary">@Model.Product.Category?.TenLoaiSP</span></p>
+                    <span class="badge px-3 py-1" style="background: rgba(196, 155, 99, 0.15); color: #c49b63; border: 1px solid #c49b63; border-radius: 20px; font-size: 13px;">
+                        @Model.Product.TenLoaiSP
+                    </span>
                 </div>
 
-                <p class="price"><span id="displayPrice" class="h3 text-primary">0 đ</span></p>
+                <p class="price mb-3">
+                    <span id="displayPrice" style="color: #c49b63; font-size: 32px; font-weight: 700;">0 đ</span>
+                </p>
+
+                @if (isOutOfStock)
+                {
+                    <div class="alert alert-warning mb-4" style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.4); color: #ffc107; border-radius: 8px;">
+                        <i class="icon-warning mr-2"></i> Món này hiện tại đã hết hàng. Vui lòng chọn món khác.
+                    </div>
+                }
+                else if (!Model.Variants.Any())
+                {
+                    <div class="alert alert-warning mb-4" style="background: rgba(255, 193, 7, 0.08); border: 1px solid rgba(255, 193, 7, 0.4); color: #ffc107; border-radius: 8px;">
+                        Món này hiện chưa có kích cỡ bán.
+                    </div>
+                }
 
                 <!-- Form tùy chọn đặt món -->
-                <form id="addToCartForm" class="mt-4">
+                <form id="addToCartForm" class="mt-3">
                     <input type="hidden" name="productId" value="@Model.Product.MaSP" />
 
-                    <!-- Chọn Kích cỡ (Size) -->
-                    <div class="form-group product-option-group mb-4">
-                        <label class="text-white font-weight-bold">1. Chọn Kích Cỡ (Size):</label>
-                        <div class="d-flex flex-wrap product-size-options">
+                    <!-- 1. Chọn Kích cỡ (Size) -->
+                    <div class="form-group mb-4">
+                        <label class="text-white font-weight-bold mb-2 d-block">@(stepIndex++). Chọn Kích Cỡ (Size):</label>
+                        <div class="d-flex flex-wrap" style="gap: 15px;">
                             @for (int i = 0; i < Model.Variants.Count; i++)
                             {
                                 var variant = Model.Variants[i];
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="variant_@variant.MaBienThe" name="variantId" value="@variant.MaBienThe" 
                                            data-price="@variant.GiaBan" class="custom-control-input variant-radio" @(i == 0 ? "checked" : "")>
-                                    <label class="custom-control-label text-white" for="variant_@variant.MaBienThe">
-                                        Size @variant.KichCo (@variant.GiaBan.ToString("N0") đ)
+                                    <label class="custom-control-label text-white" for="variant_@variant.MaBienThe" style="cursor: pointer;">
+                                        Size @variant.KichCo <span style="color: #c49b63;">(@variant.GiaBan.ToString("N0") đ)</span>
                                     </label>
                                 </div>
                             }
                         </div>
                     </div>
 
-                    <!-- Chọn Topping -->
-                    @if (Model.AvailableToppings.Any())
+                    <!-- 2. Chọn Topping (Chỉ hiện nếu có topping) -->
+                    @if (Model.AvailableToppings != null && Model.AvailableToppings.Any())
                     {
-                        <div class="form-group product-option-group mb-4">
-                            <label class="text-white font-weight-bold">2. Thêm Topping Yêu Thích:</label>
-                            <div class="row product-topping-options">
+                        <div class="form-group mb-4">
+                            <label class="text-white font-weight-bold mb-2 d-block">@(stepIndex++). Thêm Topping Yêu Thích:</label>
+                            <div class="row">
                                 @foreach (var top in Model.AvailableToppings)
                                 {
-                                    var topPrice = top.Variants.FirstOrDefault()?.GiaBan ?? 10000;
-                                    <div class="col-md-6 col-sm-6 mb-2">
+                                    var topPrice = top.GiaBan;
+                                    <div class="col-md-6 mb-2">
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" id="top_@top.MaSP" name="toppingIds" value="@top.MaSP" 
                                                    data-price="@topPrice" class="custom-control-input topping-check">
-                                            <label class="custom-control-label text-white" for="top_@top.MaSP">
-                                                @top.TenSP (+@topPrice.ToString("N0") đ)
+                                            <label class="custom-control-label text-white" for="top_@top.MaSP" style="cursor: pointer;">
+                                                @top.TenSP <span style="color: #c49b63;">(+@topPrice.ToString("N0") đ)</span>
                                             </label>
                                         </div>
                                     </div>
@@ -82,96 +126,139 @@
                         </div>
                     }
 
-                    <!-- Số lượng -->
-                    <div class="form-group product-quantity-row mb-4">
-                        <label class="text-white font-weight-bold">3. Số lượng:</label>
-                        <div class="product-quantity-control">
-                            <div class="input-group product-quantity-input">
+                    <!-- 3. Số lượng (Sửa lỗi màu chữ trắng rõ ràng, nút bấm sắc nét) -->
+                    <div class="form-group mb-4">
+                        <label class="text-white font-weight-bold mb-2 d-block">@(stepIndex++). Số lượng:</label>
+                        <div style="width: 140px;">
+                            <div class="input-group" style="border: 1px solid #c49b63; border-radius: 8px; overflow: hidden; background: #1a1614;">
                                 <div class="input-group-prepend">
-                                    <button class="btn btn-outline-secondary text-white btn-qty-minus" type="button">-</button>
+                                    <button class="btn btn-qty-minus text-white" type="button" 
+                                            style="background: rgba(196, 155, 99, 0.2); border: none; width: 40px; font-weight: bold; font-size: 18px;">-</button>
                                 </div>
-                                <input type="number" id="productQuantity" name="quantity" class="form-control text-center" value="1" min="1" max="50">
+                                <input type="number" id="productQuantity" name="quantity" class="form-control text-center text-white" 
+                                       value="1" min="1" max="50" 
+                                       style="background: transparent !important; border: none !important; color: #ffffff !important; font-size: 16px; font-weight: bold; box-shadow: none;">
                                 <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary text-white btn-qty-plus" type="button">+</button>
+                                    <button class="btn btn-qty-plus text-white" type="button" 
+                                            style="background: rgba(196, 155, 99, 0.2); border: none; width: 40px; font-weight: bold; font-size: 18px;">+</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <p>
-                        <button type="submit" id="btnAddToCart" class="btn btn-primary py-3 px-5">
-                            <i class="icon-shopping_cart mr-2"></i> Thêm vào giỏ hàng
-                        </button>
-                    </p>
-                    <div id="addToCartAlert" class="alert alert-success d-none mt-3"></div>
+                    <!-- NÚT BẤM (SỬA LỖI MẤT CHỮ KHI HẾT HÀNG, CÓ ALERT CHẶN LẠI) -->
+                    <div class="mt-4">
+                        @if (isOutOfStock)
+                        {
+                            <button type="button" id="btnOutOfStockAlert" class="btn py-3 px-5 font-weight-bold" 
+                                    style="border-radius: 30px; background: #554e48 !important; border: 1px solid #776e66 !important; color: #ffffff !important; cursor: not-allowed; opacity: 1 !important;">
+                                <i class="icon-ban mr-2"></i> Hết hàng
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" id="btnAddToCart" class="btn btn-primary py-3 px-5 font-weight-bold" 
+                                    style="border-radius: 30px; background: #c49b63 !important; border-color: #c49b63 !important; color: #000000 !important;">
+                                <i class="icon-shopping_cart mr-2"></i> Thêm vào giỏ hàng
+                            </button>
+                        }
+                    </div>
+                    
+                    <div id="addToCartAlert" class="alert alert-success d-none mt-3" style="border-radius: 8px;"></div>
                 </form>
             </div>
         </div>
 
-        <section id="reviews" class="product-reviews-section">
-            <div class="product-reviews-heading">
+        <!-- PHẦN ĐÁNH GIÁ & NHẬN XÉT -->
+        <section id="reviews" class="pt-3">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(196, 155, 99, 0.2) !important;">
                 <div>
-                    <span class="product-reviews-eyebrow">Ý kiến khách hàng</span>
-                    <h3 class="text-white mb-0">Đánh giá &amp; Nhận xét món uống</h3>
+                    <span class="d-block text-uppercase font-weight-bold" style="color: #c49b63; font-size: 13px; letter-spacing: 2px;">Ý kiến khách hàng</span>
+                    <h3 class="text-white font-weight-bold mb-0">Đánh Giá &amp; Nhận Xét</h3>
                 </div>
-                <span class="product-reviews-count">@Model.TotalReviews đánh giá</span>
+                <span class="px-3 py-1 font-weight-bold" style="border: 1px solid #c49b63; border-radius: 20px; color: #c49b63; background: rgba(196,155,99,0.1); font-size: 14px;">
+                    @Model.TotalReviews lượt đánh giá
+                </span>
             </div>
-            <div class="row product-reviews-columns">
+
+            <div class="row">
+                <!-- Cột trái: Form gửi đánh giá -->
                 <div class="col-lg-5 mb-4 mb-lg-0">
-                    <div class="product-review-form">
-                        <h4 class="mb-3">Gửi cảm nhận của bạn</h4>
+                    <div class="p-4 rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                        <h4 class="mb-3 font-weight-bold" style="color: #c49b63; font-size: 18px;">
+                            <i class="icon-pencil mr-1"></i> Gửi cảm nhận của bạn
+                        </h4>
                         <form asp-controller="Feedback" asp-action="SubmitFeedback" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="productId" value="@Model.Product.MaSP" />
-                            <div class="form-group">
-                                <label for="productReviewRating">Mức độ hài lòng</label>
-                                <select id="productReviewRating" name="rating" class="form-control">
-                                    <option value="5">★★★★★ - Rất hài lòng</option>
-                                    <option value="4">★★★★ - Hài lòng</option>
-                                    <option value="3">★★★ - Bình thường</option>
-                                    <option value="2">★★ - Chưa hài lòng</option>
-                                    <option value="1">★ - Không hài lòng</option>
+                            
+                            <div class="form-group mb-3">
+                                <label for="productReviewRating" class="text-white small mb-1">Mức độ hài lòng:</label>
+                                <select id="productReviewRating" name="rating" class="form-control" style="background: #231f1a; border: 1px solid rgba(255,255,255,0.15); color: #fff; height: 46px; border-radius: 6px;">
+                                    <option value="5">★★★★★ - Rất hài lòng (5 sao)</option>
+                                    <option value="4">★★★★☆ - Hài lòng (4 sao)</option>
+                                    <option value="3">★★★☆☆ - Bình thường (3 sao)</option>
+                                    <option value="2">★★☆☆☆ - Chưa hài lòng (2 sao)</option>
+                                    <option value="1">★☆☆☆☆ - Không hài lòng (1 sao)</option>
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label for="productReviewContent">Nhận xét của bạn</label>
-                                <textarea id="productReviewContent" name="content" class="form-control" rows="3" required placeholder="Chia sẻ cảm nhận về món này..."></textarea>
+
+                            <div class="form-group mb-4">
+                                <label for="productReviewContent" class="text-white small mb-1">Nhận xét chi tiết:</label>
+                                <textarea id="productReviewContent" name="content" class="form-control" rows="4" required placeholder="Hương vị món uống, độ ngọt, chất lượng phục vụ..." style="background: #231f1a; border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 6px;"></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+
+                            <button type="submit" class="btn btn-primary btn-block py-2 font-weight-bold" style="border-radius: 6px; background: #c49b63; border-color: #c49b63; color: #000;">
+                                Gửi Đánh Giá Ngay
+                            </button>
                         </form>
                     </div>
                 </div>
+
+                <!-- Cột phải: Danh sách các nhận xét gần đây -->
                 <div class="col-lg-7">
-                    <div class="product-review-list">
-                        <h4 class="text-white mb-3">Nhận xét gần đây (@Model.TotalReviews)</h4>
-                        @if (Model.Reviews.Any())
-                        {
-                            <div class="row">
-                                @foreach (var review in Model.Reviews)
-                                {
-                                    <div class="col-md-6 mb-3">
-                                        <div class="product-review-card">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <h5 class="text-white mb-0">@(review.Customer?.HoTen ?? "Khách hàng")</h5>
-                                                <span class="text-warning">
-                                                    @for (int s = 1; s <= (review.DanhGia ?? 5); s++) { <i class="icon-star"></i> }
-                                                </span>
+                    <h5 class="text-white font-weight-bold mb-3">Nhận xét gần đây (@Model.TotalReviews)</h5>
+
+                    @if (Model.Reviews != null && Model.Reviews.Any())
+                    {
+                        <div class="row">
+                            @foreach (var review in Model.Reviews)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="p-3 rounded h-100 d-flex flex-column" style="background: #171412; border: 1px solid rgba(255, 255, 255, 0.08);">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center mr-2 font-weight-bold text-dark" style="width: 32px; height: 32px; background: #c49b63; font-size: 13px;">
+                                                    @(string.IsNullOrEmpty(review.CustomerName) ? "K" : review.CustomerName.Substring(0, 1).ToUpper())
+                                                </div>
+                                                <h6 class="text-white font-weight-bold mb-0" style="font-size: 14px;">@review.CustomerName</h6>
                                             </div>
-                                            <p class="text-muted small mb-2">@review.NgayGui.ToString("dd/MM/yyyy HH:mm")</p>
-                                            <p class="text-light mb-0">@review.NoiDung</p>
+                                            <span style="color: #ffc107; font-size: 13px;">
+                                                @for (int s = 1; s <= (review.DanhGia ?? 5); s++)
+                                                {
+                                                    <i class="icon-star"></i>
+                                                }
+                                            </span>
                                         </div>
+                                        <p class="text-muted mb-2" style="font-size: 12px;">
+                                            <i class="icon-calendar mr-1"></i>@review.NgayGui.ToString("dd/MM/yyyy HH:mm")
+                                        </p>
+                                        <p class="mb-0 flex-grow-1" style="color: #ddd; font-size: 13.5px; line-height: 1.5;">
+                                            @review.NoiDung
+                                        </p>
                                     </div>
-                                }
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="product-review-empty">
-                                <span class="icon-coffee"></span>
-                                <p class="mb-0">Chưa có nhận xét nào cho món này. Hãy là người đầu tiên chia sẻ cảm nhận!</p>
-                            </div>
-                        }
-                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 rounded" style="background: #171412; border: 1px dashed rgba(196, 155, 99, 0.3);">
+                            <span class="icon-coffee mb-3 d-block" style="font-size: 36px; color: #c49b63;"></span>
+                            <p class="text-muted mb-0">Chưa có đánh giá nào cho món này.</p>
+                            <small class="text-secondary">Hãy là người đầu tiên trải nghiệm và chia sẻ cảm nhận nhé!</small>
+                        </div>
+                    }
                 </div>
             </div>
         </section>
@@ -188,7 +275,6 @@
         });
         var qty = parseInt($('#productQuantity').val()) || 1;
         var unitPrice = basePrice + toppingTotal;
-        var total = unitPrice * qty;
 
         $('#displayPrice').text(unitPrice.toLocaleString('vi-VN') + ' đ');
     }
@@ -214,6 +300,12 @@
             }
         });
 
+        // Bấm nút Hết hàng sẽ thông báo rõ ràng
+        $('#btnOutOfStockAlert').click(function(e) {
+            e.preventDefault();
+            alert('Rất tiếc! Món [@Model.Product.TenSP] hiện tại đã hết hàng trong kho và không thể đặt thêm. Quý khách vui lòng chọn món khác nhé!');
+        });
+
         $('#addToCartForm').submit(function(e) {
             e.preventDefault();
             var formData = $(this).serialize();
@@ -224,13 +316,15 @@
                 success: function(res) {
                     if (res.success) {
                         $('#addToCartAlert').removeClass('d-none alert-danger').addClass('alert-success').text(res.message);
-                        updateCartBadge();
+                        if (typeof updateCartBadge === "function") {
+                            updateCartBadge();
+                        }
                     } else {
                         $('#addToCartAlert').removeClass('d-none alert-success').addClass('alert-danger').text(res.message);
                     }
                 },
                 error: function() {
-                    $('#addToCartAlert').removeClass('d-none alert-success').addClass('alert-danger').text('Lỗi kết nối khi thêm giỏ hàng.');
+                    $('#addToCartAlert').removeClass('d-none alert-success').addClass('alert-danger').text('Lỗi kết nối khi thêm vào giỏ hàng.');
                 }
             });
         });

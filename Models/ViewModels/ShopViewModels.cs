@@ -4,28 +4,85 @@ namespace CoffeeShop.Models.ViewModels
 {
     public class HomeViewModel
     {
-        public List<Product> FeaturedProducts { get; set; } = new();
-        public List<Category> Categories { get; set; } = new();
-        public List<Feedback> CustomerReviews { get; set; } = new();
+        public List<ShopProductCardViewModel> FeaturedProducts { get; set; } = new();
+        public List<ShopCategoryViewModel> Categories { get; set; } = new();
+        public List<ProductReviewViewModel> CustomerReviews { get; set; } = new();
+        public int TotalProducts { get; set; }
+        public int TotalOrders { get; set; }
+        public int TotalCustomers { get; set; }
+        public int TotalReviews { get; set; }
+    }
+
+    public class HomeCategoryViewModel
+    {
+        public string TenLoaiSP { get; set; } = string.Empty;
+        public List<ShopProductCardViewModel> Products { get; set; } = new();
     }
 
     public class ShopViewModel
     {
-        public List<Category> Categories { get; set; } = new();
-        public List<Product> Products { get; set; } = new();
+        public List<ShopCategoryViewModel> Categories { get; set; } = new();
+        public List<ShopProductCardViewModel> Products { get; set; } = new();
         public int? SelectedCategoryId { get; set; }
         public string? Keyword { get; set; }
     }
 
+    public class ShopCategoryViewModel
+    {
+        public int MaLoaiSP { get; set; }
+        public string TenLoaiSP { get; set; } = string.Empty;
+    }
+
+    public class ShopProductCardViewModel
+    {
+        public int MaSP { get; set; }
+        public string TenSP { get; set; } = string.Empty;
+        public string? HinhAnh { get; set; }
+        public string TenLoaiSP { get; set; } = string.Empty;
+        public decimal? GiaBan { get; set; }
+        public int SoLuongTon { get; set; }
+    }
+
     public class ProductDetailViewModel
     {
-        public Product Product { get; set; } = null!;
-        public List<ProductVariant> Variants { get; set; } = new();
-        public List<Product> AvailableToppings { get; set; } = new();
-        public List<Product> RelatedProducts { get; set; } = new();
-        public List<Feedback> Reviews { get; set; } = new();
+        public ProductDetailProductViewModel Product { get; set; } = new();
+        public List<ProductVariantOptionViewModel> Variants { get; set; } = new();
+        public List<ToppingOptionViewModel> AvailableToppings { get; set; } = new();
+        public List<ShopProductCardViewModel> RelatedProducts { get; set; } = new();
+        public List<ProductReviewViewModel> Reviews { get; set; } = new();
         public double AverageRating { get; set; }
         public int TotalReviews { get; set; }
+    }
+
+    public class ProductDetailProductViewModel
+    {
+        public int MaSP { get; set; }
+        public string TenSP { get; set; } = string.Empty;
+        public string? HinhAnh { get; set; }
+        public string TenLoaiSP { get; set; } = string.Empty;
+        public int SoLuongTon { get; set; }
+    }
+
+    public class ProductVariantOptionViewModel
+    {
+        public int MaBienThe { get; set; }
+        public string KichCo { get; set; } = string.Empty;
+        public decimal GiaBan { get; set; }
+    }
+
+    public class ToppingOptionViewModel
+    {
+        public int MaSP { get; set; }
+        public string TenSP { get; set; } = string.Empty;
+        public decimal GiaBan { get; set; }
+    }
+
+    public class ProductReviewViewModel
+    {
+        public string CustomerName { get; set; } = string.Empty;
+        public string NoiDung { get; set; } = string.Empty;
+        public int? DanhGia { get; set; }
+        public DateTime NgayGui { get; set; }
     }
 
     public class CartItemViewModel
@@ -66,7 +123,7 @@ namespace CoffeeShop.Models.ViewModels
         public string? Email { get; set; }
         public string DeliveryAddress { get; set; } = string.Empty;
         public string? Note { get; set; }
-        public string PaymentMethod { get; set; } = "COD"; // COD, VNPay, Chuyển khoản
+        public string PaymentMethod { get; set; } = "COD";
         public string? VoucherCode { get; set; }
     }
 }

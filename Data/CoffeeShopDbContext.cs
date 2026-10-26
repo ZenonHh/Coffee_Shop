@@ -26,6 +26,11 @@ namespace CoffeeShop.Data
         public DbSet<Survey> Surveys { get; set; } = null!;
         public DbSet<SurveyQuestion> SurveyQuestions { get; set; } = null!;
         public DbSet<SurveyAnswer> SurveyAnswers { get; set; } = null!;
+        public DbSet<Supplier> Suppliers { get; set; } = null!;
+        public DbSet<Ingredient> Ingredients { get; set; } = null!;
+        public DbSet<StaffMember> StaffMembers { get; set; } = null!;
+        public DbSet<Purchase> Purchases { get; set; } = null!;
+        public DbSet<PurchaseDetail> PurchaseDetails { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +80,48 @@ namespace CoffeeShop.Data
                 .HasOne(od => od.Variant)
                 .WithMany()
                 .HasForeignKey(od => od.MaBienThe)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.Supplier)
+                .WithMany()
+                .HasForeignKey(p => p.MaNCC)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.StaffMember)
+                .WithMany()
+                .HasForeignKey(p => p.MaNV)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Purchase>()
+                .HasOne(p => p.Approver)
+                .WithMany()
+                .HasForeignKey(p => p.NguoiDuyetId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PurchaseDetail>()
+                .HasOne(d => d.Purchase)
+                .WithMany(p => p.Details)
+                .HasForeignKey(d => d.MaPN)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PurchaseDetail>()
+                .HasOne(d => d.Ingredient)
+                .WithMany()
+                .HasForeignKey(d => d.MaNL)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PurchaseDetail>()
+                .HasOne(d => d.Product)
+                .WithMany()
+                .HasForeignKey(d => d.MaSP)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Voucher)
+                .WithMany()
+                .HasForeignKey(o => o.MaVoucher)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

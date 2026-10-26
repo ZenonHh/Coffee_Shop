@@ -24,21 +24,39 @@
 
         <div class="side-caption">MENU CHÍNH</div>
         <nav class="side-nav" aria-label="Điều hướng quản trị">
-            <a class="side-link @(controller == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">◫</span><span>Tổng quan</span>
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="side-link @(controller == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <span class="side-icon" aria-hidden="true">◫</span><span>Tổng quan</span>
+                </a>
+            }
             <a class="side-link @(controller == "Products" ? "active" : "")" asp-area="Admin" asp-controller="Products" asp-action="Index">
                 <span class="side-icon" aria-hidden="true">▤</span><span>Sản phẩm</span>
             </a>
-            <a class="side-link @(controller == "Vouchers" ? "active" : "")" asp-area="Admin" asp-controller="Vouchers" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">%</span><span>Voucher</span>
+            <a class="side-link @(controller == "PhieuNhap" ? "active" : "")" asp-area="Admin" asp-controller="PhieuNhap" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">↧</span><span>Phiếu nhập</span>
             </a>
+            <a class="side-link @(controller == "NhaCungCap" ? "active" : "")" asp-area="Admin" asp-controller="NhaCungCap" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">◇</span><span>Nhà cung cấp</span>
+            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="side-link @(controller == "Vouchers" ? "active" : "")" asp-area="Admin" asp-controller="Vouchers" asp-action="Index">
+                    <span class="side-icon" aria-hidden="true">%</span><span>Voucher</span>
+                </a>
+            }
             <a class="side-link @(controller == "Surveys" ? "active" : "")" asp-area="Admin" asp-controller="Surveys" asp-action="Index">
                 <span class="side-icon" aria-hidden="true">▧</span><span>Khảo sát ý kiến</span>
             </a>
             <a class="side-link @(controller == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
                 <span class="side-icon" aria-hidden="true">▣</span><span>Đơn hàng</span>
             </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a class="side-link @(controller == "TaiKhoan" ? "active" : "")" asp-area="Admin" asp-controller="TaiKhoan" asp-action="Index">
+                    <span class="side-icon" aria-hidden="true">♙</span><span>Tài khoản</span>
+                </a>
+            }
         </nav>
 
         <div class="side-caption side-caption-spaced">HỆ THỐNG</div>
@@ -71,7 +89,7 @@
         <header class="topbar">
             <button class="icon-button menu-toggle" id="menuToggle" type="button" aria-label="Mở menu" aria-expanded="false">☰</button>
             <div class="breadcrumb">
-                <span>Admin</span><span class="crumb-separator">/</span><strong>@currentTitle</strong>
+                <span>Admin</span><span class="crumb-separator">/</span><strong>@ViewData["Title"]</strong>
             </div>
             <div class="topbar-actions">
                 <label class="global-search">

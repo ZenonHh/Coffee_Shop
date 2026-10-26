@@ -4,11 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
+using CoffeeShop.Services;
 
 namespace CoffeeShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,NhanVien")]
+    [Authorize(Roles = "Admin")]
     public class DashboardController : Controller
     {
         private readonly CoffeeShopDbContext _context;
@@ -23,14 +24,26 @@ namespace CoffeeShop.Areas.Admin.Controllers
             var viewModel = new AdminDashboardViewModel();
             try
             {
-                viewModel.TotalRevenue = await _context.Orders.Where(o => o.TrangThai == "Hoàn tất" || o.TrangThai == "Đã thanh toán").SumAsync(o => o.TongTien);
+                viewModel.TotalRevenue = await _context.Orders
+                    .Where(order => order.TrangThai == OrderStatuses.Completed)
+                    .SumAsync(order => order.TongTien);
                 viewModel.TotalOrders = await _context.Orders.CountAsync();
                 viewModel.TotalCustomers = await _context.Customers.CountAsync();
                 viewModel.TotalProducts = await _context.Products.CountAsync(p => p.TrangThai);
                 viewModel.RecentOrders = await _context.Orders
-                    .Include(o => o.Customer)
+                    .AsNoTracking()
                     .OrderByDescending(o => o.NgayTao)
                     .Take(10)
+                    .Select(order => new AdminDashboardOrderViewModel
+                    {
+                        MaHD = order.MaHD,
+                        HoTenNguoiNhan = order.HoTenNguoiNhan,
+                        SdtNguoiNhan = order.SdtNguoiNhan,
+                        DiaChiGiao = order.DiaChiGiao,
+                        TongTien = order.TongTien,
+                        NgayTao = order.NgayTao,
+                        TrangThai = order.TrangThai
+                    })
                     .ToListAsync();
             }
             catch
@@ -43,62 +56,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
     }
 
     [Area("Admin")]
-    [Authorize(Roles = "Admin,NhanVien")]
-    public class OrdersController : Controller
-    {
-        private readonly CoffeeShopDbContext _context;
-
-        public OrdersController(CoffeeShopDbContext context)
-        {
-            _context = context;
-        }
-
-        public async Task<IActionResult> Index(string? status)
-        {
-            var query = _context.Orders
-                .Include(o => o.Customer)
-                .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
-                .OrderByDescending(o => o.NgayTao)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                query = query.Where(o => o.TrangThai == status);
-            }
-
-            var orders = await query.ToListAsync();
-            ViewBag.SelectedStatus = status;
-            return View(orders);
-        }
-
-                public async Task<IActionResult> Details(int id)
-        {
-            var order = await _context.Orders
-                .Include(o => o.Customer)
-                .Include(o => o.OrderDetails).ThenInclude(d => d.Product)
-                .Include(o => o.OrderDetails).ThenInclude(d => d.Variant)
-                .Include(o => o.OrderDetails).ThenInclude(d => d.Toppings).ThenInclude(t => t.ToppingProduct)
-                .FirstOrDefaultAsync(o => o.MaHD == id);
-            return order == null ? NotFound() : View(order);
-        }
-[HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateStatus(int id, string status)
-        {
-            var order = await _context.Orders.FindAsync(id);
-            if (order != null)
-            {
-                order.TrangThai = status;
-                await _context.SaveChangesAsync();
-                TempData["Success"] = $"Đã cập nhật trạng thái đơn hàng #{id} thành '{status}'.";
-            }
-            return RedirectToAction(nameof(Index));
-        }
-    }
-
-    [Area("Admin")]
-    [Authorize(Roles = "Admin,NhanVien")]
+    [Authorize(Roles = "Admin,Staff,NhanVien")]
     public class ProductsController : Controller
     {
         private readonly CoffeeShopDbContext _context;
@@ -111,9 +69,24 @@ namespace CoffeeShop.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Variants)
+                .AsNoTracking()
                 .OrderByDescending(p => p.MaSP)
+                .Select(product => new AdminProductListItemViewModel
+                {
+                    MaSP = product.MaSP,
+                    TenSP = product.TenSP,
+                    HinhAnh = product.HinhAnh,
+                    TenLoaiSP = product.Category!.TenLoaiSP,
+                    SoLuongTon = product.SoLuongTon,
+                    TrangThai = product.TrangThai,
+                    Variants = product.Variants
+                        .OrderBy(variant => variant.MaBienThe)
+                        .Select(variant => new AdminProductVariantViewModel
+                        {
+                            KichCo = variant.KichCo,
+                            GiaBan = variant.GiaBan
+                        }).ToList()
+                })
                 .ToListAsync();
 
             return View(products);

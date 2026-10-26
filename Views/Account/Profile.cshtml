@@ -129,7 +129,7 @@
                                             <td class="text-left small">
                                                 @foreach (var detail in order.OrderDetails)
                                                 {
-                                                    <div>• @detail.Product?.TenSP x @detail.SoLuong</div>
+                                                    <div>• @detail.TenSP x @detail.SoLuong</div>
                                                 }
                                             </td>
                                             <td class="text-warning font-weight-bold">@order.TongTien.ToString("N0") đ</td>

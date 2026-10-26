@@ -1,0 +1,24 @@
+@model List<CoffeeShop.Models.ViewModels.SupplierListItemViewModel>
+@{
+    ViewData["Title"] = "Nhà cung cấp";
+}
+<div class="welcome-row page-title-row"><div><div class="eyebrow">KHO HÀNG</div><h1>Nhà cung cấp</h1><p class="page-subtitle">Danh sách đối tác để lập phiếu nhập.</p></div></div>
+@if (ViewBag.FormError != null) { <div class="alert alert-danger">@ViewBag.FormError</div> }
+<div class="dashboard-grid">
+    <section class="panel"><div class="panel-heading"><div><h2>Thêm nhà cung cấp</h2><p>Thông tin lưu trên danh bạ nhà cung cấp hiện có.</p></div></div>
+        <form asp-action="Create" method="post" class="dialog-form px-0">
+            @Html.AntiForgeryToken()
+            <label>Tên nhà cung cấp<input name="tenNCC" maxlength="150" required /></label>
+            <label>Số điện thoại<input name="sdt" maxlength="20" /></label>
+            <label>Địa chỉ<input name="diaChi" maxlength="255" /></label>
+            <div class="dialog-actions"><button type="submit" class="button button-primary">Thêm nhà cung cấp</button></div>
+        </form>
+    </section>
+    <section class="panel table-panel"><div class="panel-heading"><div><h2>Danh sách</h2><p>@Model.Count nhà cung cấp.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>TÊN</th><th>ĐIỆN THOẠI</th><th>ĐỊA CHỈ</th><th>TRẠNG THÁI</th><th></th></tr></thead><tbody>
+    @foreach (var supplier in Model)
+    {
+        <tr><td>@supplier.TenNCC</td><td>@supplier.Sdt</td><td>@supplier.DiaChi</td><td><span class="status @(supplier.TrangThai == true ? "status-success" : "status-muted")"><i></i>@(supplier.TrangThai == true ? "Đang hoạt động" : "Đã ngừng")</span></td><td><form asp-action="ToggleStatus" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@supplier.MaNCC" /><button type="submit" class="button button-small button-outline">@(supplier.TrangThai == true ? "Ngừng" : "Mở lại")</button></form></td></tr>
+    }
+    @if (!Model.Any()) { <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có nhà cung cấp.</td></tr> }
+    </tbody></table></div></section>
+</div>

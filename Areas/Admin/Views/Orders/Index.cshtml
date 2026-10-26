@@ -1,6 +1,124 @@
-@model List<CoffeeShop.Models.Entities.Order>
-@{ ViewData["Title"] = "Quản lý đơn hàng"; var selectedStatus = ViewBag.SelectedStatus as string; }
-<div class="card stat-card mb-4"><div class="card-header bg-white d-flex justify-content-between align-items-center"><div><a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(selectedStatus) ? "btn-primary" : "btn-outline-primary") mr-1">Tất cả (@Model.Count)</a><a asp-action="Index" asp-route-status="Hoàn tất" class="btn btn-sm @(selectedStatus == "Hoàn tất" ? "btn-primary" : "btn-outline-primary") mr-1">Hoàn tất</a><a asp-action="Index" asp-route-status="Đã hủy" class="btn btn-sm @(selectedStatus == "Đã hủy" ? "btn-danger" : "btn-outline-danger")">Đã hủy</a></div><span class="text-muted small">Chọn “Xem chi tiết” để xem đầy đủ đơn hàng</span></div>
-<div class="card-body p-0"><div class="table-responsive"><table class="table table-hover mb-0"><thead class="thead-light"><tr><th>Mã đơn</th><th>Khách hàng</th><th>Số món</th><th>Tổng tiền</th><th>Thời gian</th><th></th></tr></thead><tbody>
-@if (Model.Any()) { foreach (var order in Model) { <tr><td class="order-id-cell"><strong class="text-primary">#@order.MaHD</strong><div class="order-preview"><div class="order-preview-title">Đơn hàng #@order.MaHD</div><div><strong>@order.HoTenNguoiNhan</strong> · @order.SdtNguoiNhan</div><div>@order.DiaChiGiao</div>@if (!string.IsNullOrWhiteSpace(order.GhiChu)) { <div>Ghi chú: @order.GhiChu</div> }<hr />@foreach (var detail in order.OrderDetails) { <div>• @detail.Product?.TenSP × @detail.SoLuong — @detail.ThanhTien.ToString("N0") đ</div> }<div class="order-preview-total">Tạm tính: @order.TamTinh.ToString("N0") đ · Giảm: @order.TienGiamGia.ToString("N0") đ · Tổng: @order.TongTien.ToString("N0") đ</div></div></td><td><strong>@order.HoTenNguoiNhan</strong><div class="small text-muted">@order.SdtNguoiNhan</div></td><td>@order.OrderDetails.Sum(d => d.SoLuong)</td><td class="text-danger font-weight-bold">@order.TongTien.ToString("N0") đ</td><td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td><td><a asp-action="Details" asp-route-id="@order.MaHD" class="button button-small button-primary"><i class="fas fa-eye"></i> Xem chi tiết</a></td></tr> } } else { <tr><td colspan="6" class="text-center py-4 text-muted">Không có đơn hàng nào trong mục này.</td></tr> }
-</tbody></table></div></div></div>
+@model CoffeeShop.Models.ViewModels.OrderListViewModel
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    string BadgeClass(string status) => status switch
+    {
+        "Chờ xác nhận" => "badge-warning",
+        "Đã xác nhận" => "badge-info",
+        "Đang giao" => "badge-primary",
+        "Hoàn thành" => "badge-success",
+        "Đã hủy" => "badge-danger",
+        _ => "badge-secondary"
+    };
+}
+
+<div class="welcome-row page-title-row">
+    <div><div class="eyebrow">ĐIỀU HÀNH</div><h1>Quản lý đơn hàng</h1><p class="page-subtitle">Theo dõi và xử lý đơn hàng theo trạng thái.</p></div>
+</div>
+<div class="card stat-card mb-4">
+    <div class="card-header bg-white d-flex flex-wrap align-items-center">
+        <a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(Model.SelectedStatus) ? "btn-primary" : "btn-outline-primary") mr-2 mb-1">Tất cả</a>
+        <a asp-action="Index" asp-route-status="Chờ xác nhận" class="btn btn-sm @(Model.SelectedStatus == "Chờ xác nhận" ? "btn-warning" : "btn-outline-warning") mr-2 mb-1">Chờ xác nhận</a>
+        <a asp-action="Index" asp-route-status="Đã xác nhận" class="btn btn-sm @(Model.SelectedStatus == "Đã xác nhận" ? "btn-info" : "btn-outline-info") mr-2 mb-1">Đã xác nhận</a>
+        <a asp-action="Index" asp-route-status="Đang giao" class="btn btn-sm @(Model.SelectedStatus == "Đang giao" ? "btn-primary" : "btn-outline-primary") mr-2 mb-1">Đang giao</a>
+        <a asp-action="Index" asp-route-status="Hoàn thành" class="btn btn-sm @(Model.SelectedStatus == "Hoàn thành" ? "btn-success" : "btn-outline-success") mr-2 mb-1">Hoàn thành</a>
+        <a asp-action="Index" asp-route-status="Đã hủy" class="btn btn-sm @(Model.SelectedStatus == "Đã hủy" ? "btn-danger" : "btn-outline-danger") mb-1">Đã hủy</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr><th>Mã đơn</th><th>Khách hàng</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th class="text-right">Thao tác</th></tr>
+                </thead>
+                <tbody>
+                    @if (Model.Orders.Any())
+                    {
+                        foreach (var order in Model.Orders)
+                        {
+                            <tr>
+                                <td><strong class="text-primary">#@order.MaHD</strong></td>
+                                <td>@order.HoTenNguoiNhan</td>
+                                <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td class="font-weight-bold">@order.TongTien.ToString("N0") đ</td>
+                                <td>@(order.PhuongThucThanhToan == "Transfer" ? "Chuyển khoản" : "COD")</td>
+                                <td><span class="badge @BadgeClass(order.TrangThai)">@order.TrangThai</span></td>
+                                <td class="text-right text-nowrap">
+                                    @if (order.TrangThai == "Chờ xác nhận")
+                                    {
+                                        <form asp-action="ConfirmOrder" method="post" class="d-inline" onsubmit="return confirm('Xác nhận đơn hàng #@order.MaHD?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.MaHD" />
+                                            <button type="submit" class="btn btn-sm btn-success mb-1">Xác nhận đơn</button>
+                                        </form>
+                                    }
+                                    @if (order.TrangThai == "Đã xác nhận" || order.TrangThai == "Đang giao")
+                                    {
+                                        var nextStatus = order.TrangThai == "Đã xác nhận" ? "Bắt đầu giao" : "Hoàn thành";
+                                        <form asp-action="AdvanceOrder" method="post" class="d-inline" onsubmit="return confirm('@nextStatus đơn hàng #@order.MaHD?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderId" value="@order.MaHD" />
+                                            <button type="submit" class="btn btn-sm btn-primary mb-1">@nextStatus</button>
+                                        </form>
+                                    }
+                                    @if (order.TrangThai == "Chờ xác nhận" || order.TrangThai == "Đã xác nhận")
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger mb-1 js-cancel-order" data-order-id="@order.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
+                                    }
+                                    <a asp-action="Details" asp-route-id="@order.MaHD" class="btn btn-sm btn-outline-primary mb-1">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="7" class="text-center py-4 text-muted">Không có đơn hàng trong trạng thái này.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form asp-action="CancelOrder" method="post" id="cancelOrderForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="OrderId" id="cancelOrderId" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelOrderTitle">Hủy đơn hàng</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <label for="cancelReason">Lý do hủy <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="cancelReason" name="CancelReason" rows="4" maxlength="500" required></textarea>
+                    <small class="form-text text-muted">Bắt buộc nhập lý do; tối đa 500 ký tự.</small>
+                    <div class="invalid-feedback">Vui lòng nhập lý do hủy đơn.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.js-cancel-order').on('click', function () {
+                $('#cancelOrderId').val($(this).data('order-id'));
+                $('#cancelReason').val('').removeClass('is-invalid');
+            });
+
+            $('#cancelOrderForm').on('submit', function (event) {
+                var reason = $('#cancelReason').val().trim();
+                if (!reason) {
+                    event.preventDefault();
+                    $('#cancelReason').addClass('is-invalid').trigger('focus');
+                }
+            });
+        });
+    </script>
+}

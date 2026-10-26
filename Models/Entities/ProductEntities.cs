@@ -35,6 +35,8 @@ namespace CoffeeShop.Models.Entities
         [MaxLength(255)]
         public string? HinhAnh { get; set; }
 
+        public int SoLuongTon { get; set; }
+
         [ForeignKey("MaLoaiSP")]
         public virtual Category? Category { get; set; }
 

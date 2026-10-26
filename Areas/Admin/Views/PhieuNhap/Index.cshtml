@@ -1,0 +1,13 @@
+@model List<CoffeeShop.Models.ViewModels.PurchaseListItemViewModel>
+@{
+    ViewData["Title"] = "Quản lý phiếu nhập kho";
+}
+<div class="welcome-row page-title-row"><div><div class="eyebrow">KHO HÀNG</div><h1>Phiếu nhập</h1><p class="page-subtitle">Theo dõi tiếp nhận hàng và trạng thái duyệt.</p></div><a asp-action="Create" class="button button-primary">Tạo phiếu nhập</a></div>
+<section class="panel table-panel"><div class="panel-heading"><div><h2>Danh sách phiếu</h2><p>@Model.Count phiếu nhập.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>MÃ PHIẾU</th><th>NHÀ CUNG CẤP</th><th>NHÂN VIÊN</th><th>NGÀY TẠO</th><th>TỔNG TIỀN</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>
+@foreach (var purchase in Model)
+{
+    var statusClass = purchase.TrangThai == "Đã duyệt" ? "status-success" : purchase.TrangThai == "Đã hủy" ? "status-muted" : "status-warning";
+    <tr><td class="order-id">#@purchase.MaPN</td><td>@purchase.TenNCC</td><td>@purchase.NguoiLap</td><td>@purchase.NgayNhap?.ToString("dd/MM/yyyy HH:mm")</td><td class="money-cell">@purchase.TongTien?.ToString("N0") đ</td><td><span class="status @statusClass"><i></i>@purchase.TrangThai</span></td><td class="purchase-actions"><a asp-action="Details" asp-route-id="@purchase.MaPN" class="button button-small button-outline">Chi tiết</a>@if (User.IsInRole("Admin") && purchase.TrangThai == "Chờ duyệt") { <form asp-action="Approve" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@purchase.MaPN" /><button class="button button-small button-primary" type="submit">Duyệt kho</button></form> }</td></tr>
+}
+@if (!Model.Any()) { <tr><td colspan="7" class="text-center py-4 muted-cell">Chưa có phiếu nhập nào.</td></tr> }
+</tbody></table></div></section>

@@ -51,8 +51,42 @@ namespace CoffeeShop.Models.ViewModels
 
     public class ProfileViewModel
     {
-        public Customer Customer { get; set; } = null!;
-        public List<Order> RecentOrders { get; set; } = new();
-        public List<PointHistory> PointHistories { get; set; } = new();
+        public ProfileCustomerViewModel Customer { get; set; } = new();
+        public List<ProfileOrderViewModel> RecentOrders { get; set; } = new();
+        public List<ProfilePointHistoryViewModel> PointHistories { get; set; } = new();
+    }
+
+    public class ProfileCustomerViewModel
+    {
+        public int MaKH { get; set; }
+        public string? TaiKhoan { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string Sdt { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public int DiemTichLuy { get; set; }
+        public string HangTV { get; set; } = string.Empty;
+        public string? DiaChi { get; set; }
+    }
+
+    public class ProfileOrderViewModel
+    {
+        public int MaHD { get; set; }
+        public DateTime NgayTao { get; set; }
+        public decimal TongTien { get; set; }
+        public string TrangThai { get; set; } = string.Empty;
+        public List<ProfileOrderLineViewModel> OrderDetails { get; set; } = new();
+    }
+
+    public class ProfileOrderLineViewModel
+    {
+        public string TenSP { get; set; } = string.Empty;
+        public int SoLuong { get; set; }
+    }
+
+    public class ProfilePointHistoryViewModel
+    {
+        public string? LyDo { get; set; }
+        public DateTime NgayThucHien { get; set; }
+        public int DiemThayDoi { get; set; }
     }
 }
