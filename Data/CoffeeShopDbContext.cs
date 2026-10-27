@@ -31,6 +31,7 @@ namespace CoffeeShop.Data
         public DbSet<StaffMember> StaffMembers { get; set; } = null!;
         public DbSet<Purchase> Purchases { get; set; } = null!;
         public DbSet<PurchaseDetail> PurchaseDetails { get; set; } = null!;
+        public DbSet<ContactMessage> ContactMessages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1983,3 +1983,32 @@ h1 > span {
     min-width: 760px;
   }
 }
+
+/* Order Hover Popover Preview in Admin */
+.order-hover-container {
+  position: relative;
+  display: inline-block;
+}
+
+.order-hover-card {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 320px;
+  background: #1f1b16;
+  border: 1.5px solid #c49b63;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+  z-index: 1050;
+  color: #f5f2ed;
+  font-size: 12px;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.order-hover-container:hover .order-hover-card {
+  display: block;
+}

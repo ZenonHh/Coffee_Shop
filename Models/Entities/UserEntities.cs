@@ -78,6 +78,8 @@ namespace CoffeeShop.Models.Entities
         [MaxLength(255)]
         public string? DiaChi { get; set; }
 
+        public bool TrangThai { get; set; } = true;
+
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         public virtual ICollection<PointHistory> PointHistories { get; set; } = new List<PointHistory>();
         public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();

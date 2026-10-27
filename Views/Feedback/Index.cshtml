@@ -5,13 +5,14 @@
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 450px; min-height: 450px;">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
-                <div class="col-md-7 col-sm-12 text-center ftco-animate">
-                    <h1 class="mb-3 mt-5 bread">Ý Kiến Khách Hàng</h1>
-                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Phản hồi &amp; Đánh giá</span></p>
+            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Ý Kiến Khách Hàng</h1>
+                    <p class="breadcrumbs mb-0"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Phản hồi &amp; Đánh giá</span></p>
                 </div>
             </div>
         </div>
@@ -42,40 +43,65 @@
         <div class="row">
             <!-- Form gửi phản hồi -->
             <div class="col-lg-5 mb-5 ftco-animate">
-                <div class="p-4 bg-dark border border-secondary rounded">
-                    <h3 class="text-white mb-4">Gửi Nhận Xét Của Bạn</h3>
-                    <form asp-action="SubmitFeedback" method="post">
-                        @Html.AntiForgeryToken()
-                        
-                        <div class="form-group mb-3">
-                            <label class="text-white">Chọn món uống (Tùy chọn)</label>
-                            <select name="productId" class="form-control">
-                                <option value="">-- Đánh giá chung toàn cửa hàng --</option>
-                                @foreach (var prod in products)
-                                {
-                                    <option value="@prod.MaSP">@prod.TenSP</option>
-                                }
-                            </select>
+                <div class="p-4 rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.35); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                    <h3 class="text-white mb-4" style="color: #c49b63 !important;">Gửi Nhận Xét Của Bạn</h3>
+                    
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="mb-3 p-2 rounded small" style="background: rgba(196, 155, 99, 0.1); border: 1px solid rgba(196, 155, 99, 0.2); color: #e0d8cf;">
+                            <span>Đang đánh giá với tư cách: <strong style="color: #c49b63;">@User.Identity.Name</strong></span>
                         </div>
+                        <form asp-action="SubmitFeedback" method="post">
+                            @Html.AntiForgeryToken()
+                            
+                            <div class="form-group mb-3">
+                                <label class="text-white">Chọn món uống (Tùy chọn)</label>
+                                <select name="productId" class="form-control">
+                                    <option value="">-- Đánh giá chung toàn cửa hàng --</option>
+                                    @foreach (var prod in products)
+                                    {
+                                        <option value="@prod.MaSP">@prod.TenSP</option>
+                                    }
+                                </select>
+                            </div>
 
-                        <div class="form-group mb-3">
-                            <label class="text-white">Mức độ hài lòng *</label>
-                            <select name="rating" class="form-control" required>
-                                <option value="5" selected>⭐⭐⭐⭐⭐ - Cực kỳ hài lòng (5 sao)</option>
-                                <option value="4">⭐⭐⭐⭐ - Hài lòng (4 sao)</option>
-                                <option value="3">⭐⭐⭐ - Bình thường (3 sao)</option>
-                                <option value="2">⭐⭐ - Chưa hài lòng (2 sao)</option>
-                                <option value="1">⭐ - Không hài lòng (1 sao)</option>
-                            </select>
+                            <div class="form-group mb-3">
+                                <label class="text-white">Mức độ hài lòng *</label>
+                                <select name="rating" class="form-control" required>
+                                    <option value="5" selected>⭐⭐⭐⭐⭐ - Cực kỳ hài lòng (5 sao)</option>
+                                    <option value="4">⭐⭐⭐⭐ - Hài lòng (4 sao)</option>
+                                    <option value="3">⭐⭐⭐ - Bình thường (3 sao)</option>
+                                    <option value="2">⭐⭐ - Chưa hài lòng (2 sao)</option>
+                                    <option value="1">⭐ - Không hài lòng (1 sao)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group mb-4">
+                                <label class="text-white">Nội dung nhận xét *</label>
+                                <textarea name="content" class="form-control" rows="4" placeholder="Cảm nhận của bạn về hương vị đồ uống, không gian quán và phục vụ..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary py-3 px-4 w-100">Gửi Đánh Giá Ngay</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 px-2" style="background: rgba(196, 155, 99, 0.06); border: 1.5px dashed rgba(196, 155, 99, 0.35); border-radius: 8px;">
+                            <div class="mb-3">
+                                <span class="icon-lock" style="font-size: 42px; color: #c49b63;"></span>
+                            </div>
+                            <h4 class="text-white font-weight-bold mb-2">Đăng Nhập Để Gửi Đánh Giá</h4>
+                            <p class="text-muted small mb-4" style="line-height: 1.5;">
+                                Vui lòng đăng nhập tài khoản thành viên để gửi nhận xét và đóng góp ý kiến về dịch vụ hoặc món uống.
+                            </p>
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Feedback" class="btn btn-primary btn-block py-2 font-weight-bold" style="border-radius: 6px;">
+                                Đăng Nhập Ngay
+                            </a>
+                            <p class="mt-3 mb-0 small text-muted">
+                                Chưa có tài khoản? <a asp-controller="Account" asp-action="Register" class="text-primary font-weight-bold">Đăng ký thành viên</a>
+                            </p>
                         </div>
-
-                        <div class="form-group mb-4">
-                            <label class="text-white">Nội dung nhận xét *</label>
-                            <textarea name="content" class="form-control" rows="4" placeholder="Cảm nhận của bạn về hương vị đồ uống, không gian quán và phục vụ..." required></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary py-3 px-4 w-100">Gửi Đánh Giá Ngay</button>
-                    </form>
+                    }
                 </div>
             </div>
 

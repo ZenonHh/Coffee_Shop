@@ -15,24 +15,44 @@ public class SurveysController : Controller
     private readonly CoffeeShopDbContext _context;
     public SurveysController(CoffeeShopDbContext context) => _context = context;
 
-    public async Task<IActionResult> Index(int? editId)
+    public IActionResult Index(int? editId)
     {
-        var surveys = await GetSurveyListAsync();
-        ViewBag.EditSurvey = editId.HasValue
-            ? await _context.Surveys.AsNoTracking().FirstOrDefaultAsync(survey => survey.MaKhaoSat == editId.Value)
-            : null;
-        return View(surveys);
+        return RedirectToAction("Index", "CustomerCare", new { area = "Admin", editId });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Survey survey)
+    public async Task<IActionResult> Create(Survey survey, List<string>? questionContent, List<string>? questionType)
     {
         Normalize(survey);
         if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return await InvalidForm(survey);
         survey.MaTaiKhoan = await CurrentAccountId();
         _context.Surveys.Add(survey);
         await _context.SaveChangesAsync();
-        TempData["Success"] = "Đã tạo khảo sát.";
+
+        // Thêm các câu hỏi chi tiết nếu có
+        if (questionContent != null && questionContent.Any())
+        {
+            for (int i = 0; i < questionContent.Count; i++)
+            {
+                var text = questionContent[i]?.Trim();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    var type = (questionType != null && i < questionType.Count && !string.IsNullOrWhiteSpace(questionType[i])) 
+                        ? questionType[i].Trim() 
+                        : "TRAC_NGHIEM";
+
+                    _context.SurveyQuestions.Add(new SurveyQuestion
+                    {
+                        MaKhaoSat = survey.MaKhaoSat,
+                        NoiDungCauHoi = text,
+                        LoaiCauHoi = type
+                    });
+                }
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        TempData["Success"] = "Đã tạo khảo sát chi tiết thành công.";
         return RedirectToAction(nameof(Index));
     }
 
@@ -84,6 +104,7 @@ public class SurveysController : Controller
         {
             MaKhaoSat = survey.MaKhaoSat,
             TieuDe = survey.TieuDe,
+            MoTa = survey.MoTa,
             NgayBatDau = survey.NgayBatDau,
             NgayKetThuc = survey.NgayKetThuc,
             AnswerCount = survey.Questions.SelectMany(question => question.Answers).Count(),
@@ -91,7 +112,17 @@ public class SurveysController : Controller
             {
                 MaCauHoi = question.MaCauHoi,
                 NoiDungCauHoi = question.NoiDungCauHoi,
-                Answers = new SurveyAnswerCountViewModel { Count = question.Answers.Count }
+                LoaiCauHoi = question.LoaiCauHoi,
+                Answers = new SurveyAnswerCountViewModel { Count = question.Answers.Count },
+                RecentAnswers = question.Answers
+                    .OrderByDescending(a => a.NgayTraLoi)
+                    .Take(15)
+                    .Select(a => new SurveyAnswerDetailViewModel
+                    {
+                        MaCauTraLoi = a.MaCauTraLoi,
+                        NoiDungTraLoi = a.NoiDungTraLoi,
+                        NgayTraLoi = a.NgayTraLoi
+                    }).ToList()
             }).ToList()
         })
         .ToListAsync();

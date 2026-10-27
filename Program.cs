@@ -93,6 +93,11 @@ await using (var scope = app.Services.CreateAsyncScope())
                 UpdatedAtUtc datetime2 NOT NULL
             );
         END
+
+        IF COL_LENGTH(N'dbo.KhachHang', N'TrangThai') IS NULL
+        BEGIN
+            ALTER TABLE dbo.KhachHang ADD TrangThai BIT NOT NULL CONSTRAINT DF_KhachHang_TrangThai DEFAULT 1;
+        END
         """);
 }
 

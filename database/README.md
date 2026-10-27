@@ -1,22 +1,27 @@
-# MySQL database
+# Hướng Dẫn Cơ Sở Dữ Liệu (Microsoft SQL Server)
 
-The application uses the `coffee_shop_db` MySQL database through XAMPP.
+Dự án Coffee Blend sử dụng cơ sở dữ liệu **Microsoft SQL Server (MSSQL)** kết hợp với **Entity Framework Core 8.0**.
 
-## Initialize a new database
+## 1. Kết Nối CSDL
+- Cấu hình chuỗi kết nối nằm tại [`appsettings.json`](../appsettings.json):
+  ```json
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Database=CoffeeShopDB;Trusted_Connection=True;TrustServerCertificate=True;"
+  }
+  ```
 
-1. Create the database with `utf8mb4` encoding.
-2. Import [`coffee_shop_db.sql`](coffee_shop_db.sql) using phpMyAdmin or the MySQL CLI.
-3. Set the local connection options in the root `config.local.php` file. Do not add local credentials to source control.
+## 2. Khởi Tạo Cơ Sở Dữ Liệu
+1. Mở SQL Server Management Studio (SSMS) hoặc Azure Data Studio.
+2. Tạo database: `CREATE DATABASE CoffeeShopDB;`
+3. Chạy script chính: [`coffee_shop_mssql.sql`](coffee_shop_mssql.sql) để tạo toàn bộ bảng, khóa chính, khóa ngoại và 48 sản phẩm mẫu chuẩn.
 
-## Existing databases
-
-Apply the SQL files in `migrations/` in filename order when they have not already been applied:
-
-- `20261006_customer_management.sql`: customer account status and email fields.
-- `20261008_crm_surveys.sql`: customer profile fields and survey invitation uniqueness.
-- `20261008_product_variants.sql`: product-size variants and the optional order-detail variant reference. On older schemas, it backfills variants from legacy product size/price columns without dropping those columns.
-- `20261013_staff_accounts.sql`: staff account updates.
-
-The product-variant migration is safe to rerun. Review a database backup before applying schema migrations to production data.
-
-The root `connect.php` provides the PDO connection used by storefront/CRM code. `database/connect.php` retains the MySQLi adapter required by the existing product and admin models.
+## 3. Các Script Cập Nhật (migrations/)
+Các file trong thư mục `migrations/` ghi nhận tiến trình nâng cấp schema:
+- `sync_database.sql`: Đồng bộ schema mới nhất (Voucher, ContactMessage, Điểm tích lũy, Khảo sát, Hạng thành viên).
+- `20261025_order_workflow.sql`: Cập nhật quy trình đơn hàng, địa chỉ giao, người xử lý.
+- `20261024_inventory_purchases_vouchers.sql`: Quản lý kho, nhà cung cấp, phiếu nhập, vouchers.
+- `20261024_browser_cart.sql`: Giỏ hàng lưu tạm cho khách duyệt web.
+- `20261013_staff_accounts.sql`: Phân quyền tài khoản nhân viên & quản trị.
+- `20261008_crm_surveys.sql`: Khảo sát ý kiến và phản hồi khách hàng.
+- `20261008_product_variants.sql`: Biến thể size M/L và giá bán từng size.
+- `20261006_customer_management.sql`: Quản lý khách hàng và điểm tích lũy.

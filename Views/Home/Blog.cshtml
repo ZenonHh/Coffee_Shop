@@ -1,30 +1,34 @@
-@model List<CoffeeShop.Models.Entities.Category>
+@model List<CoffeeShop.Models.ViewModels.HomeCategoryViewModel>
 @{
-    ViewData["Title"] = "Bài Viết & Khám Phá Món Ngon - Coffee Blend";
+    ViewData["Title"] = "Bài Viết & Khám Phá Món Mới - Coffee Blend";
 
     var descriptionTemplates = new Dictionary<string, string>
     {
-        { "Cà Phê", "Đậm đà, thơm nồng và phù hợp cho những ai yêu hương vị cà phê nguyên bản." },
-        { "Cold Brew", "Cà phê ủ lạnh êm dịu, thanh mát, thích hợp để thưởng thức trong ngày nắng ráo." },
-        { "Trà Trái Cây", "Trà thanh mát kết hợp vị trà thanh nhã cùng trái cây tươi mát, giải nhiệt tức thì." },
-        { "Trà Sữa", "Trà sữa thơm béo, dễ uống, là lựa chọn lý tưởng cho những phút giây trò chuyện thư thái." },
-        { "Matcha", "Matcha thơm dịu, béo nhẹ và mang đến trải nghiệm thanh tao cho người yêu đồ uống xanh." },
-        { "Bánh Ngọt", "Món bánh mềm mịn, thơm ngon, là sự kết hợp hoàn hảo khi dùng kèm với tách cà phê." }
+        { "Cà Phê", "Hạt Robusta & Arabica rang mộc nguyên chất, đậm đà vị truyền thống." },
+        { "Cold Brew", "Ủ lạnh chậm trong 16 giờ giúp hương vị thanh mát, chua nhẹ và êm dịu." },
+        { "Trà Trái Cây", "Trà thượng hạng kết hợp trái cây tươi mọng nước, giải nhiệt ngày dài." },
+        { "Trà Sữa", "Trà thơm đậm vị quyện cùng sữa béo ngậy chuẩn công thức độc quyền." },
+        { "Matcha", "Matcha nguyên chất chuẩn Nhật Bản, hương thơm thanh tao và béo nhẹ." },
+        { "Bánh Ngọt", "Bánh nướng mới mỗi ngày, mềm xốp và hòa quyện tuyệt vời cùng đồ uống." }
     };
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); min-height: 450px; height: 450px;">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
+            <!-- Thêm padding-top để chữ không bị đè bởi navbar và căn giữa đẹp mắt -->
+            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
                 <div class="col-md-8 col-sm-12 text-center ftco-animate">
-                    <h1 class="mb-3 mt-5 bread">Khám Phá Món Ngon</h1>
-                    <p class="breadcrumbs">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Khám Phá Món Mới</h1>
+                    <p class="breadcrumbs mb-2">
                         <span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> 
-                        <span>Bài viết</span>
+                        <span>Khám phá món</span>
                     </p>
-                    <p>Thưởng thức những món đồ uống và bánh ngon hảo hạng được pha chế tươi mới mỗi ngày.</p>
+                    <p class="text-white-50" style="max-width: 600px; margin: 0 auto;">
+                        Khám phá công thức pha chế sáng tạo và các dòng thức uống đặc trưng của Coffee Blend.
+                    </p>
                 </div>
             </div>
         </div>
@@ -35,9 +39,9 @@
     <div class="container">
         <div class="row justify-content-center mb-5">
             <div class="col-md-8 heading-section text-center ftco-animate">
-                <span class="subheading">Gợi Ý Hôm Nay</span>
-                <h2 class="mb-4">Món Ngon Tại Coffee Blend</h2>
-                <p>Khám phá bộ sưu tập phong phú từ cà phê rang mộc, trà cao nguyên đến bánh ngọt tươi ngon.</p>
+                <span class="subheading">Menu Sáng Tạo</span>
+                <h2 class="mb-4">Bộ Sưu Tập Món Mới</h2>
+                <p>Mỗi món uống là một câu chuyện về hương vị, được chúng tôi tuyển chọn và pha chế tỉ mỉ mỗi ngày.</p>
             </div>
         </div>
 
@@ -45,7 +49,7 @@
         {
             <div class="row justify-content-center">
                 <div class="col-md-8 text-center">
-                    <p class="text-muted">Hiện chưa có món nào đang được phục vụ. Vui lòng quay lại sau.</p>
+                    <p class="text-muted">Hiện chưa có món mới nào được cập nhật. Quý khách vui lòng quay lại sau.</p>
                 </div>
             </div>
         }
@@ -59,39 +63,75 @@
                     continue;
                 }
 
-                string desc = "Một lựa chọn tuyệt vời cho ngày mới tràn đầy năng lượng tại Coffee Blend.";
+                string desc = "Một trải nghiệm hương vị mới mẻ và độc đáo dành riêng cho bạn hôm nay.";
                 foreach (var pair in descriptionTemplates)
                 {
-                    if (category.TenLoaiSP.Contains(pair.Key, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(category.TenLoaiSP) && category.TenLoaiSP.Contains(pair.Key, StringComparison.OrdinalIgnoreCase))
                     {
                         desc = pair.Value;
                         break;
                     }
                 }
 
-                <div class="mb-5">
+                <div class="mb-5 pb-3">
                     <div class="row justify-content-center mb-4">
                         <div class="col-md-8 heading-section text-center">
                             <h3 class="text-primary font-weight-bold" style="letter-spacing: 1px;">@category.TenLoaiSP</h3>
                             <p class="text-muted small">@desc</p>
                         </div>
                     </div>
+
                     <div class="row d-flex">
                         @foreach (var product in activeProducts)
                         {
-                            var imagePath = !string.IsNullOrEmpty(product.HinhAnh) ? $"/picture/{product.HinhAnh}" : "/images/menu-1.jpg";
+                            var imagePath = !string.IsNullOrEmpty(product.HinhAnh) 
+                                ? (product.HinhAnh.StartsWith("/") ? product.HinhAnh : $"/picture/{product.HinhAnh}") 
+                                : "/images/menu-1.jpg";
 
                             <div class="col-md-6 col-lg-4 d-flex ftco-animate">
-                                <div class="blog-entry align-self-stretch w-100" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
-                                    <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="block-20" style="background-image: url('@imagePath'); height: 260px; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: #12100e;"></a>
+                                <div class="blog-entry align-self-stretch w-100 position-relative" 
+                                     style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
+                                    
+                                    <!-- Badge Món Mới -->
+                                    <span class="badge badge-warning position-absolute" 
+                                          style="top: 15px; left: 15px; z-index: 2; padding: 6px 12px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">
+                                        MỚI
+                                    </span>
+
+                                    <!-- Ảnh món -->
+                                    <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="block-20 d-block" 
+                                       style="background-image: url('@imagePath'); height: 260px; background-size: cover; background-repeat: no-repeat; background-position: center; background-color: #12100e;">
+                                    </a>
+
                                     <div class="text py-4 px-3 d-block text-center">
-                                       
-                                        <h3 class="heading mt-2">
-                                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" style="color: #fff; font-size: 19px;">@product.TenSP</a>
+                                        <div class="meta mb-2">
+                                            <span class="text-muted small" style="text-transform: uppercase; letter-spacing: 1px;">@product.TenLoaiSP</span>
+                                        </div>
+
+                                        <!-- Tên món -->
+                                        <h3 class="heading mt-1 mb-2">
+                                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" style="color: #fff; font-size: 20px; font-weight: 600;">
+                                                @product.TenSP
+                                            </a>
                                         </h3>
-                                        <p class="text-muted small" style="min-height: 40px;">@desc</p>
-                                        <p class="mt-3">
-                                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm px-3 py-2">Xem chi tiết & Đặt món</a>
+
+                                        <!-- Giá bán -->
+                                        <div class="price mb-2">
+                                            <span class="text-primary font-weight-bold" style="font-size: 18px;">
+                                                @(product.GiaBan.HasValue ? product.GiaBan.Value.ToString("N0") + " ₫" : "Liên hệ")
+                                            </span>
+                                        </div>
+
+                                        <!-- Mô tả hương vị -->
+                                        <p class="text-muted small mb-3" style="min-height: 40px; line-height: 1.5;">
+                                            Hương vị độc quyền pha chế theo tiêu chuẩn Barista của quán, thơm ngon tròn vị.
+                                        </p>
+
+                                        <!-- Nút thao tác -->
+                                        <p class="mt-2 mb-0">
+                                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm px-3 py-2">
+                                                Xem chi tiết & Đặt món
+                                            </a>
                                         </p>
                                     </div>
                                 </div>

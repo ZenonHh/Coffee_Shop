@@ -1,16 +1,17 @@
 @model List<CoffeeShop.Models.Entities.Survey>
 @{
-    ViewData["Title"] = "Khảo Sát Khách Hàng - Coffee Blend";
+    ViewData["Title"] = "Khảo Sát Ý Kiến - Coffee Blend";
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 450px; min-height: 450px;">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
-                <div class="col-md-7 col-sm-12 text-center ftco-animate">
-                    <h1 class="mb-3 mt-5 bread">Khảo Sát Ý Kiến</h1>
-                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Khảo sát CRM</span></p>
+            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Khảo Sát Ý Kiến Khách Hàng</h1>
+                    <p class="breadcrumbs mb-0"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Khảo sát dịch vụ</span></p>
                 </div>
             </div>
         </div>
@@ -19,29 +20,110 @@
 
 <section class="ftco-section">
     <div class="container">
+        <div class="row justify-content-center mb-5 pb-3">
+            <div class="col-md-7 heading-section text-center ftco-animate">
+                <span class="subheading" style="color: #c49b63; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Lắng Nghe &amp; Thấu Hiểu</span>
+                <h2 class="mb-3 text-white" style="font-family: 'Josefin Sans', sans-serif;">Ý Kiến Đóng Góp Của Quý Khách</h2>
+                <div class="mb-3">
+                    <span class="badge badge-warning font-weight-bold" style="font-size: 13px; padding: 6px 14px; background: #ffc107; color: #000;">
+                        ⭐ TÍCH NGAY +50 ĐIỂM THƯỞNG KHI HOÀN THÀNH KHẢO SÁT
+                    </span>
+                </div>
+                <p class="text-muted">Mỗi phản hồi của bạn là động lực to lớn giúp Coffee Blend không ngừng nâng tầm chất lượng đồ uống và không gian phục vụ.</p>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="background: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; color: #a3e9b7;">
+                        <i class="icon-check_circle mr-2"></i> @TempData["Success"]
+                        <button type="button" class="close text-white" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; color: #f8b4b9;">
+                        <i class="icon-exclamation-triangle mr-2"></i> @TempData["Error"]
+                        <button type="button" class="close text-white" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+
         @if (Model.Any())
         {
             foreach (var survey in Model)
             {
                 <div class="row justify-content-center mb-5">
                     <div class="col-md-8 ftco-animate">
-                        <div class="p-4 p-md-5 bg-dark border border-secondary rounded">
-                            <h3 class="text-white mb-2">@survey.TieuDe</h3>
-                            <p class="text-muted mb-4">@survey.MoTa</p>
+                        <div class="p-4 p-md-5 rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.35); box-shadow: 0 4px 25px rgba(0,0,0,0.45);">
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="badge badge-gold-outline mr-2">Đang diễn ra</span>
+                                <span class="text-muted small">Thời hạn: đến @survey.NgayKetThuc.ToString("dd/MM/yyyy")</span>
+                            </div>
+
+                            <h3 class="text-white mb-2" style="font-family: 'Josefin Sans', sans-serif;">@survey.TieuDe</h3>
+                            @if (!string.IsNullOrEmpty(survey.MoTa))
+                            {
+                                <p class="text-muted mb-4 small" style="line-height: 1.6;">@survey.MoTa</p>
+                            }
 
                             <form asp-action="SubmitSurvey" method="post">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="surveyId" value="@survey.MaKhaoSat" />
 
-                                @foreach (var q in survey.Questions)
+                                @for (int i = 0; i < survey.Questions.Count; i++)
                                 {
-                                    <div class="form-group mb-4 pb-3 border-bottom border-secondary">
-                                        <label class="text-white font-weight-bold">Câu hỏi: @q.NoiDungCauHoi</label>
-                                        <textarea name="answers[@q.MaCauHoi]" class="form-control" rows="3" placeholder="Ý kiến đóng góp của bạn..." required></textarea>
+                                    var q = survey.Questions.ElementAt(i);
+                                    var isRating = q.LoaiCauHoi != "TEXT";
+
+                                    <div class="form-group mb-4 pb-3" style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+                                        <label class="text-white font-weight-bold d-block mb-2" style="font-size: 15px;">
+                                            <span style="color: #c49b63;">Câu hỏi @(i + 1):</span> @q.NoiDungCauHoi
+                                        </label>
+
+                                        @if (isRating)
+                                        {
+                                            <div class="d-flex flex-wrap" style="gap: 10px;">
+                                                <label class="btn btn-outline-primary m-0 py-2 px-3" style="border-radius: 20px; font-size: 13px; cursor: pointer;">
+                                                    <input type="radio" name="answers[@q.MaCauHoi]" value="5 sao - Rất hài lòng" required class="mr-1"> ⭐⭐⭐⭐⭐ Rất hài lòng
+                                                </label>
+                                                <label class="btn btn-outline-primary m-0 py-2 px-3" style="border-radius: 20px; font-size: 13px; cursor: pointer;">
+                                                    <input type="radio" name="answers[@q.MaCauHoi]" value="4 sao - Hài lòng" class="mr-1"> ⭐⭐⭐⭐ Hài lòng
+                                                </label>
+                                                <label class="btn btn-outline-primary m-0 py-2 px-3" style="border-radius: 20px; font-size: 13px; cursor: pointer;">
+                                                    <input type="radio" name="answers[@q.MaCauHoi]" value="3 sao - Bình thường" class="mr-1"> ⭐⭐⭐ Bình thường
+                                                </label>
+                                                <label class="btn btn-outline-primary m-0 py-2 px-3" style="border-radius: 20px; font-size: 13px; cursor: pointer;">
+                                                    <input type="radio" name="answers[@q.MaCauHoi]" value="2 sao - Chưa tốt" class="mr-1"> ⭐⭐ Chưa tốt
+                                                </label>
+                                                <label class="btn btn-outline-primary m-0 py-2 px-3" style="border-radius: 20px; font-size: 13px; cursor: pointer;">
+                                                    <input type="radio" name="answers[@q.MaCauHoi]" value="1 sao - Kém" class="mr-1"> ⭐ Cần cải thiện
+                                                </label>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <textarea name="answers[@q.MaCauHoi]" class="form-control" rows="3" placeholder="Chia sẻ suy nghĩ, góp ý chi tiết của bạn..." required></textarea>
+                                        }
                                     </div>
                                 }
 
-                                <button type="submit" class="btn btn-primary py-3 px-5">Gửi Kết Quả Khảo Sát</button>
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary py-3 px-5 font-weight-bold" style="border-radius: 6px;">
+                                        <i class="icon-paper-plane mr-2"></i> Gửi Ý Kiến Đóng Góp
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -50,11 +132,13 @@
         }
         else
         {
-            <div class="row">
-                <div class="col-12 text-center py-5">
-                    <h3 class="text-white">Hiện tại chưa có đợt khảo sát mới nào</h3>
-                    <p class="text-muted">Cảm ơn bạn đã luôn đồng hành và ủng hộ Coffee Blend!</p>
-                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">Quay lại Trang Chủ</a>
+            <div class="row justify-content-center">
+                <div class="col-md-8 text-center py-5 rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.35);">
+                    <div style="font-size: 50px; margin-bottom: 15px;">☕</div>
+                    <h3 class="text-white mb-2" style="font-family: 'Josefin Sans', sans-serif;">Hiện tại chưa có đợt khảo sát mới nào</h3>
+                    <p class="text-muted mb-4">Cảm ơn bạn đã luôn quan tâm và đồng hành cùng Coffee Blend! Đội ngũ luôn sẵn sàng phục vụ bạn tại quán mỗi ngày.</p>
+                    <a asp-controller="Shop" asp-action="Index" class="btn btn-primary py-3 px-4 mr-2" style="border-radius: 6px;">Khám Phá Thực Đơn</a>
+                    <a asp-controller="Home" asp-action="Contact" class="btn btn-outline-primary py-3 px-4" style="border-radius: 6px;">Gửi Lời Nhắn Đến Quán</a>
                 </div>
             </div>
         }

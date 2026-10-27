@@ -4,13 +4,14 @@
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 350px; min-height: 350px;">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 450px; min-height: 450px;">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 350px;">
-                <div class="col-md-7 col-sm-12 text-center ftco-animate">
-                    <h1 class="mb-3 mt-5 bread">Đặt Hàng Thành Công</h1>
-                    <p class="breadcrumbs"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Hoàn tất</span></p>
+            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Đặt Hàng Thành Công</h1>
+                    <p class="breadcrumbs mb-0"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Hoàn tất</span></p>
                 </div>
             </div>
         </div>
@@ -26,8 +27,8 @@
                         <span class="icon-check_circle text-success" style="font-size: 80px;"></span>
                     </div>
                     <h2 class="text-white mb-3">Cảm ơn bạn đã đặt hàng!</h2>
-                    <p class="lead text-light">Mã đơn hàng của bạn là: <strong class="text-primary">#@Model.MaHD</strong></p>
-                    <p class="text-muted">Chúng tôi đã tiếp nhận đơn và đang chuẩn bị những ly đồ uống thơm ngon nhất cho bạn. Nhân viên giao hàng sẽ liên hệ với bạn trong ít phút qua số điện thoại <strong>@Model.SdtNguoiNhan</strong>.</p>
+                    <p class="lead text-light">Mã đơn hàng của bạn là: <strong class="text-primary font-weight-bold" style="font-size: 22px;">#HD@Model.MaHD.ToString("D4")</strong></p>
+                    <p class="text-muted">Đơn hàng của bạn đã được <strong>xác nhận tự động thành công</strong> và chuyển đến quầy pha chế. Nhân viên giao hàng sẽ liên hệ với bạn trong ít phút qua số điện thoại <strong>@Model.SdtNguoiNhan</strong>.</p>
                     
                     <div class="card bg-secondary text-left text-white my-4 p-4 border-0">
                         <h5>Thông tin giao nhận</h5>
@@ -35,7 +36,7 @@
                         <p class="mb-1"><strong>Số điện thoại:</strong> @Model.SdtNguoiNhan</p>
                         <p class="mb-1"><strong>Địa chỉ giao:</strong> @Model.DiaChiGiao</p>
                         <p class="mb-1"><strong>Tổng thanh toán:</strong> <span class="text-warning font-weight-bold">@Model.TongTien.ToString("N0") đ</span></p>
-                        <p class="mb-0"><strong>Trạng thái:</strong> <span class="badge badge-primary">@Model.TrangThai</span></p>
+                        <p class="mb-0"><strong>Trạng thái:</strong> <span class="badge badge-success px-3 py-2" style="font-size: 13px;">✓ @Model.TrangThai</span></p>
                     </div>
 
                     <div class="mt-4">

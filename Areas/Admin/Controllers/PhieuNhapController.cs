@@ -16,22 +16,9 @@ public class PhieuNhapController : Controller
 
     public PhieuNhapController(CoffeeShopDbContext context) => _context = context;
 
-    public async Task<IActionResult> Index()
+    public IActionResult Index()
     {
-        var purchases = await _context.Purchases
-            .AsNoTracking()
-            .OrderByDescending(purchase => purchase.NgayNhap)
-            .Select(purchase => new PurchaseListItemViewModel
-            {
-                MaPN = purchase.MaPN,
-                TenNCC = purchase.Supplier!.TenNCC,
-                NguoiLap = purchase.NguoiLap,
-                NgayNhap = purchase.NgayNhap,
-                TongTien = purchase.TongTien,
-                TrangThai = purchase.TrangThai
-            })
-            .ToListAsync();
-        return View(purchases);
+        return RedirectToAction("Index", "NhaCungCap", new { tab = "purchases" });
     }
 
     [HttpGet]

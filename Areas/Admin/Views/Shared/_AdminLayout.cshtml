@@ -33,11 +33,8 @@
             <a class="side-link @(controller == "Products" ? "active" : "")" asp-area="Admin" asp-controller="Products" asp-action="Index">
                 <span class="side-icon" aria-hidden="true">▤</span><span>Sản phẩm</span>
             </a>
-            <a class="side-link @(controller == "PhieuNhap" ? "active" : "")" asp-area="Admin" asp-controller="PhieuNhap" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">↧</span><span>Phiếu nhập</span>
-            </a>
-            <a class="side-link @(controller == "NhaCungCap" ? "active" : "")" asp-area="Admin" asp-controller="NhaCungCap" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">◇</span><span>Nhà cung cấp</span>
+            <a class="side-link @(controller == "NhaCungCap" || controller == "PhieuNhap" ? "active" : "")" asp-area="Admin" asp-controller="NhaCungCap" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">🏢</span><span>Quản lý nhà cung cấp</span>
             </a>
             @if (User.IsInRole("Admin"))
             {
@@ -45,8 +42,8 @@
                     <span class="side-icon" aria-hidden="true">%</span><span>Voucher</span>
                 </a>
             }
-            <a class="side-link @(controller == "Surveys" ? "active" : "")" asp-area="Admin" asp-controller="Surveys" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">▧</span><span>Khảo sát ý kiến</span>
+            <a class="side-link @(controller == "CustomerCare" || controller == "Surveys" ? "active" : "")" asp-area="Admin" asp-controller="CustomerCare" asp-action="Index">
+                <span class="side-icon" aria-hidden="true">💬</span><span>Chăm sóc khách hàng</span>
             </a>
             <a class="side-link @(controller == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
                 <span class="side-icon" aria-hidden="true">▣</span><span>Đơn hàng</span>

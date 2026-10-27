@@ -41,7 +41,7 @@
                     <li class="nav-item"><a asp-controller="Shop" asp-action="Index" class="nav-link">Thực đơn</a></li>
                     <li class="nav-item"><a asp-controller="Home" asp-action="Blog" class="nav-link">Bài viết</a></li>
                     <li class="nav-item"><a asp-controller="Home" asp-action="Contact" class="nav-link">Liên hệ</a></li>
-                    <li class="nav-item"><a asp-controller="Feedback" asp-action="Index" class="nav-link">Đánh giá</a></li>
+                    <li class="nav-item"><a asp-controller="Promotions" asp-action="Index" class="nav-link">Ưu đãi</a></li>
                     
                     <li class="nav-item cart">
                         <a asp-controller="Cart" asp-action="Index" class="nav-link">
@@ -66,8 +66,7 @@
                                     </a>
                                     <div class="dropdown-divider"></div>
                                 }
-                                <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Thông tin cá nhân & Điểm</a>
-                                <a class="dropdown-item" asp-controller="Survey" asp-action="Index">Khảo sát ý kiến</a>
+                                <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Thông tin cá nhân & Đơn hàng</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
                             </div>
@@ -104,6 +103,7 @@
                         <ul class="list-unstyled">
                             <li><a asp-controller="Shop" asp-action="Index" class="py-2 d-block">Tất cả sản phẩm</a></li>
                             <li><a asp-controller="Cart" asp-action="Index" class="py-2 d-block">Giỏ hàng</a></li>
+                            <li><a asp-controller="Promotions" asp-action="Index" class="py-2 d-block">Ưu đãi & Điểm thưởng</a></li>
                             <li><a asp-controller="Account" asp-action="Profile" class="py-2 d-block">Tài khoản & Điểm tích lũy</a></li>
                             <li><a asp-area="Admin" asp-controller="@(User.IsInRole("Admin") ? "Dashboard" : "Orders")" asp-action="Index" class="py-2 d-block text-warning"><i class="icon-cog"></i> Cổng Quản Trị (Admin)</a></li>
                         </ul>
@@ -116,7 +116,7 @@
                             <li><a asp-controller="Home" asp-action="Blog" class="py-2 d-block">Khám phá món ngon</a></li>
                             <li><a asp-controller="Shop" asp-action="Index" class="py-2 d-block">Xem thực đơn</a></li>
                             <li><a asp-controller="Home" asp-action="Contact" class="py-2 d-block">Liên hệ cửa hàng</a></li>
-                            <li><a asp-controller="Feedback" asp-action="Index" class="py-2 d-block">Đánh giá món</a></li>
+                            <li><a asp-controller="Promotions" asp-action="Index" class="py-2 d-block">Chương trình ưu đãi</a></li>
                         </ul>
                     </div>
                 </div>
@@ -148,6 +148,38 @@
         </svg>
     </div>
 
+    <!-- FLOATING SURVEY POPUP WIDGET -->
+    <div id="surveyPopupWidget">
+        <div id="surveyPopupCard" class="survey-popup-card">
+            <div class="survey-popup-header">
+                <h5>
+                    <span class="icon-coffee"></span>
+                    <span>Khảo Sát Khách Hàng</span>
+                </h5>
+                <button type="button" class="survey-popup-close" id="btnSurveyClose" aria-label="Đóng">&times;</button>
+            </div>
+            <div class="survey-popup-body">
+                <a asp-controller="Survey" asp-action="Index" style="text-decoration: none; display: block; color: inherit;">
+                    <p id="surveyTitle" class="font-weight-bold mb-1" style="color: #c49b63; font-size: 14px;">
+                        Đánh Giá Trải Nghiệm Tại Coffee Blend
+                    </p>
+                    <p id="surveyDesc" class="text-muted small mb-3">
+                        Ý kiến đóng góp của bạn sẽ được gửi trực tiếp đến ban Chăm sóc khách hàng để nâng cao chất lượng dịch vụ.
+                    </p>
+                    <div class="btn btn-primary btn-block py-2 font-weight-bold text-dark" style="font-size: 13px; border-radius: 6px;">
+                        Vào Làm Khảo Sát Ngay &rarr;
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <a asp-controller="Survey" asp-action="Index" id="btnSurveyTrigger" class="survey-trigger-btn">
+            <span class="survey-pulse-dot"></span>
+            <span class="survey-icon">📋</span>
+            <span>Làm khảo sát ý kiến</span>
+        </a>
+    </div>
+
     <script src="~/js/jquery.min.js"></script>
     <script src="~/js/jquery-migrate-3.0.1.min.js"></script>
     <script src="~/js/popper.min.js"></script>
@@ -172,8 +204,43 @@
                 }
             });
         }
+
         $(document).ready(function() {
             updateCartBadge();
+
+            // Khảo sát widget tương tác
+            var $popupCard = $('#surveyPopupCard');
+            var isSurveyPage = window.location.pathname.toLowerCase().indexOf('/survey') !== -1;
+
+            if (!isSurveyPage) {
+                // Tải thông tin khảo sát đang mở nếu có
+                $.get('/Survey/GetActiveSurvey', function(data) {
+                    if (data && data.tieuDe) {
+                        $('#surveyTitle').text(data.tieuDe);
+                        if (data.moTa) {
+                            $('#surveyDesc').text(data.moTa);
+                        }
+                    }
+                });
+
+                $('#btnSurveyClose').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $popupCard.fadeOut(200);
+                    sessionStorage.setItem('survey_dismissed', 'true');
+                });
+
+                // Tự động gợi ý popup sau 5s
+                if (!sessionStorage.getItem('survey_dismissed')) {
+                    setTimeout(function() {
+                        if (!$popupCard.is(':visible')) {
+                            $popupCard.fadeIn(300);
+                        }
+                    }, 5000);
+                }
+            } else {
+                $('#surveyPopupWidget').hide();
+            }
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

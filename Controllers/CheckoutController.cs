@@ -175,6 +175,7 @@ namespace CoffeeShop.Controllers
                 }
             }
 
+            var isPaid = model.PaymentMethod == "Transfer";
             var order = new Order
             {
                 MaKH = customerId,
@@ -184,9 +185,11 @@ namespace CoffeeShop.Controllers
                 TienGiamGia = cart.DiscountAmount,
                 PhiGiao = (int)cart.ShippingFee,
                 TongTien = cart.GrandTotal,
-                TrangThai = OrderStatuses.WaitingForConfirmation,
-                PhuongThucThanhToan = model.PaymentMethod,
+                TrangThai = OrderStatuses.Confirmed,
+                PhuongThucThanhToan = isPaid ? "Chuyển khoản (Đã thanh toán)" : "COD (Đã xác nhận tự động)",
+                NguoiXuLy = isPaid ? "Hệ thống (Tự động xác nhận thanh toán)" : "Hệ thống (Tự động xác nhận đơn hàng)",
                 NgayTao = DateTime.Now,
+                NgayCapNhat = DateTime.Now,
                 HoTenNguoiNhan = model.FullName,
                 SdtNguoiNhan = model.Phone,
                 DiaChiGiao = model.DeliveryAddress,

@@ -1,35 +1,394 @@
 :root {
     --primary: #c49b63;
+    --primary-hover: #b38b55;
+    --primary-glow: rgba(196, 155, 99, 0.35);
+    --dark-base: #12100e;
+    --dark-surface: #171412;
+    --dark-card: #1f1b16;
+    --dark-border: rgba(196, 155, 99, 0.25);
+    --text-gold: #c49b63;
+    --text-light: #f5f2ed;
+    --text-muted: #a69e94;
+}
+
+/* Base Buttons */
+.btn-primary {
+    background-color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+    color: #000000 !important;
+    box-shadow: 0 4px 15px var(--primary-glow) !important;
 }
 
 .btn.btn-outline-primary {
-    color: #c49b63;
-    border-color: #c49b63;
-    background-color: transparent;
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
+    background-color: transparent !important;
+    transition: all 0.3s ease !important;
 }
 
 .btn.btn-outline-primary:hover,
 .btn.btn-outline-primary:focus,
 .btn.btn-outline-primary:active,
 .btn.btn-outline-primary.active {
-    color: #fff;
-    border-color: #c49b63;
-    background-color: #c49b63;
+    color: #000000 !important;
+    border-color: var(--primary) !important;
+    background-color: var(--primary) !important;
+    box-shadow: 0 4px 15px var(--primary-glow) !important;
 }
 
-.btn.btn-primary:focus,
-.btn.btn-primary.focus,
-.btn.btn-outline-primary:focus,
-.btn.btn-outline-primary.focus {
-    box-shadow: 0 0 0 0.2rem rgba(196, 155, 99, 0.4);
+/* Badges */
+.badge-primary, .badge-warning {
+    color: #12100e !important;
+    background-color: var(--primary) !important;
+    font-weight: 700;
 }
 
-.badge-primary {
-    color: #17130f;
-    background-color: #c49b63;
+.badge-gold-outline {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: rgba(196, 155, 99, 0.1);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Dark Card & Panel Overrides */
+.card-coffee {
+    background: var(--dark-surface) !important;
+    border: 1px solid var(--dark-border) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+    border-radius: 10px !important;
+    color: var(--text-light) !important;
+}
+
+.bg-secondary {
+    background-color: #241e18 !important;
+    border: 1px solid rgba(196, 155, 99, 0.15) !important;
+}
+
+.border-secondary {
+    border-color: rgba(196, 155, 99, 0.2) !important;
+}
+
+.bg-dark {
+    background-color: var(--dark-surface) !important;
+}
+
+/* Forms & Inputs */
+.form-control {
+    background-color: #1c1814 !important;
+    border: 1px solid rgba(196, 155, 99, 0.3) !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+    transition: border-color 0.25s, box-shadow 0.25s !important;
 }
 
 .form-control:focus {
-    border-color: #c49b63;
-    box-shadow: 0 0 0 0.2rem rgba(196, 155, 99, 0.2);
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 0.2rem var(--primary-glow) !important;
+    background-color: #221d18 !important;
+    color: #ffffff !important;
 }
+
+.form-control::placeholder {
+    color: #8c8275 !important;
+}
+
+select.form-control option {
+    background-color: #1c1814 !important;
+    color: #ffffff !important;
+}
+
+/* Text styles */
+.text-primary, a.text-primary {
+    color: var(--primary) !important;
+}
+
+.text-primary:hover, a.text-primary:hover {
+    color: var(--primary-hover) !important;
+    text-decoration: none;
+}
+
+/* Floating Survey Popup Styling */
+#surveyPopupWidget {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 9999;
+    font-family: 'Poppins', sans-serif;
+}
+
+.survey-trigger-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #c49b63 0%, #aa7e43 100%);
+    color: #12100e !important;
+    font-weight: 700;
+    font-size: 14px;
+    border-radius: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(196, 155, 99, 0.6);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    user-select: none;
+    text-decoration: none !important;
+}
+
+.survey-trigger-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(196, 155, 99, 0.8);
+    color: #000000 !important;
+}
+
+.survey-trigger-btn .survey-icon {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: surveyBounce 2s infinite ease-in-out;
+}
+
+.survey-trigger-btn .survey-pulse-dot {
+    width: 9px;
+    height: 9px;
+    background-color: #ff3344;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(255, 51, 68, 0.7);
+    animation: pulseRed 1.8s infinite;
+}
+
+@keyframes surveyBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+@keyframes pulseRed {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 51, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255, 51, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 51, 68, 0); }
+}
+
+.survey-popup-card {
+    display: none;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    background: #171412;
+    border: 1.5px solid var(--primary);
+    border-radius: 12px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 18px rgba(196, 155, 99, 0.35);
+    overflow: hidden;
+    animation: popupFadeIn 0.35s ease-out;
+}
+
+@keyframes popupFadeIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.survey-popup-header {
+    background: linear-gradient(135deg, #221c16 0%, #171412 100%);
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(196, 155, 99, 0.25);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.survey-popup-header h5 {
+    color: #c49b63;
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.survey-popup-close {
+    background: transparent;
+    border: none;
+    color: #a69e94;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.survey-popup-close:hover {
+    color: #ffffff;
+}
+
+.survey-popup-body {
+    padding: 18px;
+    color: #eae5de;
+    font-size: 13.5px;
+}
+
+.survey-star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: 26px;
+    color: #554a3e;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.survey-star-rating i.active,
+.survey-star-rating i:hover,
+.survey-star-rating i.hover-active {
+    color: #ffc107;
+}
+
+/* User Profile & Membership Theme Adjustments */
+.member-tier-box {
+    background: linear-gradient(135deg, #241e18 0%, #191512 100%);
+    border: 1px solid rgba(196, 155, 99, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Global Aesthetics & Visibility Fallback */
+.ftco-animate {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+html, body {
+    background-color: var(--dark-base) !important;
+    color: var(--text-light) !important;
+}
+
+.ftco-section {
+    background-color: var(--dark-base) !important;
+}
+
+.card, .cart-detail, .billing-form, .contact-info, .menu-entry {
+    background-color: var(--dark-surface) !important;
+    border-color: rgba(196, 155, 99, 0.25) !important;
+}
+
+/* Order Hover Popover Preview */
+.order-hover-container {
+    position: relative;
+    display: inline-block;
+}
+
+.order-hover-card {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
+    background: #191512;
+    border: 1.5px solid rgba(196, 155, 99, 0.45);
+    border-radius: 8px;
+    padding: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    z-index: 1050;
+    color: #f5f2ed;
+    font-size: 13px;
+    text-align: left;
+    white-space: normal;
+}
+
+.order-hover-card::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 7px;
+    border-style: solid;
+    border-color: #191512 transparent transparent transparent;
+}
+
+.order-hover-container:hover .order-hover-card {
+    display: block;
+}
+
+/* Fix text and character overlapping in heading sections */
+.heading-section {
+    position: relative;
+    z-index: 1;
+}
+
+.heading-section .subheading {
+    display: block !important;
+    position: static !important;
+    margin-bottom: 6px !important;
+    line-height: 1.3 !important;
+    font-size: 32px !important;
+    z-index: 2 !important;
+}
+
+.heading-section h2 {
+    position: static !important;
+    z-index: 1 !important;
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+    line-height: 1.3 !important;
+    font-size: 32px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+/* Unified Subpage Header Banner Styling (Matching Home Page) */
+.home-slider .slider-item.subpage-banner,
+.home-slider .slider-item[style*="height: 450px"],
+.home-slider .slider-item[style*="min-height: 450px"] {
+    min-height: 450px !important;
+    height: 450px !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    position: relative;
+}
+
+.home-slider .slider-item .slider-text {
+    height: 450px !important;
+    padding-top: 85px !important;
+}
+
+.home-slider .slider-item .slider-text h1.bread {
+    font-size: 38px !important;
+    font-weight: 700 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    color: #ffffff !important;
+    margin-bottom: 12px !important;
+}
+
+.home-slider .slider-item .slider-text .breadcrumbs {
+    font-size: 13.5px !important;
+    letter-spacing: 1.5px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 0 !important;
+}
+
+.home-slider .slider-item .slider-text .breadcrumbs a {
+    color: var(--primary) !important;
+    transition: color 0.2s;
+}
+
+.home-slider .slider-item .slider-text .breadcrumbs a:hover {
+    color: #ffffff !important;
+}
+
+.home-slider .slider-item .slider-text .breadcrumbs span {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+

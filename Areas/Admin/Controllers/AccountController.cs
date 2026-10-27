@@ -49,7 +49,7 @@ public class AccountController : Controller
             .Include(a => a.Role)
             .FirstOrDefaultAsync(a => a.TenDangNhap == username && a.TrangThai);
 
-        var isStaff = account != null && account.MaVaiTro is 2 or 3 or 4;
+        var isStaff = account != null && account.MaVaiTro is 1 or 2 or 3 or 4;
         var passwordValid = account != null && VerifyPassword(password, account.MatKhau);
         if (!isStaff || !passwordValid)
         {
@@ -64,7 +64,7 @@ public class AccountController : Controller
         }
 
         await HttpContext.SignOutAsync("AdminCookie");
-        var roleName = account.MaVaiTro == 4 ? "Admin" : account.MaVaiTro == 2 ? "Staff" : "NhanVien";
+        var roleName = account.MaVaiTro is 1 or 4 ? "Admin" : account.MaVaiTro == 2 ? "Staff" : "NhanVien";
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, account!.TenDangNhap),

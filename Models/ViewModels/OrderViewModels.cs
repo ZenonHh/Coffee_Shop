@@ -12,11 +12,16 @@ namespace CoffeeShop.Models.ViewModels
     {
         public int MaHD { get; set; }
         public string HoTenNguoiNhan { get; set; } = string.Empty;
+        public string SdtNguoiNhan { get; set; } = string.Empty;
+        public string? DiaChiGiao { get; set; }
+        public string? GhiChu { get; set; }
         public DateTime NgayTao { get; set; }
         public decimal TongTien { get; set; }
         public string PhuongThucThanhToan { get; set; } = string.Empty;
         public string TrangThai { get; set; } = string.Empty;
         public string? LyDoHuy { get; set; }
+        public int TotalItems { get; set; }
+        public List<string> ItemsPreview { get; set; } = new();
     }
 
     public class OrderDetailViewModel

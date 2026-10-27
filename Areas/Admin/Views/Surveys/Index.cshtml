@@ -1,8 +1,336 @@
 @model List<CoffeeShop.Models.ViewModels.SurveyListItemViewModel>
-@{ ViewData["Title"] = "Khảo sát ý kiến"; var editing = ViewBag.EditSurvey as CoffeeShop.Models.Entities.Survey; }
-<div class="welcome-row page-title-row"><div><div class="eyebrow">THẤU HIỂU KHÁCH HÀNG</div><h1>Khảo sát ý kiến</h1><p class="page-subtitle">Tạo khảo sát, quản lý câu hỏi và theo dõi phản hồi khách hàng.</p></div></div>
-@if (ViewBag.FormError != null) { <div class="alert alert-danger">@ViewBag.FormError</div> }
-<div class="dashboard-grid"><section class="panel"><div class="panel-heading"><div><h2>@(editing == null ? "Tạo khảo sát mới" : "Chỉnh sửa khảo sát")</h2><p>Khảo sát chỉ hiển thị cho khách trong thời gian đã cấu hình.</p></div></div>
-<form asp-action="@(editing == null ? "Create" : "Edit")" method="post" class="dialog-form px-0">@Html.AntiForgeryToken()@if (editing != null) { <input type="hidden" name="MaKhaoSat" value="@editing.MaKhaoSat" /> }<label>Tiêu đề<input name="TieuDe" value="@(editing?.TieuDe ?? "")" maxlength="255" required placeholder="VD: Trải nghiệm đồ uống mới" /></label><label>Mô tả<textarea name="MoTa" rows="3" placeholder="Mục tiêu của khảo sát">@(editing?.MoTa ?? "")</textarea></label><div class="dialog-fields"><label>Bắt đầu<input name="NgayBatDau" type="datetime-local" value="@(editing?.NgayBatDau.ToString("yyyy-MM-ddTHH:mm") ?? DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" required /></label><label>Kết thúc<input name="NgayKetThuc" type="datetime-local" value="@(editing?.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm") ?? DateTime.Now.AddMonths(1).ToString("yyyy-MM-ddTHH:mm"))" required /></label></div><div class="dialog-actions">@if (editing != null) { <a asp-action="Index" class="button button-outline">Hủy</a> }<button class="button button-primary" type="submit">@(editing == null ? "Tạo khảo sát" : "Lưu thay đổi")</button></div></form></section>
-<section class="panel"><div class="panel-heading"><div><h2>Thống kê nhanh</h2><p>Tổng quan dữ liệu khảo sát hiện có.</p></div></div><div class="category-note mt-4"><strong>@Model.Count</strong> khảo sát trong hệ thống.</div><div class="category-note mt-3"><strong>@Model.Count(s => s.NgayBatDau <= DateTime.Now && s.NgayKetThuc >= DateTime.Now)</strong> khảo sát đang mở.</div><div class="category-note mt-3"><strong>@Model.Sum(s => s.AnswerCount)</strong> lượt trả lời đã ghi nhận.</div></section></div>
-<section class="panel table-panel"><div class="panel-heading table-heading"><div><h2>Danh sách khảo sát</h2><p>Rê xem từng khảo sát để quản lý câu hỏi.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>KHẢO SÁT</th><th>THỜI GIAN</th><th>CÂU HỎI</th><th>PHẢN HỒI</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>@foreach (var survey in Model) { var open = survey.NgayBatDau <= DateTime.Now && survey.NgayKetThuc >= DateTime.Now; <tr><td><strong>@survey.TieuDe</strong><div class="muted-cell">#@survey.MaKhaoSat</div></td><td>@survey.NgayBatDau.ToString("dd/MM/yyyy HH:mm")<br /><span class="muted-cell">→ @survey.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</span></td><td>@survey.Questions.Count</td><td>@survey.Questions.Sum(q => q.Answers.Count)</td><td><span class="status @(open ? "status-success" : "status-muted")"><i></i>@(open ? "Đang mở" : "Đã đóng")</span></td><td><a asp-action="Index" asp-route-editId="@survey.MaKhaoSat" class="button button-small button-outline">@(editing?.MaKhaoSat == survey.MaKhaoSat ? "Đang sửa" : "Quản lý")</a> <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xóa khảo sát này?');">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@survey.MaKhaoSat" /><button class="button button-small button-outline text-danger">Xóa</button></form></td></tr>@if (editing?.MaKhaoSat == survey.MaKhaoSat) { <tr><td colspan="6"><div class="category-note"><strong>Danh sách câu hỏi</strong>@foreach (var q in survey.Questions) { <div class="d-flex justify-content-between align-items-center mt-2"><span>@q.NoiDungCauHoi <small class="muted-cell">(@q.Answers.Count trả lời)</small></span><form asp-action="DeleteQuestion" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@q.MaCauHoi" /><input type="hidden" name="surveyId" value="@survey.MaKhaoSat" /><button class="button button-small button-outline text-danger">Xóa</button></form></div> }<form asp-action="AddQuestion" method="post" class="d-flex mt-3" style="gap:8px;">@Html.AntiForgeryToken()<input type="hidden" name="surveyId" value="@survey.MaKhaoSat" /><input name="content" class="form-control" placeholder="Nhập câu hỏi mới" required /><button class="button button-small button-primary">Thêm câu hỏi</button></form></div></td></tr> } }@if (!Model.Any()) { <tr><td colspan="6" class="text-center py-4 muted-cell">Chưa có khảo sát nào.</td></tr>}</tbody></table></div></section>
+@{
+    ViewData["Title"] = "Quản lý khảo sát";
+    var editing = ViewBag.EditSurvey as CoffeeShop.Models.Entities.Survey;
+    int? activeDetailId = null;
+    if (int.TryParse(Context.Request.Query["viewResponses"], out var vid))
+    {
+        activeDetailId = vid;
+    }
+}
+
+<div class="welcome-row page-title-row">
+    <div>
+        <div class="eyebrow">THẤU HIỂU KHÁCH HÀNG &amp; CRM</div>
+        <h1>Quản lý khảo sát</h1>
+        <p class="page-subtitle">Thiết lập bài khảo sát trải nghiệm chi tiết, thu thập ý kiến đóng góp từ khách hàng qua Web &amp; Pop-up.</p>
+    </div>
+</div>
+
+@if (ViewBag.FormError != null)
+{
+    <div class="alert alert-danger mb-4">@ViewBag.FormError</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mb-4">@TempData["Success"]</div>
+}
+
+<div class="dashboard-grid mb-4">
+    <!-- CỘT TRÁI: FORM TẠO/SỬA KHẢO SÁT CHI TIẾT -->
+    <section class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>@(editing == null ? "Tạo khảo sát mới chi tiết" : "Chỉnh sửa khảo sát")</h2>
+                <p>Khảo sát sẽ tự động xuất hiện trên pop-up và trang khảo sát khách hàng.</p>
+            </div>
+        </div>
+
+        <form asp-action="@(editing == null ? "Create" : "Edit")" method="post" class="dialog-form px-0" id="surveyCreateForm">
+            @Html.AntiForgeryToken()
+            @if (editing != null)
+            {
+                <input type="hidden" name="MaKhaoSat" value="@editing.MaKhaoSat" />
+            }
+
+            <label>
+                Tiêu đề khảo sát *
+                <input name="TieuDe" value="@(editing?.TieuDe ?? "")" maxlength="255" required placeholder="VD: Khảo sát trải nghiệm đồ uống & không gian mới" />
+            </label>
+
+            <label>
+                Mục đích / Lời nhắn gửi đến khách hàng
+                <textarea name="MoTa" rows="2" placeholder="VD: Chia sẻ cảm nhận 10 giây để nhận ưu đãi từ Coffee Blend...">@(editing?.MoTa ?? "")</textarea>
+            </label>
+
+            <div class="dialog-fields">
+                <label>
+                    Ngày bắt đầu *
+                    <input name="NgayBatDau" type="datetime-local" value="@(editing?.NgayBatDau.ToString("yyyy-MM-ddTHH:mm") ?? DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" required />
+                </label>
+                <label>
+                    Ngày kết thúc *
+                    <input name="NgayKetThuc" type="datetime-local" value="@(editing?.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm") ?? DateTime.Now.AddMonths(1).ToString("yyyy-MM-ddTHH:mm"))" required />
+                </label>
+            </div>
+
+            @if (editing == null)
+            {
+                <!-- PHẦN CÂU HỎI CHI TIẾT KHI TẠO MỚI -->
+                <div class="mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.1) !important;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong style="color: #c49b63; font-size: 14px;">Danh sách câu hỏi khảo sát</strong>
+                        <button type="button" class="button button-small button-outline" id="btnAddQuestionRow" style="padding: 4px 10px; font-size: 12px;">
+                            + Thêm câu hỏi
+                        </button>
+                    </div>
+                    <p class="small muted-cell mb-3">Tạo sẵn các câu hỏi để khách hàng trả lời ngay khi mở pop-up hoặc trang khảo sát.</p>
+
+                    <div id="questionsContainer">
+                        <div class="question-row p-2 mb-2 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                            <div class="d-flex" style="gap: 8px;">
+                                <input name="questionContent" class="form-control" placeholder="Câu hỏi 1: Bạn đánh giá thế nào về chất lượng đồ uống?" required />
+                                <select name="questionType" class="form-control" style="width: 140px; flex-shrink: 0;">
+                                    <option value="TRAC_NGHIEM">Đánh giá sao</option>
+                                    <option value="TEXT">Tự luận góp ý</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="question-row p-2 mb-2 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                            <div class="d-flex" style="gap: 8px;">
+                                <input name="questionContent" class="form-control" placeholder="Câu hỏi 2: Bạn có góp ý gì để Coffee Blend phục vụ chu đáo hơn?" />
+                                <select name="questionType" class="form-control" style="width: 140px; flex-shrink: 0;">
+                                    <option value="TEXT">Tự luận góp ý</option>
+                                    <option value="TRAC_NGHIEM">Đánh giá sao</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="dialog-actions mt-3">
+                @if (editing != null)
+                {
+                    <a asp-action="Index" class="button button-outline">Hủy bỏ</a>
+                }
+                <button class="button button-primary" type="submit">
+                    @(editing == null ? "Tạo khảo sát chi tiết" : "Lưu thay đổi")
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- CỘT PHẢI: TỔNG QUAN & THỐNG KÊ CRM -->
+    <section class="panel">
+        <div class="panel-heading">
+            <div>
+                <h2>Thống kê phản hồi</h2>
+                <p>Tổng quan kết quả thu thập ý kiến khách hàng.</p>
+            </div>
+        </div>
+
+        <div class="category-note mt-3">
+            <span class="d-block muted-cell small">TỔNG ĐỢT KHẢO SÁT</span>
+            <strong style="font-size: 20px; color: #fff;">@Model.Count</strong> đợt khảo sát trong hệ thống.
+        </div>
+
+        <div class="category-note mt-3">
+            <span class="d-block muted-cell small">ĐANG MỞ TRÊN WEB &amp; POP-UP</span>
+            <strong style="font-size: 20px; color: #c49b63;">@Model.Count(s => s.NgayBatDau <= DateTime.Now && s.NgayKetThuc >= DateTime.Now)</strong> đợt khảo sát hoạt động.
+        </div>
+
+        <div class="category-note mt-3">
+            <span class="d-block muted-cell small">LƯỢT Ý KIẾN ĐÃ THU THẬP</span>
+            <strong style="font-size: 20px; color: #28a745;">@Model.Sum(s => s.AnswerCount)</strong> câu trả lời đã ghi nhận.
+        </div>
+    </section>
+</div>
+
+<!-- BẢNG DANH SÁCH KHẢO SÁT & KẾT QUẢ PHẢN HỒI -->
+<section class="panel table-panel">
+    <div class="panel-heading table-heading">
+        <div>
+            <h2>Danh sách khảo sát &amp; Quản lý câu hỏi</h2>
+            <p>Xem danh sách câu hỏi và toàn bộ ý kiến trả lời của khách hàng.</p>
+        </div>
+    </div>
+
+    <div class="table-scroll">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>TIÊU ĐỀ KHẢO SÁT</th>
+                    <th>THỜI GIAN</th>
+                    <th>SỐ CÂU HỎI</th>
+                    <th>LƯỢT TRẢ LỜI</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var survey in Model)
+                {
+                    var isOpen = survey.NgayBatDau <= DateTime.Now && survey.NgayKetThuc >= DateTime.Now;
+                    var isViewingResponses = activeDetailId == survey.MaKhaoSat;
+
+                    <tr>
+                        <td>
+                            <strong>@survey.TieuDe</strong>
+                            @if (!string.IsNullOrEmpty(survey.MoTa))
+                            {
+                                <div class="muted-cell small">@survey.MoTa</div>
+                            }
+                            <div class="muted-cell" style="font-size: 11px;">Mã #@survey.MaKhaoSat</div>
+                        </td>
+                        <td>
+                            @survey.NgayBatDau.ToString("dd/MM/yyyy HH:mm")
+                            <br />
+                            <span class="muted-cell">→ @survey.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</span>
+                        </td>
+                        <td>@survey.Questions.Count câu</td>
+                        <td>
+                            <strong style="color: #c49b63;">@survey.Questions.Sum(q => q.Answers.Count)</strong> lượt
+                        </td>
+                        <td>
+                            <span class="status @(isOpen ? "status-success" : "status-muted")">
+                                <i></i>@(isOpen ? "Đang mở" : "Đã đóng")
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="Index" asp-route-viewResponses="@(isViewingResponses ? null : survey.MaKhaoSat)" class="button button-small @(isViewingResponses ? "button-primary" : "button-outline")">
+                                @(isViewingResponses ? "Đóng phản hồi" : "Xem phản hồi")
+                            </a>
+
+                            <a asp-action="Index" asp-route-editId="@survey.MaKhaoSat" class="button button-small button-outline">
+                                @(editing?.MaKhaoSat == survey.MaKhaoSat ? "Đang sửa" : "Sửa/Thêm câu")
+                            </a>
+
+                            <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xác nhận xóa đợt khảo sát này?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@survey.MaKhaoSat" />
+                                <button class="button button-small button-outline text-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- KHU VỰC QUẢN LÝ CÂU HỎI KHI BẤM SỬA -->
+                    @if (editing?.MaKhaoSat == survey.MaKhaoSat)
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="category-note">
+                                    <strong style="color: #c49b63;">Quản lý câu hỏi của khảo sát: @survey.TieuDe</strong>
+                                    
+                                    @foreach (var q in survey.Questions)
+                                    {
+                                        <div class="d-flex justify-content-between align-items-center mt-2 py-1 border-bottom" style="border-color: rgba(255,255,255,0.06) !important;">
+                                            <span>
+                                                • @q.NoiDungCauHoi
+                                                <small class="muted-cell">(@(q.LoaiCauHoi == "TEXT" ? "Tự luận" : "Đánh giá sao") · @q.Answers.Count lượt trả lời)</small>
+                                            </span>
+                                            <form asp-action="DeleteQuestion" method="post" class="m-0">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@q.MaCauHoi" />
+                                                <input type="hidden" name="surveyId" value="@survey.MaKhaoSat" />
+                                                <button class="button button-small button-outline text-danger" style="padding: 2px 8px; font-size: 11px;">Xóa</button>
+                                            </form>
+                                        </div>
+                                    }
+
+                                    <form asp-action="AddQuestion" method="post" class="d-flex mt-3" style="gap: 8px;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="surveyId" value="@survey.MaKhaoSat" />
+                                        <input name="content" class="form-control" placeholder="Nhập câu hỏi mới..." required />
+                                        <select name="type" class="form-control" style="width: 150px; flex-shrink: 0;">
+                                            <option value="TRAC_NGHIEM">Đánh giá sao</option>
+                                            <option value="TEXT">Tự luận góp ý</option>
+                                        </select>
+                                        <button class="button button-small button-primary" style="flex-shrink: 0;">Thêm câu hỏi</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                    <!-- KHU VỰC XEM TOÀN BỘ Ý KIẾN TRẢ LỜI CỦA KHÁCH HÀNG -->
+                    @if (isViewingResponses)
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="category-note" style="background: rgba(196, 155, 99, 0.05); border: 1px solid rgba(196, 155, 99, 0.25);">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h4 class="mb-0" style="color: #c49b63; font-size: 16px;">
+                                            Ý kiến phản hồi từ khách hàng: <em>"@survey.TieuDe"</em>
+                                        </h4>
+                                        <span class="muted-cell small">Tổng @survey.Questions.Sum(q => q.Answers.Count) câu trả lời</span>
+                                    </div>
+
+                                    @if (!survey.Questions.Any() || !survey.Questions.Any(q => q.RecentAnswers.Any()))
+                                    {
+                                        <p class="muted-cell mb-0">Chưa có phản hồi nào được gửi về cho khảo sát này.</p>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var q in survey.Questions)
+                                        {
+                                            <div class="mb-3 p-3 rounded" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06);">
+                                                <div class="font-weight-bold mb-2 text-white">
+                                                    ❓ @q.NoiDungCauHoi
+                                                    <span class="badge badge-gold-outline ml-2">@q.Answers.Count lượt</span>
+                                                </div>
+
+                                                @if (q.RecentAnswers.Any())
+                                                {
+                                                    <ul class="list-unstyled mb-0 pl-2">
+                                                        @foreach (var ans in q.RecentAnswers)
+                                                        {
+                                                            <li class="py-1 border-bottom d-flex justify-content-between align-items-center" style="border-color: rgba(255,255,255,0.04) !important;">
+                                                                <span style="color: #e5ded7;">💬 @ans.NoiDungTraLoi</span>
+                                                                <small class="muted-cell">@ans.NgayTraLoi.ToString("dd/MM/yyyy HH:mm")</small>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                                else
+                                                {
+                                                    <small class="muted-cell">Chưa có câu trả lời cho câu hỏi này.</small>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 muted-cell">Chưa có đợt khảo sát nào được tạo.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var qCount = 2;
+            $('#btnAddQuestionRow').on('click', function() {
+                qCount++;
+                var html = `
+                    <div class="question-row p-2 mb-2 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="d-flex" style="gap: 8px;">
+                            <input name="questionContent" class="form-control" placeholder="Câu hỏi ${qCount}: Nhập nội dung câu hỏi..." required />
+                            <select name="questionType" class="form-control" style="width: 140px; flex-shrink: 0;">
+                                <option value="TRAC_NGHIEM">Đánh giá sao</option>
+                                <option value="TEXT">Tự luận góp ý</option>
+                            </select>
+                            <button type="button" class="button button-small button-outline text-danger btn-remove-q" style="padding: 0 10px;">✕</button>
+                        </div>
+                    </div>
+                `;
+                $('#questionsContainer').append(html);
+            });
+
+            $(document).on('click', '.btn-remove-q', function() {
+                $(this).closest('.question-row').remove();
+            });
+        });
+    </script>
+}

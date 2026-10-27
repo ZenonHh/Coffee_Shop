@@ -22,7 +22,13 @@ namespace CoffeeShop.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index(string? status)
         {
-            var ordersQuery = _context.Orders.AsNoTracking();
+            var ordersQuery = _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(d => d.Product)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(d => d.Variant)
+                .AsNoTracking();
+
             if (!string.IsNullOrWhiteSpace(status))
             {
                 ordersQuery = ordersQuery.Where(order => order.TrangThai == status);
@@ -32,20 +38,45 @@ namespace CoffeeShop.Areas.Admin.Controllers
             {
                 SelectedStatus = status,
                 Orders = await ordersQuery
-                    .OrderByDescending(order => order.NgayTao)
+                    .OrderByDescending(order => order.MaHD)
                     .Select(order => new OrderListItemViewModel
                     {
                         MaHD = order.MaHD,
                         HoTenNguoiNhan = order.HoTenNguoiNhan,
+                        SdtNguoiNhan = order.SdtNguoiNhan,
+                        DiaChiGiao = order.DiaChiGiao,
+                        GhiChu = order.GhiChu,
                         NgayTao = order.NgayTao,
                         TongTien = order.TongTien,
                         PhuongThucThanhToan = order.PhuongThucThanhToan,
                         TrangThai = order.TrangThai,
-                        LyDoHuy = order.LyDoHuy
+                        LyDoHuy = order.LyDoHuy,
+                        TotalItems = order.OrderDetails.Sum(d => d.SoLuong),
+                        ItemsPreview = order.OrderDetails.Select(d => $"{d.SoLuong}x {(d.Product != null ? d.Product.TenSP : "Món")} (Size {(d.Variant != null ? d.Variant.KichCo : "Vừa")})").Take(4).ToList()
                     })
                     .ToListAsync()
             };
             return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int orderId)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order != null)
+            {
+                order.TrangThai = OrderStatuses.Confirmed;
+                if (!order.PhuongThucThanhToan.Contains("Đã thanh toán"))
+                {
+                    order.PhuongThucThanhToan = "Đã thanh toán (" + order.PhuongThucThanhToan + ")";
+                }
+                order.NguoiXuLy = User.Identity?.Name ?? "Quản trị viên";
+                order.NgayCapNhat = DateTime.Now;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Đơn hàng #HD{order.MaHD:D4} đã được xác nhận thanh toán thành công!";
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Details(int id)

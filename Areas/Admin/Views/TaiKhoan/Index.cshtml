@@ -1,36 +1,245 @@
-@model List<CoffeeShop.Models.ViewModels.InternalAccountListItemViewModel>
+@model CoffeeShop.Models.ViewModels.AdminAccountIndexViewModel
 @{
-    ViewData["Title"] = "Quản lý tài khoản nội bộ";
+    ViewData["Title"] = "Quản lý tài khoản hệ thống & Khách hàng";
     var formModel = ViewBag.FormModel as CoffeeShop.Models.ViewModels.InternalAccountCreateViewModel ?? new();
     var roles = ViewBag.Roles as List<CoffeeShop.Models.ViewModels.RoleOptionViewModel> ?? new();
+    var activeTab = Model.ActiveTab ?? "internal";
 }
-<div class="welcome-row page-title-row"><div><div class="eyebrow">HỆ THỐNG</div><h1>Tài khoản nội bộ</h1><p class="page-subtitle">Quản lý quyền truy cập của quản trị viên và nhân viên.</p></div></div>
-@if (!ViewData.ModelState.IsValid) { <div asp-validation-summary="All" class="alert alert-danger"></div> }
-<div class="dashboard-grid">
-    <section class="panel">
-        <div class="panel-heading"><div><h2>Tạo tài khoản</h2><p>Mật khẩu được băm trước khi lưu.</p></div></div>
-        <form asp-action="Create" method="post" class="dialog-form px-0">
-            @Html.AntiForgeryToken()
-            <label>Tên đăng nhập<input name="TenDangNhap" value="@formModel.TenDangNhap" maxlength="50" autocomplete="username" required /></label>
-            <label>Họ tên<input name="HoTen" value="@formModel.HoTen" maxlength="100" required /></label>
-            <label>Vai trò<select name="MaVaiTro" required>
-                @foreach (var role in roles)
-                {
-                    <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@role.TenVaiTro</option>
-                }
-            </select></label>
-            <label>Mật khẩu<input name="MatKhau" type="password" minlength="8" maxlength="72" autocomplete="new-password" required /></label>
-            <div class="dialog-actions"><button class="button button-primary" type="submit">Tạo tài khoản</button></div>
-        </form>
-    </section>
-    <section class="panel table-panel">
-        <div class="panel-heading"><div><h2>Danh sách tài khoản</h2><p>@Model.Count tài khoản nội bộ.</p></div></div>
-        <div class="table-scroll"><table class="data-table"><thead><tr><th>TÊN ĐĂNG NHẬP</th><th>HỌ TÊN</th><th>VAI TRÒ</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>
-        @foreach (var account in Model)
-        {
-            <tr><td class="order-id">@account.TenDangNhap</td><td>@account.HoTen</td><td>@account.TenVaiTro</td><td><span class="status @(account.TrangThai ? "status-success" : "status-muted")"><i></i>@(account.TrangThai ? "Đang hoạt động" : "Đã khóa")</span></td><td><form asp-action="ToggleStatus" method="post">@Html.AntiForgeryToken()<input type="hidden" name="id" value="@account.MaTaiKhoan" /><button class="button button-small button-outline" type="submit">@(account.TrangThai ? "Khóa" : "Mở khóa")</button></form></td></tr>
-        }
-        @if (!Model.Any()) { <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có tài khoản nội bộ.</td></tr> }
-        </tbody></table></div>
-    </section>
+
+<div class="welcome-row page-title-row">
+    <div>
+        <div class="eyebrow">HỆ THỐNG &amp; CRM</div>
+        <h1>Quản Lý Tài Khoản</h1>
+        <p class="page-subtitle">Quản trị toàn diện tài khoản quản trị viên, nhân viên và khách hàng thành viên.</p>
+    </div>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="background: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; color: #a3e9b7;">
+        ✓ @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="background: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; color: #f8b4b9;">
+        ⚠ @TempData["Error"]
+    </div>
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
+}
+
+<!-- HỆ THỐNG NAV-TABS CHUYỂN ĐỔI -->
+<div class="d-flex border-bottom mb-4" style="border-color: rgba(196, 155, 99, 0.3) !important; gap: 10px;">
+    <a asp-action="Index" asp-route-tab="internal" 
+       class="btn @(activeTab == "internal" ? "btn-primary font-weight-bold" : "btn-outline-primary") py-2 px-4" 
+       style="border-radius: 8px 8px 0 0; font-size: 14px;">
+        🛡️ Tài Khoản Quản Trị &amp; Nhân Viên (@Model.InternalAccounts.Count)
+    </a>
+    <a asp-action="Index" asp-route-tab="customer" 
+       class="btn @(activeTab == "customer" ? "btn-primary font-weight-bold" : "btn-outline-primary") py-2 px-4" 
+       style="border-radius: 8px 8px 0 0; font-size: 14px;">
+        👥 Tài Khoản Khách Hàng Thành Viên (@Model.CustomerAccounts.Count)
+    </a>
+</div>
+
+@if (activeTab == "internal")
+{
+    <!-- TAB 1: TÀI KHOẢN NỘI BỘ (ADMIN & NHÂN VIÊN) -->
+    <div class="dashboard-grid">
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Tạo tài khoản nhân viên</h2>
+                    <p>Mật khẩu được băm bảo mật BCrypt trước khi lưu.</p>
+                </div>
+            </div>
+            <form asp-action="Create" method="post" class="dialog-form px-0">
+                @Html.AntiForgeryToken()
+                <label>
+                    Tên đăng nhập
+                    <input name="TenDangNhap" value="@formModel.TenDangNhap" maxlength="50" autocomplete="username" required placeholder="ví dụ: staff_01" />
+                </label>
+                <label>
+                    Họ và tên
+                    <input name="HoTen" value="@formModel.HoTen" maxlength="100" required placeholder="ví dụ: Nguyễn Văn A" />
+                </label>
+                <label>
+                    Vai trò phân quyền
+                    <select name="MaVaiTro" required>
+                        @foreach (var role in roles)
+                        {
+                            <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@role.TenVaiTro</option>
+                        }
+                    </select>
+                </label>
+                <label>
+                    Mật khẩu khởi tạo
+                    <input name="MatKhau" type="password" minlength="8" maxlength="72" autocomplete="new-password" required placeholder="Tối thiểu 8 ký tự" />
+                </label>
+                <div class="dialog-actions mt-3">
+                    <button class="button button-primary" type="submit">+ Tạo tài khoản mới</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel table-panel">
+            <div class="panel-heading">
+                <div>
+                    <h2>Danh sách nhân sự &amp; quản trị</h2>
+                    <p>Hiện có @Model.InternalAccounts.Count tài khoản trong hệ thống nội bộ.</p>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>TÊN ĐĂNG NHẬP</th>
+                            <th>HỌ TÊN</th>
+                            <th>VAI TRÒ</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var account in Model.InternalAccounts)
+                        {
+                            <tr>
+                                <td class="order-id">
+                                    <strong style="color: #c49b63;">@account.TenDangNhap</strong>
+                                </td>
+                                <td>@account.HoTen</td>
+                                <td>
+                                    <span class="badge badge-gold-outline">@account.TenVaiTro</span>
+                                </td>
+                                <td>
+                                    <span class="status @(account.TrangThai ? "status-success" : "status-muted")">
+                                        <i></i>@(account.TrangThai ? "Đang hoạt động" : "Đã khóa")
+                                    </span>
+                                </td>
+                                <td>
+                                    <form asp-action="ToggleStatus" method="post" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái tài khoản @account.TenDangNhap?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@account.MaTaiKhoan" />
+                                        <button class="button button-small @(account.TrangThai ? "button-outline text-danger" : "button-primary")" type="submit">
+                                            @(account.TrangThai ? "Khóa" : "Mở khóa")
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.InternalAccounts.Any())
+                        {
+                            <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có tài khoản nội bộ nào.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+}
+else
+{
+    <!-- TAB 2: TÀI KHOẢN KHÁCH HÀNG (CRM) -->
+    <section class="panel table-panel">
+        <div class="panel-heading d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <h2>Danh sách khách hàng thành viên</h2>
+                <p>Tổng cộng @Model.CustomerAccounts.Count khách hàng đã đăng ký và mua sắm.</p>
+            </div>
+            <div class="d-flex" style="gap: 15px;">
+                <div class="p-2 px-3 rounded" style="background: rgba(196, 155, 99, 0.1); border: 1px solid rgba(196, 155, 99, 0.3);">
+                    <small class="text-muted d-block">Hoạt động:</small>
+                    <strong class="text-success">@Model.CustomerAccounts.Count(c => c.TrangThai)</strong>
+                </div>
+                <div class="p-2 px-3 rounded" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
+                    <small class="text-muted d-block">Đã khóa:</small>
+                    <strong class="text-danger">@Model.CustomerAccounts.Count(c => !c.TrangThai)</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>MÃ KH</th>
+                        <th>TÀI KHOẢN</th>
+                        <th>HỌ VÀ TÊN</th>
+                        <th>SỐ ĐIỆN THOẠI</th>
+                        <th>EMAIL</th>
+                        <th>ĐIỂM TÍCH LŨY</th>
+                        <th>HẠNG THẺ</th>
+                        <th>SỐ ĐƠN</th>
+                        <th>NGÀY THAM GIA</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model.CustomerAccounts)
+                    {
+                        var tierBadgeClass = customer.HangTV switch
+                        {
+                            "Kim Cương" => "badge-info",
+                            "Vàng" => "badge-warning",
+                            "Bạc" => "badge-secondary",
+                            _ => "badge-gold-outline"
+                        };
+                        var tierIcon = customer.HangTV switch
+                        {
+                            "Kim Cương" => "💎",
+                            "Vàng" => "🥇",
+                            "Bạc" => "🥈",
+                            _ => "🥉"
+                        };
+
+                        <tr>
+                            <td class="order-id">
+                                <strong>#KH@customer.MaKH.ToString("D4")</strong>
+                            </td>
+                            <td>
+                                @(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "(Khách vãng lai)" : customer.TaiKhoan)
+                            </td>
+                            <td>
+                                <strong>@customer.HoTen</strong>
+                            </td>
+                            <td>@customer.Sdt</td>
+                            <td>@(string.IsNullOrWhiteSpace(customer.Email) ? "-" : customer.Email)</td>
+                            <td>
+                                <span class="font-weight-bold" style="color: #ffc107; font-size: 14px;">@customer.DiemTichLuy</span> pts
+                            </td>
+                            <td>
+                                <span class="badge @tierBadgeClass">@tierIcon @customer.HangTV</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">@customer.TotalOrders đơn</span>
+                            </td>
+                            <td>@customer.NgayTao.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <span class="status @(customer.TrangThai ? "status-success" : "status-muted")">
+                                    <i></i>@(customer.TrangThai ? "Hoạt động" : "Đã khóa")
+                                </span>
+                            </td>
+                            <td>
+                                <form asp-action="ToggleCustomerStatus" method="post" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái tài khoản khách hàng @customer.HoTen?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@customer.MaKH" />
+                                    <button class="button button-small @(customer.TrangThai ? "button-outline text-danger" : "button-primary")" type="submit">
+                                        @(customer.TrangThai ? "Khóa" : "Mở khóa")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.CustomerAccounts.Any())
+                    {
+                        <tr><td colspan="11" class="text-center py-4 muted-cell">Chưa có khách hàng nào trong hệ thống.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}

@@ -74,11 +74,48 @@ namespace CoffeeShop.Controllers
 
             return View(viewModel);
         }
+        [HttpGet]
         public IActionResult Contact()
         {
             return View();
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Contact(string name, string email, string? subject, string message)
+        {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(message))
+            {
+                TempData["Error"] = "Vui lòng điền đầy đủ họ tên, email và nội dung lời nhắn.";
+                return View();
+            }
+
+            try
+            {
+                var contact = new ContactMessage
+                {
+                    HoTen = name.Trim(),
+                    Email = email.Trim(),
+                    ChuDe = string.IsNullOrWhiteSpace(subject) ? "Không có chủ đề" : subject.Trim(),
+                    NoiDung = message.Trim(),
+                    NgayGui = DateTime.Now,
+                    TrangThai = "Chưa xử lý"
+                };
+
+                _context.ContactMessages.Add(contact);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Cảm ơn bạn đã liên hệ! Lời nhắn của bạn đã được chuyển tới ban Chăm sóc khách hàng của Coffee Blend.";
+                return RedirectToAction(nameof(Contact));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Không thể gửi lời nhắn lúc này. Vui lòng thử lại sau: " + ex.Message;
+                return View();
+            }
+        }
+
+        [Route("Blog")]
         public async Task<IActionResult> Blog()
         {
             var categories = new List<HomeCategoryViewModel>();

@@ -63,6 +63,15 @@ namespace CoffeeShop.Models.ViewModels
         public string? Sdt { get; set; }
         public string? DiaChi { get; set; }
         public bool? TrangThai { get; set; }
+        public int TotalPurchases { get; set; }
+        public decimal TotalPurchasedAmount { get; set; }
+    }
+
+    public class SupplierManagementViewModel
+    {
+        public string ActiveTab { get; set; } = "suppliers";
+        public List<SupplierListItemViewModel> Suppliers { get; set; } = new();
+        public List<PurchaseListItemViewModel> Purchases { get; set; } = new();
     }
 
     public class PurchaseListItemViewModel
@@ -128,6 +137,27 @@ namespace CoffeeShop.Models.ViewModels
         public bool TrangThai { get; set; }
     }
 
+    public class CustomerAccountListItemViewModel
+    {
+        public int MaKH { get; set; }
+        public string? TaiKhoan { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string Sdt { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public int DiemTichLuy { get; set; }
+        public string HangTV { get; set; } = "Đồng";
+        public DateTime NgayTao { get; set; }
+        public bool TrangThai { get; set; } = true;
+        public int TotalOrders { get; set; }
+    }
+
+    public class AdminAccountIndexViewModel
+    {
+        public string ActiveTab { get; set; } = "internal";
+        public List<InternalAccountListItemViewModel> InternalAccounts { get; set; } = new();
+        public List<CustomerAccountListItemViewModel> CustomerAccounts { get; set; } = new();
+    }
+
     public class AdminProductListItemViewModel
     {
         public int MaSP { get; set; }
@@ -188,6 +218,7 @@ namespace CoffeeShop.Models.ViewModels
     {
         public int MaKhaoSat { get; set; }
         public string TieuDe { get; set; } = string.Empty;
+        public string? MoTa { get; set; }
         public DateTime NgayBatDau { get; set; }
         public DateTime NgayKetThuc { get; set; }
         public int AnswerCount { get; set; }
@@ -198,7 +229,16 @@ namespace CoffeeShop.Models.ViewModels
     {
         public int MaCauHoi { get; set; }
         public string NoiDungCauHoi { get; set; } = string.Empty;
+        public string LoaiCauHoi { get; set; } = "TRAC_NGHIEM";
         public SurveyAnswerCountViewModel Answers { get; set; } = new();
+        public List<SurveyAnswerDetailViewModel> RecentAnswers { get; set; } = new();
+    }
+
+    public class SurveyAnswerDetailViewModel
+    {
+        public int MaCauTraLoi { get; set; }
+        public string? NoiDungTraLoi { get; set; }
+        public DateTime NgayTraLoi { get; set; }
     }
 
     public class SurveyAnswerCountViewModel

@@ -91,4 +91,33 @@ namespace CoffeeShop.Models.Entities
         [ForeignKey("MaCauHoi")]
         public virtual SurveyQuestion? Question { get; set; }
     }
+
+    [Table("LienHe")]
+    public class ContactMessage
+    {
+        [Key]
+        public int MaLienHe { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        public string HoTen { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(150)]
+        public string Email { get; set; } = string.Empty;
+
+        [MaxLength(255)]
+        public string? ChuDe { get; set; }
+
+        [Required]
+        public string NoiDung { get; set; } = string.Empty;
+
+        public DateTime NgayGui { get; set; } = DateTime.Now;
+
+        [MaxLength(50)]
+        public string TrangThai { get; set; } = "Chưa xử lý";
+
+        [MaxLength(500)]
+        public string? GhiChu { get; set; }
+    }
 }
