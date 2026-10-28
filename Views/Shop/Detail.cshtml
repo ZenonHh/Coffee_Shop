@@ -274,6 +274,13 @@
                                         <p class="mb-0 flex-grow-1" style="color: #ddd; font-size: 13.5px; line-height: 1.5;">
                                             @review.NoiDung
                                         </p>
+                                        @if (!string.IsNullOrWhiteSpace(review.PhanHoiQuanTri))
+                                        {
+                                            <div class="mt-3 p-2 rounded" style="background: rgba(196, 155, 99, 0.1); color: #e5ded7; font-size: 13px;">
+                                                <strong style="color: #c49b63;">Phản hồi từ cửa hàng:</strong>
+                                                <div class="mt-1">@review.PhanHoiQuanTri</div>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }

@@ -97,6 +97,49 @@ namespace CoffeeShop.Migrations
                     b.ToTable("LoaiSanPham");
                 });
 
+            modelBuilder.Entity("CoffeeShop.Models.Entities.ContactMessage", b =>
+                {
+                    b.Property<int>("MaLienHe")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLienHe"));
+
+                    b.Property<string>("ChuDe")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("HoTen")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("NgayGui")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrangThai")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("MaLienHe");
+
+                    b.ToTable("LienHe");
+                });
+
             modelBuilder.Entity("CoffeeShop.Models.Entities.Customer", b =>
                 {
                     b.Property<int>("MaKH")
@@ -142,6 +185,9 @@ namespace CoffeeShop.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("TrangThai")
+                        .HasColumnType("bit");
+
                     b.HasKey("MaKH");
 
                     b.ToTable("KhachHang");
@@ -167,9 +213,16 @@ namespace CoffeeShop.Migrations
                     b.Property<DateTime>("NgayGui")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("NgayPhanHoiQuanTri")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("NoiDung")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhanHoiQuanTri")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("TrangThaiXL")
                         .IsRequired()
@@ -183,6 +236,31 @@ namespace CoffeeShop.Migrations
                     b.HasIndex("MaSP");
 
                     b.ToTable("PhanHoi");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.Ingredient", b =>
+                {
+                    b.Property<int>("MaNL")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaNL"));
+
+                    b.Property<string>("DonViTinh")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("GiaVon")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<string>("TenNL")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("MaNL");
+
+                    b.ToTable("NguyenLieu");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Order", b =>
@@ -211,14 +289,33 @@ namespace CoffeeShop.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("LyDoHuy")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int?>("MaKH")
                         .HasColumnType("int");
+
+                    b.Property<int?>("MaVoucher")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("NgayTao")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("NguoiXuLy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("PhiGiao")
                         .HasColumnType("int");
+
+                    b.Property<string>("PhuongThucThanhToan")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("SdtNguoiNhan")
                         .IsRequired()
@@ -242,6 +339,8 @@ namespace CoffeeShop.Migrations
                     b.HasKey("MaHD");
 
                     b.HasIndex("MaKH");
+
+                    b.HasIndex("MaVoucher");
 
                     b.ToTable("HoaDon");
                 });
@@ -350,6 +449,9 @@ namespace CoffeeShop.Migrations
                     b.Property<int>("MaLoaiSP")
                         .HasColumnType("int");
 
+                    b.Property<int>("SoLuongTon")
+                        .HasColumnType("int");
+
                     b.Property<string>("TenSP")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -394,6 +496,98 @@ namespace CoffeeShop.Migrations
                     b.ToTable("BienTheSanPham");
                 });
 
+            modelBuilder.Entity("CoffeeShop.Models.Entities.Purchase", b =>
+                {
+                    b.Property<int>("MaPN")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaPN"));
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("MaNCC")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaNV")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("NgayDuyet")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayNhap")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NguoiDuyet")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("NguoiDuyetId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NguoiLap")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("TongTien")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<string>("TrangThai")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("MaPN");
+
+                    b.HasIndex("MaNCC");
+
+                    b.HasIndex("MaNV");
+
+                    b.HasIndex("NguoiDuyetId");
+
+                    b.ToTable("PhieuNhap");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.PurchaseDetail", b =>
+                {
+                    b.Property<int>("MaCTPN")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaCTPN"));
+
+                    b.Property<decimal>("DonGia")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<int?>("MaNL")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaPN")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaSP")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SoLuong")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("ThanhTien")
+                        .HasColumnType("decimal(12,2)");
+
+                    b.HasKey("MaCTPN");
+
+                    b.HasIndex("MaNL");
+
+                    b.HasIndex("MaPN");
+
+                    b.HasIndex("MaSP");
+
+                    b.ToTable("ChiTietPhieuNhap");
+                });
+
             modelBuilder.Entity("CoffeeShop.Models.Entities.Role", b =>
                 {
                     b.Property<int>("MaVaiTro")
@@ -414,6 +608,66 @@ namespace CoffeeShop.Migrations
                     b.HasKey("MaVaiTro");
 
                     b.ToTable("VaiTro");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.StaffMember", b =>
+                {
+                    b.Property<int>("MaNV")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaNV"));
+
+                    b.Property<string>("ChucVu")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("HoVaDem")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Sdt")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Ten")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("MaNV");
+
+                    b.ToTable("NhanVien");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.Supplier", b =>
+                {
+                    b.Property<int>("MaNCC")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaNCC"));
+
+                    b.Property<string>("DiaChi")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Sdt")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TenNCC")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool?>("TrangThai")
+                        .HasColumnType("bit");
+
+                    b.HasKey("MaNCC");
+
+                    b.ToTable("NhaCungCap");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Survey", b =>
@@ -514,6 +768,9 @@ namespace CoffeeShop.Migrations
                     b.Property<decimal>("GiaTriGiam")
                         .HasColumnType("decimal(12,2)");
 
+                    b.Property<decimal?>("GiamToiDa")
+                        .HasColumnType("decimal(12,2)");
+
                     b.Property<string>("MaCode")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -529,6 +786,12 @@ namespace CoffeeShop.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("SoLuongDaDung")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SoLuongToiDa")
+                        .HasColumnType("int");
 
                     b.Property<string>("TenChuongTrinh")
                         .HasMaxLength(150)
@@ -576,7 +839,14 @@ namespace CoffeeShop.Migrations
                         .WithMany("Orders")
                         .HasForeignKey("MaKH");
 
+                    b.HasOne("CoffeeShop.Models.Entities.Voucher", "Voucher")
+                        .WithMany()
+                        .HasForeignKey("MaVoucher")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Customer");
+
+                    b.Navigation("Voucher");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.OrderDetail", b =>
@@ -658,6 +928,57 @@ namespace CoffeeShop.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("CoffeeShop.Models.Entities.Purchase", b =>
+                {
+                    b.HasOne("CoffeeShop.Models.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("MaNCC")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CoffeeShop.Models.Entities.StaffMember", "StaffMember")
+                        .WithMany()
+                        .HasForeignKey("MaNV")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CoffeeShop.Models.Entities.Account", "Approver")
+                        .WithMany()
+                        .HasForeignKey("NguoiDuyetId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Approver");
+
+                    b.Navigation("StaffMember");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.PurchaseDetail", b =>
+                {
+                    b.HasOne("CoffeeShop.Models.Entities.Ingredient", "Ingredient")
+                        .WithMany()
+                        .HasForeignKey("MaNL")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CoffeeShop.Models.Entities.Purchase", "Purchase")
+                        .WithMany("Details")
+                        .HasForeignKey("MaPN")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CoffeeShop.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("MaSP")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Purchase");
+                });
+
             modelBuilder.Entity("CoffeeShop.Models.Entities.Survey", b =>
                 {
                     b.HasOne("CoffeeShop.Models.Entities.Account", "Account")
@@ -720,6 +1041,11 @@ namespace CoffeeShop.Migrations
                     b.Navigation("Feedbacks");
 
                     b.Navigation("Variants");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.Purchase", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Role", b =>

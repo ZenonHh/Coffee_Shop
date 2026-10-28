@@ -83,6 +83,7 @@ namespace CoffeeShop.Models.ViewModels
         public string NoiDung { get; set; } = string.Empty;
         public int? DanhGia { get; set; }
         public DateTime NgayGui { get; set; }
+        public string? PhanHoiQuanTri { get; set; }
     }
 
     public class CartItemViewModel

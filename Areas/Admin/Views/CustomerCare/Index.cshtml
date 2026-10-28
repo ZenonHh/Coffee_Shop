@@ -3,9 +3,13 @@
     ViewData["Title"] = "Chăm sóc khách hàng";
     var editing = ViewBag.EditSurvey as CoffeeShop.Models.Entities.Survey;
     var contacts = ViewBag.ContactMessages as List<CoffeeShop.Models.Entities.ContactMessage> ?? new();
+    var feedbacks = ViewBag.Feedbacks as List<CoffeeShop.Models.Entities.Feedback> ?? new();
     var activeTab = ViewBag.ActiveTab as string ?? "surveys";
     var isSurveysTab = activeTab == "surveys";
+    var isContactsTab = activeTab == "contacts";
+    var isReviewsTab = activeTab == "reviews";
     var unreadContacts = (int)(ViewBag.UnprocessedCount ?? 0);
+    var unansweredReviews = (int)(ViewBag.UnansweredReviewsCount ?? 0);
     int? activeDetailId = null;
     if (int.TryParse(Context.Request.Query["viewResponses"], out var vid))
     {
@@ -29,27 +33,46 @@
 {
     <div class="alert alert-success mb-4">@TempData["Success"]</div>
 }
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mb-4">@TempData["Error"]</div>
+}
 
 <!-- HỆ THỐNG 2 TAB ĐIỀU HƯỚNG (NAV-TABS) -->
 <div class="d-flex mb-4 flex-wrap" style="gap: 10px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 2px;">
     <a asp-action="Index" asp-route-tab="surveys" 
        class="button @(isSurveysTab ? "button-primary" : "button-outline")" 
        style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: 600; padding: 10px 20px; font-size: 14px;">
-        📋 Tab 1 - Quản lý khảo sát (Chính)
+         Tab 1 - Quản lý khảo sát (Chính)
         <span class="badge @(isSurveysTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@Model.Count</span>
     </a>
     <a asp-action="Index" asp-route-tab="contacts" 
-       class="button @(!isSurveysTab ? "button-primary" : "button-outline")" 
+       class="button @(isContactsTab ? "button-primary" : "button-outline")"
        style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: 600; padding: 10px 20px; font-size: 14px;">
-        ✉️ Tab 2 - Hộp thư góp ý &amp; Liên hệ (Phụ)
+         Tab 2 - Hộp thư góp ý &amp; Liên hệ (Phụ)
         @if (unreadContacts > 0)
         {
             <span class="badge badge-warning ml-1 font-weight-bold" style="font-size: 12px; background: #ffc107; color: #000;">@unreadContacts mới</span>
         }
         else
         {
-            <span class="badge @(!isSurveysTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@contacts.Count</span>
+            <span class="badge @(isContactsTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@contacts.Count</span>
         }
+    </a>
+    <a asp-action="Index" asp-route-tab="reviews"
+       class="button @(isReviewsTab ? "button-primary" : "button-outline")"
+       style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: 600; padding: 10px 20px; font-size: 14px;">
+         Đánh giá khách hàng
+        <span class="badge @(isReviewsTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">
+            @if (unansweredReviews > 0)
+            {
+                <text>@unansweredReviews cần phản hồi</text>
+            }
+            else
+            {
+                <text>@feedbacks.Count</text>
+            }
+        </span>
     </a>
 </div>
 
@@ -345,7 +368,7 @@
         </div>
     </section>
 }
-else
+else if (isContactsTab)
 {
     <!-- TAB 2: HỘP THƯ GÓP Ý & LIÊN HỆ (PHỤ) -->
     <div class="row mb-4">
@@ -525,13 +548,106 @@ else
                 </div>
                 <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.08);">
                     <a id="modalContactReplyBtn" href="" class="button button-primary mr-auto">
-                        ✉️ Gửi Email Trả Lời
+                        Gửi Email Trả Lời
                     </a>
                     <button type="button" class="button button-outline" data-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
     </div>
+}
+else
+{
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="panel p-3">
+                <span class="muted-cell small d-block">TỔNG ĐÁNH GIÁ</span>
+                <strong style="font-size: 22px; color: #3400f2;">@feedbacks.Count</strong>
+                <span class="muted-cell small d-block mt-1">Ý kiến từ khách hàng trên website</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel p-3">
+                <span class="muted-cell small d-block">CHƯA PHẢN HỒI</span>
+                <strong style="font-size: 22px; color: #ffc107;">@unansweredReviews</strong>
+                <span class="muted-cell small d-block mt-1">Đánh giá cần được chăm sóc</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="panel p-3">
+                <span class="muted-cell small d-block">ĐÃ PHẢN HỒI</span>
+                <strong style="font-size: 22px; color: #28a745;">@(feedbacks.Count - unansweredReviews)</strong>
+                <span class="muted-cell small d-block mt-1">Có phản hồi từ cửa hàng</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="panel table-panel">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Đánh giá của khách hàng</h2>
+                <p>Xem nhận xét, mức đánh giá và phản hồi trực tiếp từ cửa hàng.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="min-width: 150px;">KHÁCH HÀNG</th>
+                        <th style="min-width: 150px;">SẢN PHẨM</th>
+                        <th style="min-width: 110px;">ĐÁNH GIÁ</th>
+                        <th style="min-width: 260px;">NHẬN XÉT</th>
+                        <th style="min-width: 145px;">NGÀY GỬI</th>
+                        <th style="min-width: 300px;">PHẢN HỒI CỦA CỬA HÀNG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var feedback in feedbacks)
+                    {
+                        <tr>
+                            <td>@(feedback.Customer?.HoTen ?? "Khách hàng")</td>
+                            <td>@(feedback.Product?.TenSP ?? "Đánh giá chung")</td>
+                            <td>
+                                <span style="color: #ffc107;">
+                                    @for (var star = 0; star < (feedback.DanhGia ?? 0); star++)
+                                    {
+                                        <span>★</span>
+                                    }
+                                </span>
+                                <small class="muted-cell">@(feedback.DanhGia?.ToString() ?? "—")/5</small>
+                            </td>
+                            <td style="white-space: pre-wrap;">@feedback.NoiDung</td>
+                            <td><span class="small muted-cell">@feedback.NgayGui.ToString("dd/MM/yyyy HH:mm")</span></td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri))
+                                {
+                                    <div class="mb-2" style="white-space: pre-wrap; color: #e5ded7;">@feedback.PhanHoiQuanTri</div>
+                                    <small class="muted-cell d-block mb-2">
+                                        Đã phản hồi @(feedback.NgayPhanHoiQuanTri?.ToString("dd/MM/yyyy HH:mm"))
+                                    </small>
+                                }
+                                <form asp-action="ReplyToFeedback" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@feedback.MaPhanHoi" />
+                                    <textarea name="response" class="form-control mb-2" rows="2" maxlength="2000" required
+                                              placeholder="@(string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri) ? "Nhập phản hồi cho khách hàng..." : "Cập nhật phản hồi...")">@feedback.PhanHoiQuanTri</textarea>
+                                    <button type="submit" class="button button-small button-primary">
+                                        @(string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri) ? "Gửi phản hồi" : "Cập nhật")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!feedbacks.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 muted-cell">Chưa có đánh giá nào từ khách hàng.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
 }
 
 @section Scripts {

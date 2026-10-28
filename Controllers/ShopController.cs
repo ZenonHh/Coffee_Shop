@@ -126,7 +126,8 @@ namespace CoffeeShop.Controllers
                     CustomerName = f.Customer != null ? f.Customer.HoTen : "Khách hàng",
                     NoiDung = f.NoiDung,
                     DanhGia = f.DanhGia,
-                    NgayGui = f.NgayGui
+                    NgayGui = f.NgayGui,
+                    PhanHoiQuanTri = f.PhanHoiQuanTri
                 })
                 .ToListAsync();
 

@@ -29,14 +29,27 @@ public class CustomerCareController : Controller
             .AsNoTracking()
             .OrderByDescending(c => c.NgayGui)
             .ToListAsync();
+        var feedbacks = await _context.Feedbacks
+            .AsNoTracking()
+            .Include(f => f.Customer)
+            .Include(f => f.Product)
+            .OrderByDescending(f => f.NgayGui)
+            .ToListAsync();
 
         ViewBag.EditSurvey = editId.HasValue
             ? await _context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.MaKhaoSat == editId.Value)
             : null;
         ViewBag.ContactMessages = contacts;
-        ViewBag.ActiveTab = string.Equals(tab, "contacts", StringComparison.OrdinalIgnoreCase) ? "contacts" : "surveys";
+        ViewBag.Feedbacks = feedbacks;
+        ViewBag.ActiveTab = tab.ToLowerInvariant() switch
+        {
+            "contacts" => "contacts",
+            "reviews" => "reviews",
+            _ => "surveys"
+        };
         ViewBag.TotalContacts = contacts.Count;
         ViewBag.UnprocessedCount = contacts.Count(c => c.TrangThai == "Chưa xử lý");
+        ViewBag.UnansweredReviewsCount = feedbacks.Count(f => string.IsNullOrWhiteSpace(f.PhanHoiQuanTri));
 
         return View(surveys);
     }
@@ -182,6 +195,28 @@ public class CustomerCareController : Controller
             TempData["Success"] = "Đã xóa lời nhắn khỏi hộp thư.";
         }
         return RedirectToAction(nameof(Index), new { tab = "contacts" });
+    }
+
+    [HttpPost("ReplyToFeedback")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReplyToFeedback(int id, string response)
+    {
+        var trimmedResponse = response?.Trim();
+        if (string.IsNullOrWhiteSpace(trimmedResponse) || trimmedResponse.Length > 2000)
+        {
+            TempData["Error"] = "Phản hồi cần có nội dung và không được vượt quá 2.000 ký tự.";
+            return RedirectToAction(nameof(Index), new { tab = "reviews" });
+        }
+
+        var feedback = await _context.Feedbacks.FindAsync(id);
+        if (feedback == null) return NotFound();
+
+        feedback.PhanHoiQuanTri = trimmedResponse;
+        feedback.NgayPhanHoiQuanTri = DateTime.Now;
+        await _context.SaveChangesAsync();
+
+        TempData["Success"] = "Đã lưu phản hồi cho đánh giá của khách hàng.";
+        return RedirectToAction(nameof(Index), new { tab = "reviews" });
     }
 
     #endregion

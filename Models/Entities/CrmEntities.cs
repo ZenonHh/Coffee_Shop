@@ -24,6 +24,11 @@ namespace CoffeeShop.Models.Entities
         [MaxLength(50)]
         public string TrangThaiXL { get; set; } = "Chờ xử lý";
 
+        [MaxLength(2000)]
+        public string? PhanHoiQuanTri { get; set; }
+
+        public DateTime? NgayPhanHoiQuanTri { get; set; }
+
         [ForeignKey("MaKH")]
         public virtual Customer? Customer { get; set; }
 
