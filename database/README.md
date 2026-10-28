@@ -6,22 +6,26 @@ Dự án Coffee Blend sử dụng cơ sở dữ liệu **Microsoft SQL Server (M
 - Cấu hình chuỗi kết nối nằm tại [`appsettings.json`](../appsettings.json):
   ```json
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=CoffeeShopDB;Trusted_Connection=True;TrustServerCertificate=True;"
+    "Default": "Server=localhost;Database=CoffeeShopDb;Trusted_Connection=True;TrustServerCertificate=True;"
   }
   ```
+  *(Lưu ý: Nếu dùng SQLEXPRESS thì đổi Server thành `.\\SQLEXPRESS`, nếu dùng LocalDB thì `(localdb)\\MSSQLLocalDB`)*
 
-## 2. Khởi Tạo Cơ Sở Dữ Liệu
+## 2. Khởi Tạo Cơ Sở Dữ Liệu (File Duy Nhất Chia Sẻ Cho Cả Nhóm)
+Chỉ cần chạy **1 file duy nhất**: [`CoffeeShopDBNEW.sql`](CoffeeShopDBNEW.sql)
+- Đã gộp toàn bộ **33 bảng**, quan hệ khóa ngoại (Foreign Keys), biến thể size M/L, giỏ hàng, vouchers, liên hệ, quản lý kho, tài khoản admin/nhân viên và 48 sản phẩm mẫu đầy đủ.
+- Tự động tạo `CoffeeShopDb` nếu chưa có mà không bị lỗi đường dẫn cố định.
+- Chạy được nhiều lần (idempotent) mà không bị xung đột khóa hoặc bảng đã tồn tại.
+
+Cách chạy:
 1. Mở SQL Server Management Studio (SSMS) hoặc Azure Data Studio.
-2. Tạo database: `CREATE DATABASE CoffeeShopDB;`
-3. Chạy script chính: [`coffee_shop_mssql.sql`](coffee_shop_mssql.sql) để tạo toàn bộ bảng, khóa chính, khóa ngoại và 48 sản phẩm mẫu chuẩn.
+2. Mở file [`CoffeeShopDBNEW.sql`](CoffeeShopDBNEW.sql) và nhấn **Execute (F5)**.
+3. Hoặc chạy qua terminal `sqlcmd`:
+   ```powershell
+   sqlcmd -S "localhost" -E -C -i "database\CoffeeShopDBNEW.sql"
+   ```
 
-## 3. Các Script Cập Nhật (migrations/)
-Các file trong thư mục `migrations/` ghi nhận tiến trình nâng cấp schema:
-- `sync_database.sql`: Đồng bộ schema mới nhất (Voucher, ContactMessage, Điểm tích lũy, Khảo sát, Hạng thành viên).
-- `20261025_order_workflow.sql`: Cập nhật quy trình đơn hàng, địa chỉ giao, người xử lý.
-- `20261024_inventory_purchases_vouchers.sql`: Quản lý kho, nhà cung cấp, phiếu nhập, vouchers.
-- `20261024_browser_cart.sql`: Giỏ hàng lưu tạm cho khách duyệt web.
-- `20261013_staff_accounts.sql`: Phân quyền tài khoản nhân viên & quản trị.
-- `20261008_crm_surveys.sql`: Khảo sát ý kiến và phản hồi khách hàng.
-- `20261008_product_variants.sql`: Biến thể size M/L và giá bán từng size.
-- `20261006_customer_management.sql`: Quản lý khách hàng và điểm tích lũy.
+## 3. Tài Khoản Quản Trị Mẫu
+- **Admin**: `admin` / Mật khẩu: `123456` (Vai trò: Quản trị viên)
+- **Khách hàng**: `user01` / Mật khẩu: `123456`
+
