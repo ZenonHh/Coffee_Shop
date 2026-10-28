@@ -175,7 +175,7 @@ CREATE TABLE dbo.[chitietphieunhap] (
     [MaCTPN] INT IDENTITY(1,1) NOT NULL,
     [MaPN] INT NOT NULL,
     [MaNL] INT NOT NULL,
-    [SoLuong] DECIMAL(10,2) NOT NULL,
+    [git] DECIMAL(10,2) NOT NULL,
     [DonGia] DECIMAL(12,2) NOT NULL,
     [ThanhTien] DECIMAL(12,2) NOT NULL,
     CONSTRAINT [PK_chitietphieunhap] PRIMARY KEY ([MaCTPN])
