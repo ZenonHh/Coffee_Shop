@@ -1,6 +1,6 @@
 @model CoffeeShop.Models.ViewModels.ProductDetailViewModel
 @{
-    ViewData["Title"] = $"{Model.Product.TenSP} - Coffee Blend";
+    ViewData["Title"] = $"{Model.Product.TenSP} - Katinat Coffee";
     var isOutOfStock = Model.Product.SoLuongTon <= 0;
     var unavailable = isOutOfStock || !Model.Variants.Any();
     int stepIndex = 1;

@@ -1,6 +1,6 @@
 @model CoffeeShop.Models.ViewModels.LoginViewModel
 @{
-    ViewData["Title"] = "Đăng nhập khách hàng - Coffee Blend";
+    ViewData["Title"] = "Đăng nhập khách hàng - Katinat Coffee";
 }
 
 <section class="home-slider owl-carousel">
@@ -18,14 +18,15 @@
     </div>
 </section>
 
-<section class="ftco-section">
+<section class="ftco-section login-page">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6 ftco-animate">
-                <div class="p-4 p-md-5 rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.35); box-shadow: 0 4px 25px rgba(0,0,0,0.45);">
-                    <div class="text-center mb-4">
-                        <span class="subheading" style="color: #c49b63; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Tài Khoản Thành Viên</span>
-                        <h3 class="text-white mt-1" style="font-family: 'Josefin Sans', sans-serif;">Đăng Nhập Khách Hàng</h3>
+            <div class="col-md-7 col-lg-6 ftco-animate">
+                <div class="login-card">
+                    <div class="text-center login-heading">
+                        <span class="subheading">Tài Khoản Thành Viên</span>
+                        <h3>Đăng Nhập Khách Hàng</h3>
+                        <p>Chào mừng bạn quay trở lại Katinat Coffee</p>
                     </div>
 
                     @if (!ViewData.ModelState.IsValid)
@@ -35,36 +36,36 @@
                         </div>
                     }
 
-                    <form asp-action="Login" method="post">
+                    <form asp-action="Login" method="post" class="login-form">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="ReturnUrl" />
                         
-                        <div class="form-group mb-3">
-                            <label class="text-white">Tên đăng nhập *</label>
-                            <input type="text" asp-for="Username" class="form-control" placeholder="Tên đăng nhập..." required />
+                        <div class="form-group">
+                            <label asp-for="Username">Tên đăng nhập <span>*</span></label>
+                            <input type="text" asp-for="Username" class="form-control" placeholder="Nhập tên đăng nhập" autocomplete="username" required />
                             <span asp-validation-for="Username" class="text-danger small"></span>
                         </div>
 
-                        <div class="form-group mb-3">
-                            <label class="text-white">Mật khẩu *</label>
-                            <input type="password" asp-for="Password" class="form-control" placeholder="Mật khẩu..." required />
+                        <div class="form-group">
+                            <label asp-for="Password">Mật khẩu <span>*</span></label>
+                            <input type="password" asp-for="Password" class="form-control" placeholder="Nhập mật khẩu" autocomplete="current-password" required />
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        <div class="form-group d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-group d-flex justify-content-between align-items-center login-options">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" asp-for="RememberMe" class="custom-control-input" id="rememberMe">
                                 <label class="custom-control-label text-light" for="rememberMe">Ghi nhớ đăng nhập</label>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary py-3 px-4 w-100">Đăng Nhập</button>
+                        <button type="submit" class="btn btn-primary login-submit">Đăng Nhập</button>
 
-                        <div class="text-center mt-4 text-light">
+                        <div class="text-center login-register">
                             Chưa có tài khoản? <a asp-action="Register" class="text-primary font-weight-bold">Đăng ký thành viên ngay</a>
                         </div>
                     </form>
-                        <div class="text-center mt-3"><a asp-area="Admin" asp-controller="Account" asp-action="Login" class="text-warning small">Đăng nhập khu vực quản trị</a></div>
+                    <div class="text-center login-admin-link"><a asp-area="Admin" asp-controller="Account" asp-action="Login">Đăng nhập khu vực quản trị</a></div>
                 </div>
             </div>
         </div>

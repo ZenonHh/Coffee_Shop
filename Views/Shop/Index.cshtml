@@ -1,6 +1,6 @@
 @model CoffeeShop.Models.ViewModels.ShopViewModel
 @{
-    ViewData["Title"] = "Thực đơn - Coffee Blend";
+    ViewData["Title"] = "Thực đơn - Katinat Coffee";
 }
 
 <section class="home-slider owl-carousel">
@@ -22,16 +22,18 @@
     <div class="container">
         <div class="row justify-content-center mb-4">
             <div class="col-lg-7 col-md-9">
-                <form asp-action="Index" method="get" class="search-form">
+                <form asp-action="Index" method="get" class="search-form shop-search-form">
                     @if (Model.SelectedCategoryId.HasValue)
                     {
                         <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId.Value" />
                     }
-                    <div class="input-group">
-                        <input type="search" name="keyword" value="@Model.Keyword" class="form-control" placeholder="Tìm kiếm món uống..." aria-label="Tìm kiếm món uống" />
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-primary px-4" aria-label="Tìm kiếm"><span class="icon-search"></span></button>
-                        </div>
+                    <div class="shop-search-control">
+                        <span class="icon-search shop-search-icon" aria-hidden="true"></span>
+                        <input type="search" name="keyword" value="@Model.Keyword" class="form-control shop-search-input" placeholder="Tìm món uống yêu thích..." aria-label="Tìm kiếm món uống" />
+                        <button type="submit" class="btn btn-primary shop-search-submit">
+                            <span class="d-none d-sm-inline">Tìm kiếm</span>
+                            <span class="icon-search d-inline d-sm-none" aria-hidden="true"></span>
+                        </button>
                     </div>
                 </form>
             </div>

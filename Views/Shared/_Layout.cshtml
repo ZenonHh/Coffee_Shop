@@ -1,6 +1,6 @@
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
-    var title = ViewData["Title"] ?? "Coffee Blend - Thưởng thức cà phê & trà";
+    var title = ViewData["Title"] ?? "Katinat Coffee - Thưởng thức cà phê & trà";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -25,13 +25,13 @@
     <link rel="stylesheet" href="~/css/flaticon.css">
     <link rel="stylesheet" href="~/css/icomoon.css">
     <link rel="stylesheet" href="~/css/style.css">
-    <link rel="stylesheet" href="~/css/coffee-blend-theme.css">
+    <link rel="stylesheet" href="~/css/coffee-blend-theme.css" asp-append-version="true">
     <link rel="stylesheet" href="~/css/product-reviews.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
         <div class="container">
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Coffee<small>Blend</small></a>
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Katinat<small>Coffee</small></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="oi oi-menu"></span> Menu
             </button>
@@ -93,7 +93,7 @@
                 <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
                     <div class="ftco-footer-widget mb-4">
                         <h2 class="ftco-heading-2">Về chúng tôi</h2>
-                        <p>Coffee Blend mang đến hương vị cà phê đích thực, trà tươi và các món bánh hảo hạng phục vụ bạn mỗi ngày.</p>
+                        <p>Katinat Coffee mang đến hương vị cà phê đích thực, trà tươi và các món bánh hảo hạng phục vụ bạn mỗi ngày.</p>
                         <a asp-controller="Shop" asp-action="Index" class="py-2 d-block text-primary">Khám phá thực đơn &rarr;</a>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
             </div>
             <div class="row">
                 <div class="col-md-12 text-center">
-                    <p>Bản quyền &copy; @DateTime.Now.Year Coffee Blend - Nền tảng ASP.NET Core (.NET 8) & Microsoft SQL Server.</p>
+                    <p>Bản quyền &copy; @DateTime.Now.Year Katinat Coffee - Nền tảng ASP.NET Core (.NET 8) & Microsoft SQL Server.</p>
                 </div>
             </div>
         </div>
@@ -161,7 +161,7 @@
             <div class="survey-popup-body">
                 <a asp-controller="Survey" asp-action="Index" style="text-decoration: none; display: block; color: inherit;">
                     <p id="surveyTitle" class="font-weight-bold mb-1" style="color: #c49b63; font-size: 14px;">
-                        Đánh Giá Trải Nghiệm Tại Coffee Blend
+                        Đánh Giá Trải Nghiệm Tại Katinat Coffee
                     </p>
                     <p id="surveyDesc" class="text-muted small mb-3">
                         Ý kiến đóng góp của bạn sẽ được gửi trực tiếp đến ban Chăm sóc khách hàng để nâng cao chất lượng dịch vụ.

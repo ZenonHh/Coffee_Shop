@@ -1,5 +1,5 @@
 # BẢN ĐỒ DỰ ÁN & HƯỚNG DẪN TRA CỨU CODE (PROJECT MAP)
-**Dự án**: Coffee Blend - Hệ thống Bán Cà Phê, Quản lý Bán hàng & CRM Khách hàng
+**Dự án**: Katinat Coffee - Hệ thống Bán Cà Phê, Quản lý Bán hàng & CRM Khách hàng
 **Công nghệ**: C# ASP.NET Core (.NET 8 MVC), Entity Framework Core, Microsoft SQL Server.
 
 ---
@@ -84,7 +84,7 @@ Coffee_Shop/
 │   └── order-workflow.md                  # Quy trình vòng đời đơn hàng
 ├── wwwroot/                               # Tài nguyên tĩnh trình duyệt
 │   ├── admin/ (admin.css, admin.js)       # Style & script riêng của Admin
-│   ├── css/ (coffee-blend-theme.css...)   # Toàn bộ CSS phong cách Coffee Blend sang trọng
+│   ├── css/ (coffee-blend-theme.css...)   # Toàn bộ CSS phong cách Katinat Coffee sang trọng
 │   ├── fonts/                             # Icon fonts (Icomoon, Flaticon, Ionicons)
 │   ├── images/                            # Ảnh nền, banner, decor
 │   ├── js/                                # JavaScript tương tác giao diện

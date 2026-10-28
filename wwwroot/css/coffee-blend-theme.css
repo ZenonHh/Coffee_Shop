@@ -110,6 +110,246 @@ select.form-control option {
     color: #ffffff !important;
 }
 
+.shop-search-form {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.shop-search-control {
+    display: flex;
+    align-items: center;
+    min-height: 60px;
+    padding: 6px;
+    border: 1px solid rgba(196, 155, 99, 0.42);
+    border-radius: 999px;
+    background: linear-gradient(135deg, #1d1915, #15120f);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.shop-search-control:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(196, 155, 99, 0.12), 0 14px 34px rgba(0, 0, 0, 0.32);
+    transform: translateY(-1px);
+}
+
+.shop-search-icon {
+    flex: 0 0 auto;
+    margin: 0 12px 0 17px;
+    color: var(--primary);
+    font-size: 18px;
+}
+
+.shop-search-input.form-control,
+.shop-search-input.form-control:focus {
+    min-width: 0;
+    height: 46px !important;
+    padding: 0 10px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: var(--text-light) !important;
+    font-size: 15px;
+}
+
+.shop-search-input.form-control::placeholder {
+    color: #a69e94;
+}
+
+.shop-search-input::-webkit-search-cancel-button {
+    cursor: pointer;
+    filter: grayscale(1) brightness(1.7);
+}
+
+.shop-search-submit.btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 112px;
+    min-height: 46px;
+    margin-left: 6px;
+    padding: 0 20px;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #d3ad76, #b88d53) !important;
+    color: #17120c !important;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 5px 14px rgba(196, 155, 99, 0.2);
+}
+
+.shop-search-submit.btn:hover,
+.shop-search-submit.btn:focus {
+    background: linear-gradient(135deg, #e0bd88, #c49b63) !important;
+    box-shadow: 0 7px 18px rgba(196, 155, 99, 0.32) !important;
+    transform: translateY(-1px);
+}
+
+.login-page {
+    padding-top: 5rem;
+    padding-bottom: 6rem;
+}
+
+.login-card {
+    padding: 2.5rem 3rem;
+    border: 1px solid rgba(196, 155, 99, 0.32);
+    border-radius: 18px;
+    background:
+        radial-gradient(ellipse at top, rgba(196, 155, 99, 0.08), transparent 55%),
+        linear-gradient(145deg, #1c1814, #151210 72%);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42), inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+.login-heading {
+    margin-bottom: 2rem;
+}
+
+.login-heading .subheading {
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+}
+
+.login-heading h3 {
+    margin: 0;
+    color: var(--text-light);
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 30px;
+}
+
+.login-heading p {
+    margin: 0.7rem 0 0;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.login-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.login-form label:not(.custom-control-label) {
+    margin-bottom: 0.55rem;
+    color: #e9e1d7;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.login-form label span {
+    color: var(--primary);
+}
+
+.login-form .form-control {
+    height: 54px;
+    padding: 0 16px;
+    border-radius: 9px !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    font-size: 15px;
+}
+
+.login-form .form-control:focus {
+    background: rgba(255, 255, 255, 0.055) !important;
+}
+
+.login-form .form-control::placeholder {
+    color: #8f867c;
+}
+
+.login-options {
+    margin: 0 0 1.5rem;
+}
+
+.login-form .custom-control-label {
+    color: #d7d0c8 !important;
+    cursor: pointer;
+}
+
+.login-form .custom-control-input:checked ~ .custom-control-label::before {
+    border-color: var(--primary);
+    background-color: var(--primary);
+}
+
+.login-submit.btn {
+    display: block;
+    width: 100%;
+    min-height: 54px;
+    margin: 0 auto;
+    border-radius: 9px;
+    text-align: center;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 8px 20px rgba(196, 155, 99, 0.18);
+}
+
+.login-register {
+    margin-top: 1.5rem;
+    color: #d7d0c8;
+    font-size: 14px;
+}
+
+.login-register a,
+.login-admin-link a {
+    color: var(--primary) !important;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.login-register a:hover,
+.login-admin-link a:hover {
+    color: #e0bd88 !important;
+    text-decoration: underline;
+}
+
+.login-admin-link {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(196, 155, 99, 0.14);
+    font-size: 13px;
+}
+
+.login-form .validation-summary-errors {
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 8px;
+    background: rgba(220, 53, 69, 0.08);
+}
+
+@media (max-width: 575.98px) {
+    .shop-search-control {
+        min-height: 54px;
+    }
+
+    .shop-search-icon {
+        margin-left: 13px;
+        margin-right: 7px;
+    }
+
+    .shop-search-submit.btn {
+        min-width: 48px;
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    .login-page {
+        padding-top: 3rem;
+        padding-bottom: 4rem;
+    }
+
+    .login-card {
+        padding: 2rem 1.25rem;
+        border-radius: 14px;
+    }
+
+    .login-heading h3 {
+        font-size: 25px;
+    }
+}
+
 /* Text styles */
 .text-primary, a.text-primary {
     color: var(--primary) !important;
@@ -347,6 +587,19 @@ html, body {
     letter-spacing: 1px !important;
 }
 
+.home-services .services .icon {
+    border-color: var(--primary);
+    box-shadow: 0 0 18px rgba(196, 155, 99, 0.12);
+}
+
+.home-services .services .icon span {
+    color: var(--primary);
+}
+
+.home-services .services h3 {
+    color: var(--text-light);
+}
+
 /* Unified Subpage Header Banner Styling (Matching Home Page) */
 .home-slider .slider-item.subpage-banner,
 .home-slider .slider-item[style*="height: 450px"],
@@ -391,4 +644,3 @@ html, body {
 .home-slider .slider-item .slider-text .breadcrumbs span {
     color: rgba(255, 255, 255, 0.7) !important;
 }
-

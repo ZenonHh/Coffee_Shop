@@ -1,6 +1,6 @@
 # Coffee Shop - Hệ Thống Bán Cà Phê & CRM (C# ASP.NET Core MVC & Microsoft SQL Server)
 
-Dự án Coffee Blend được xây dựng và chuẩn hóa trên nền tảng **C# ASP.NET Core MVC (.NET 8 LTS)** kết hợp với **Microsoft SQL Server (MSSQL)** và **Entity Framework Core**.
+Dự án Katinat Coffee được xây dựng và chuẩn hóa trên nền tảng **C# ASP.NET Core MVC (.NET 8 LTS)** kết hợp với **Microsoft SQL Server (MSSQL)** và **Entity Framework Core**.
 
 > 📌 **Tra cứu cấu trúc chi tiết & Ánh xạ Route/Controller/View**: Xem tại [`docs/PROJECT_MAP.md`](docs/PROJECT_MAP.md).
 
@@ -102,7 +102,7 @@ Mở trình duyệt truy cập:
 
 ## 4. Các Tính Năng Nổi Bật
 
-1. **Giao diện Coffee Blend sang trọng**: Đồng bộ tone màu đen huyền bí & vàng đồng trên toàn bộ các trang.
+1. **Giao diện Katinat Coffee sang trọng**: Đồng bộ tone màu đen huyền bí & vàng đồng trên toàn bộ các trang.
 2. **Đặt món linh hoạt**: Chọn kích cỡ (Size M, L), topping đi kèm, tính giá động theo thời gian thực.
 3. **Thanh toán & Tự động xác nhận đơn**: Đơn hàng khi khách thanh toán/chuyển khoản sẽ ngay lập tức được xác nhận, mã đơn thứ tự chuẩn `#HD0001`, `#HD0002`... kèm popup xem nhanh khi rê chuột.
 4. **Chương trình Ưu đãi & Đổi điểm (`/Promotions`)**: Hiển thị ưu đãi hiện tại/sắp tới, giảm giá theo giá trị đơn, quyền lợi 4 hạng thành viên (Đồng, Bạc, Vàng, Kim Cương), cơ chế đổi điểm nhận voucher.

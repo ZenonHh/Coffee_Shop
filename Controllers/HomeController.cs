@@ -105,7 +105,7 @@ namespace CoffeeShop.Controllers
                 _context.ContactMessages.Add(contact);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Cảm ơn bạn đã liên hệ! Lời nhắn của bạn đã được chuyển tới ban Chăm sóc khách hàng của Coffee Blend.";
+                TempData["Success"] = "Cảm ơn bạn đã liên hệ! Lời nhắn của bạn đã được chuyển tới ban Chăm sóc khách hàng của Katinat Coffee.";
                 return RedirectToAction(nameof(Contact));
             }
             catch (Exception ex)

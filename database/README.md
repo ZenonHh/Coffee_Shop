@@ -1,6 +1,6 @@
 # Hướng Dẫn Cơ Sở Dữ Liệu (Microsoft SQL Server)
 
-Dự án Coffee Blend sử dụng cơ sở dữ liệu **Microsoft SQL Server (MSSQL)** kết hợp với **Entity Framework Core 8.0**.
+Dự án Katinat Coffee sử dụng cơ sở dữ liệu **Microsoft SQL Server (MSSQL)** kết hợp với **Entity Framework Core 8.0**.
 
 ## 1. Kết Nối CSDL
 - Cấu hình chuỗi kết nối nằm tại [`appsettings.json`](../appsettings.json):
@@ -28,4 +28,3 @@ Cách chạy:
 ## 3. Tài Khoản Quản Trị Mẫu
 - **Admin**: `admin` / Mật khẩu: `123456` (Vai trò: Quản trị viên)
 - **Khách hàng**: `user01` / Mật khẩu: `123456`
-
