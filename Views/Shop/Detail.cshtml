@@ -8,13 +8,13 @@
 
 <!-- BANNER ĐẦU TRANG -->
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url('/images/bg_3.jpg'); height: 450px; min-height: 450px;">
+    <div class="slider-item" style="background-image: url('/images/bg_3.jpg'); height: 670px; min-height: 670px;">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
                 <div class="col-md-8 col-sm-12 text-center ftco-animate">
-                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
-                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Chi Tiết Món Uống</h1>
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 32px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 32px; letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;">Chi Tiết Món Uống</h1>
                     <p class="breadcrumbs mb-0">
                         <span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> 
                         <span class="mr-2"><a asp-controller="Shop" asp-action="Index">Thực đơn</a></span> 
@@ -33,7 +33,7 @@
             
             <!-- CỘT ẢNH SẢN PHẨM (KÈM BADGE HẾT HÀNG NẾU HẾT) -->
             <div class="col-lg-6 mb-5 ftco-animate">
-                <div style="position: relative; width: 100%; aspect-ratio: 1/1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(196, 155, 99, 0.3); border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                <div style="position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                     <img src="@Url.Content("~/images/" + Model.Product.HinhAnh)" 
                          onerror="this.onerror=null; this.src='/picture/@Model.Product.HinhAnh';"
                          class="img-fluid" 
@@ -51,7 +51,7 @@
             
             <!-- CỘT THÔNG TIN VÀ CHỌN MÓN -->
             <div class="col-lg-6 product-details pl-md-5 ftco-animate">
-                <h2 class="text-white font-weight-bold mb-2">@Model.Product.TenSP</h2>
+                <h2 class="text-white font-weight-bold mb-2" style="font-size: 26px; line-height: 1.3;">@Model.Product.TenSP</h2>
                 
                 <div class="rating d-flex align-items-center mb-3">
                     <p class="text-left mr-4 mb-0">
@@ -67,7 +67,7 @@
                 </div>
 
                 <p class="price mb-3">
-                    <span id="displayPrice" style="color: #c49b63; font-size: 32px; font-weight: 700;">0 đ</span>
+                    <span id="displayPrice" style="color: #c49b63; font-size: 28px; font-weight: 700;">0 đ</span>
                 </p>
 
                 @if (isOutOfStock)
@@ -89,15 +89,15 @@
 
                     <!-- 1. Chọn Kích cỡ (Size) -->
                     <div class="form-group mb-4">
-                        <label class="text-white font-weight-bold mb-2 d-block">@(stepIndex++). Chọn Kích Cỡ (Size):</label>
-                        <div class="d-flex flex-wrap" style="gap: 15px;">
+                        <label class="text-white font-weight-bold mb-2 d-block" style="font-size: 14px;">@(stepIndex++). Chọn Kích Cỡ (Size):</label>
+                        <div class="d-flex flex-wrap" style="gap: 12px;">
                             @for (int i = 0; i < Model.Variants.Count; i++)
                             {
                                 var variant = Model.Variants[i];
                                 <div class="custom-control custom-radio">
                                     <input type="radio" id="variant_@variant.MaBienThe" name="variantId" value="@variant.MaBienThe" 
                                            data-price="@variant.GiaBan" class="custom-control-input variant-radio" @(i == 0 ? "checked" : "")>
-                                    <label class="custom-control-label text-white" for="variant_@variant.MaBienThe" style="cursor: pointer;">
+                                    <label class="custom-control-label text-white" for="variant_@variant.MaBienThe" style="cursor: pointer; font-size: 14px;">
                                         Size @variant.KichCo <span style="color: #c49b63;">(@variant.GiaBan.ToString("N0") đ)</span>
                                     </label>
                                 </div>
@@ -109,7 +109,7 @@
                     @if (Model.AvailableToppings != null && Model.AvailableToppings.Any())
                     {
                         <div class="form-group mb-4">
-                            <label class="text-white font-weight-bold mb-2 d-block">@(stepIndex++). Thêm Topping Yêu Thích:</label>
+                            <label class="text-white font-weight-bold mb-2 d-block" style="font-size: 14px;">@(stepIndex++). Thêm Topping Yêu Thích:</label>
                             <div class="row">
                                 @foreach (var top in Model.AvailableToppings)
                                 {
@@ -118,7 +118,7 @@
                                         <div class="custom-control custom-checkbox">
                                             <input type="checkbox" id="top_@top.MaSP" name="toppingIds" value="@top.MaSP" 
                                                    data-price="@topPrice" class="custom-control-input topping-check">
-                                            <label class="custom-control-label text-white" for="top_@top.MaSP" style="cursor: pointer;">
+                                            <label class="custom-control-label text-white" for="top_@top.MaSP" style="cursor: pointer; font-size: 14px;">
                                                 @top.TenSP <span style="color: #c49b63;">(+@topPrice.ToString("N0") đ)</span>
                                             </label>
                                         </div>
@@ -128,23 +128,17 @@
                         </div>
                     }
 
-                    <!-- 3. Số lượng (Sửa lỗi màu chữ trắng rõ ràng, nút bấm sắc nét) -->
+                    <!-- 3. Số lượng -->
                     <div class="form-group mb-4">
-                        <label class="text-white font-weight-bold mb-2 d-block">@(stepIndex++). Số lượng:</label>
-                        <div style="width: 140px;">
-                            <div class="input-group" style="border: 1px solid #c49b63; border-radius: 8px; overflow: hidden; background: #1a1614;">
-                                <div class="input-group-prepend">
-                                    <button class="btn btn-qty-minus text-white" type="button" 
-                                            style="background: rgba(196, 155, 99, 0.2); border: none; width: 40px; font-weight: bold; font-size: 18px;">-</button>
-                                </div>
-                                <input type="number" id="productQuantity" name="quantity" class="form-control text-center text-white" 
-                                       value="1" min="1" max="50" 
-                                       style="background: transparent !important; border: none !important; color: #ffffff !important; font-size: 16px; font-weight: bold; box-shadow: none;">
-                                <div class="input-group-append">
-                                    <button class="btn btn-qty-plus text-white" type="button" 
-                                            style="background: rgba(196, 155, 99, 0.2); border: none; width: 40px; font-weight: bold; font-size: 18px;">+</button>
-                                </div>
-                            </div>
+                        <label class="text-white font-weight-bold mb-2 d-block" style="font-size: 14px;">@(stepIndex++). Số lượng:</label>
+                        <div class="product-quantity-control" style="display: flex; flex-wrap: nowrap; align-items: center; width: 140px; height: 42px; border: 1px solid #c49b63; border-radius: 8px; overflow: hidden; background: #1a1614;">
+                            <button class="btn btn-qty-minus text-white" type="button"
+                                    style="display: flex; flex: 0 0 38px; align-items: center; justify-content: center; height: 40px; padding: 0; background: rgba(196, 155, 99, 0.2); border: none; font-weight: bold; font-size: 16px; line-height: 1;">-</button>
+                            <input type="number" id="productQuantity" name="quantity" class="form-control text-center text-white"
+                                   value="1" min="1" max="50"
+                                   style="display: block; flex: 1 1 auto; align-self: center; box-sizing: border-box; width: 0; min-width: 0; height: 40px; margin: 0; padding: 0 4px; background: transparent !important; border: none !important; color: #ffffff !important; font-size: 15px; font-weight: bold; line-height: 40px; box-shadow: none; appearance: textfield;">
+                            <button class="btn btn-qty-plus text-white" type="button"
+                                    style="display: flex; flex: 0 0 38px; align-items: center; justify-content: center; height: 40px; padding: 0; background: rgba(196, 155, 99, 0.2); border: none; font-weight: bold; font-size: 16px; line-height: 1;">+</button>
                         </div>
                     </div>
 
@@ -156,6 +150,15 @@
                                     style="border-radius: 30px; background: #554e48 !important; border: 1px solid #776e66 !important; color: #ffffff !important; cursor: not-allowed; opacity: 1 !important;">
                                 <i class="icon-ban mr-2"></i> Hết hàng
                             </button>
+                        }
+                        else if (User.Identity?.IsAuthenticated != true)
+                        {
+                            <a asp-controller="Account" asp-action="Login"
+                               asp-route-returnUrl="@Url.Action("Detail", "Shop", new { id = Model.Product.MaSP })"
+                               class="btn btn-primary py-3 px-5 font-weight-bold"
+                               style="border-radius: 30px; background: #c49b63 !important; border-color: #c49b63 !important; color: #000000 !important;">
+                                <i class="icon-person mr-2"></i> Đăng nhập để thêm vào giỏ hàng
+                            </a>
                         }
                         else
                         {
@@ -176,7 +179,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: rgba(196, 155, 99, 0.2) !important;">
                 <div>
                     <span class="d-block text-uppercase font-weight-bold" style="color: #c49b63; font-size: 13px; letter-spacing: 2px;">Ý kiến khách hàng</span>
-                    <h3 class="text-white font-weight-bold mb-0">Đánh Giá &amp; Nhận Xét</h3>
+                    <h3 class="text-white font-weight-bold mb-0" style="font-size: 24px;">Đánh Giá &amp; Nhận Xét</h3>
                 </div>
                 <span class="px-3 py-1 font-weight-bold" style="border: 1px solid #c49b63; border-radius: 20px; color: #c49b63; background: rgba(196,155,99,0.1); font-size: 14px;">
                     @Model.TotalReviews lượt đánh giá
@@ -323,7 +326,7 @@
 
         $('.btn-qty-plus').click(function() {
             var val = parseInt($('#productQuantity').val()) || 1;
-            $('#productQuantity').val(val + 1);
+            $('#productQuantity').val(Math.min(val + 1, 50));
             calculateTotalPrice();
         });
 
@@ -333,6 +336,11 @@
                 $('#productQuantity').val(val - 1);
                 calculateTotalPrice();
             }
+        });
+
+        $('#productQuantity').on('change', function() {
+            var val = parseInt($(this).val()) || 1;
+            $(this).val(Math.min(Math.max(val, 1), 50));
         });
 
         // Bấm nút Hết hàng sẽ thông báo rõ ràng

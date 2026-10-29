@@ -191,38 +191,41 @@
 	counter();
 
 	var contentWayPoint = function() {
-		var i = 0;
-		$('.ftco-animate').waypoint( function( direction ) {
+		var elements = document.querySelectorAll('.ftco-animate');
+		if (!elements.length) return;
 
-			if( direction === 'down' && !$(this.element).hasClass('ftco-animated') ) {
-				
-				i++;
+		var prefersReducedMotion = window.matchMedia
+			&& window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (!('IntersectionObserver' in window) || prefersReducedMotion) {
+			Array.prototype.forEach.call(elements, function(element) {
+				element.classList.add('ftco-animated');
+			});
+			return;
+		}
 
-				$(this.element).addClass('item-animate');
-				setTimeout(function(){
+		document.body.classList.add('ftco-motion-ready');
+		var observer = new IntersectionObserver(function(entries, currentObserver) {
+			entries.forEach(function(entry) {
+				if (!entry.isIntersecting) return;
 
-					$('body .ftco-animate.item-animate').each(function(k){
-						var el = $(this);
-						setTimeout( function () {
-							var effect = el.data('animate-effect');
-							if ( effect === 'fadeIn') {
-								el.addClass('fadeIn ftco-animated');
-							} else if ( effect === 'fadeInLeft') {
-								el.addClass('fadeInLeft ftco-animated');
-							} else if ( effect === 'fadeInRight') {
-								el.addClass('fadeInRight ftco-animated');
-							} else {
-								el.addClass('fadeInUp ftco-animated');
-							}
-							el.removeClass('item-animate');
-						},  k * 50, 'easeInOutExpo' );
-					});
-					
-				}, 100);
-				
-			}
+				var siblings = entry.target.parentElement
+					? Array.prototype.filter.call(entry.target.parentElement.children, function(sibling) {
+						return sibling.classList.contains('ftco-animate');
+					})
+					: [];
+				var siblingIndex = siblings.indexOf(entry.target);
+				entry.target.style.setProperty('--ftco-reveal-delay', Math.min(Math.max(siblingIndex, 0), 2) * 90 + 'ms');
+				entry.target.classList.add('ftco-animated');
+				currentObserver.unobserve(entry.target);
+			});
+		}, {
+			threshold: 0.12,
+			rootMargin: '0px 0px -35px 0px'
+		});
 
-		} , { offset: '95%' } );
+		Array.prototype.forEach.call(elements, function(element) {
+			observer.observe(element);
+		});
 	};
 	contentWayPoint();
 
@@ -295,4 +298,3 @@
 
 
 })(jQuery);
-

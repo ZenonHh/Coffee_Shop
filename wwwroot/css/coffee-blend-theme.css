@@ -503,8 +503,8 @@ select.form-control option {
 
 /* Global Aesthetics & Visibility Fallback */
 .ftco-animate {
-    opacity: 1 !important;
-    visibility: visible !important;
+    opacity: 1;
+    visibility: visible;
 }
 
 html, body {
@@ -643,4 +643,43 @@ html, body {
 
 .home-slider .slider-item .slider-text .breadcrumbs span {
     color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.ftco-animate {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: none;
+}
+
+body.ftco-motion-ready .ftco-animate:not(.ftco-animated) {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(24px) scale(0.985);
+}
+
+body.ftco-motion-ready .ftco-animate {
+    transition: opacity 650ms ease, transform 650ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: var(--ftco-reveal-delay, 0ms);
+}
+
+body.ftco-motion-ready .ftco-animate.ftco-animated {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+body.ftco-motion-ready .home-slider .ftco-animate:not(.ftco-animated) {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.ftco-motion-ready .ftco-animate,
+    body.ftco-motion-ready .ftco-animate.ftco-animated {
+        transition: none;
+        transform: none;
+    }
 }

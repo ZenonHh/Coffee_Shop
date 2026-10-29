@@ -1,0 +1,45 @@
+@model CoffeeShop.Models.ViewModels.ShopViewModel
+<div class="row shop-product-grid">
+    @if (Model.Products.Any())
+    {
+        foreach (var product in Model.Products)
+        {
+            var isOutOfStock = product.SoLuongTon <= 0;
+            var imageUrl = Url.Content("~/picture/" + (product.HinhAnh ?? string.Empty));
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex shop-product-card ftco-animate">
+                <div class="menu-entry w-100 d-flex flex-column">
+                    <div class="position-relative">
+                        <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP"
+                           class="block-20 d-block"
+                           style="height:auto; aspect-ratio:1/1; background-image:url('@imageUrl'); background-size:contain; background-repeat:no-repeat; background-position:center; background-color:#171717; @(isOutOfStock ? "filter:opacity(.55);" : "")"
+                           aria-label="@product.TenSP"></a>
+                        @if (isOutOfStock)
+                        {
+                            <span class="badge badge-danger position-absolute" style="top:12px; right:12px;">HẾT HÀNG</span>
+                        }
+                    </div>
+                    <div class="text text-center pt-3 d-flex flex-column flex-grow-1">
+                        <h3 class="mb-1"><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
+                        <p class="text-muted small mb-2">@product.TenLoaiSP</p>
+                        <p class="price mt-auto mb-3"><span>@(product.GiaBan?.ToString("N0") ?? "Liên hệ") đ</span></p>
+                        @if (isOutOfStock)
+                        {
+                            <button type="button" class="btn btn-secondary btn-sm disabled-stock-btn" data-name="@product.TenSP" aria-disabled="true">Hết hàng</button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm">Chọn mua</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center py-5">
+            <h4>Không tìm thấy món uống phù hợp.</h4>
+            <a asp-action="Index" class="btn btn-primary mt-3">Xem toàn bộ thực đơn</a>
+        </div>
+    }
+</div>

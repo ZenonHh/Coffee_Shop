@@ -175,6 +175,58 @@ namespace CoffeeShop.Models.ViewModels
         public decimal GiaBan { get; set; }
     }
 
+    public class AdminProductEditViewModel
+    {
+        public int MaSP { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm.")]
+        [StringLength(100, ErrorMessage = "Tên sản phẩm không được vượt quá 100 ký tự.")]
+        public string TenSP { get; set; } = string.Empty;
+
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn loại sản phẩm.")]
+        public int MaLoaiSP { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Số lượng tồn không được âm.")]
+        public int SoLuongTon { get; set; }
+
+        public bool TrangThai { get; set; }
+
+        public string? HinhAnh { get; set; }
+
+        public IFormFile? HinhAnhMoi { get; set; }
+
+        public List<AdminProductCategoryOptionViewModel> Categories { get; set; } = new();
+        public List<AdminProductVariantEditViewModel> Variants { get; set; } = new();
+    }
+
+    public class AdminProductCategoryOptionViewModel
+    {
+        public int MaLoaiSP { get; set; }
+        public string TenLoaiSP { get; set; } = string.Empty;
+    }
+
+    public class AdminProductVariantEditViewModel
+    {
+        public int MaBienThe { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập kích cỡ.")]
+        [StringLength(20, ErrorMessage = "Kích cỡ không được vượt quá 20 ký tự.")]
+        public string KichCo { get; set; } = string.Empty;
+
+        [ProductPrice]
+        public decimal GiaBan { get; set; }
+    }
+
+    public sealed class ProductPriceAttribute : ValidationAttribute
+    {
+        public ProductPriceAttribute()
+        {
+            ErrorMessage = "Giá bán phải lớn hơn 0.";
+        }
+
+        public override bool IsValid(object? value) => value is decimal price && price > 0;
+    }
+
     public class AdminOrderListItemViewModel
     {
         public int MaHD { get; set; }
