@@ -20,8 +20,9 @@ namespace CoffeeShop.Areas.Admin.Controllers
             _orderManagement = orderManagement;
         }
 
-        public async Task<IActionResult> Index(string? status)
+        public async Task<IActionResult> Index(string? status, int page = 1)
         {
+            const int pageSize = 10;
             var ordersQuery = _context.Orders
                 .Include(o => o.OrderDetails)
                 .ThenInclude(d => d.Product)
@@ -34,11 +35,16 @@ namespace CoffeeShop.Areas.Admin.Controllers
                 ordersQuery = ordersQuery.Where(order => order.TrangThai == status);
             }
 
+            var totalCount = await ordersQuery.CountAsync();
+            page = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize)));
             var viewModel = new OrderListViewModel
             {
                 SelectedStatus = status,
+                Pagination = new PaginationViewModel { PageNumber = page, PageSize = pageSize, TotalCount = totalCount },
                 Orders = await ordersQuery
                     .OrderByDescending(order => order.MaHD)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
                     .Select(order => new OrderListItemViewModel
                     {
                         MaHD = order.MaHD,

@@ -1,0 +1,67 @@
+@model CoffeeShop.Models.ViewModels.AdminCustomerEditViewModel
+@{
+    var isNewCustomer = Model.MaKH == 0;
+}
+
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <form asp-action="@(isNewCustomer ? "CreateCustomer" : "EditCustomer")"
+              asp-route-id="@(isNewCustomer ? null : Model.MaKH)"
+              method="post"
+              class="customer-edit-form">
+            @Html.AntiForgeryToken()
+            @if (!isNewCustomer)
+            {
+                <input asp-for="MaKH" type="hidden" />
+            }
+            <div class="modal-header">
+                <h5 class="modal-title">@(isNewCustomer ? "Thêm khách hàng" : $"Sửa khách hàng #{Model.MaKH:D4}")</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <div class="form-group">
+                    <label asp-for="HoTen">Họ và tên *</label>
+                    <input asp-for="HoTen" class="form-control" maxlength="100" required />
+                    <span asp-validation-for="HoTen" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Sdt">Số điện thoại *</label>
+                    <input asp-for="Sdt" class="form-control" maxlength="20" required />
+                    <span asp-validation-for="Sdt" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Email">Email</label>
+                    <input asp-for="Email" class="form-control" maxlength="100" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <hr />
+                <div class="form-group">
+                    <label asp-for="TaiKhoan">Tên đăng nhập (không bắt buộc)</label>
+                    <input asp-for="TaiKhoan" class="form-control" maxlength="50" autocomplete="off" />
+                    <span asp-validation-for="TaiKhoan" class="text-danger"></span>
+                    <small class="form-text text-muted">Có thể để trống nếu chỉ tạo hồ sơ khách hàng, không cần đăng nhập.</small>
+                </div>
+                <div class="form-group mb-0">
+                    <label asp-for="MatKhauMoi">@(isNewCustomer ? "Mật khẩu đăng nhập" : "Mật khẩu mới")</label>
+                    <input asp-for="MatKhauMoi" class="form-control" maxlength="72" autocomplete="new-password" />
+                    <span asp-validation-for="MatKhauMoi" class="text-danger"></span>
+                    @if (!isNewCustomer)
+                    {
+                        <small class="form-text text-muted">Để trống nếu không muốn đổi mật khẩu.</small>
+                    }
+                    else
+                    {
+                        <small class="form-text text-muted">Bắt buộc nếu tạo tên đăng nhập.</small>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
+                <button type="submit" class="button button-primary">@(isNewCustomer ? "Thêm khách hàng" : "Lưu thay đổi")</button>
+            </div>
+        </form>
+    </div>
+</div>

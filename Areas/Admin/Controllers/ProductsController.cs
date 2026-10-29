@@ -20,11 +20,17 @@ namespace CoffeeShop.Areas.Admin.Controllers
             _environment = environment;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var products = await _context.Products
+            const int pageSize = 10;
+            var productsQuery = _context.Products
                 .AsNoTracking()
-                .OrderByDescending(p => p.MaSP)
+                .OrderByDescending(p => p.MaSP);
+            var totalCount = await productsQuery.CountAsync();
+            page = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize)));
+            var products = await productsQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(product => new AdminProductListItemViewModel
                 {
                     MaSP = product.MaSP,
@@ -43,7 +49,94 @@ namespace CoffeeShop.Areas.Admin.Controllers
                 })
                 .ToListAsync();
 
+            ViewBag.Pagination = new PaginationViewModel
+            {
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
             return View(products);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            var model = new AdminProductEditViewModel
+            {
+                TrangThai = true,
+                Variants = new List<AdminProductVariantEditViewModel> { new() }
+            };
+            await LoadCategoriesAsync(model);
+            model.MaLoaiSP = model.Categories.FirstOrDefault()?.MaLoaiSP ?? 0;
+            return PartialView("_EditModal", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(AdminProductEditViewModel model)
+        {
+            model.Variants ??= new List<AdminProductVariantEditViewModel>();
+            if (model.Variants.Count == 0)
+            {
+                ModelState.AddModelError(nameof(model.Variants), "Thêm ít nhất một kích cỡ và giá bán.");
+            }
+
+            if (model.Variants
+                .GroupBy(variant => (variant.KichCo ?? string.Empty).Trim(), StringComparer.OrdinalIgnoreCase)
+                .Any(group => group.Count() > 1))
+            {
+                ModelState.AddModelError(nameof(model.Variants), "Kích cỡ không được trùng nhau.");
+            }
+
+            if (!await _context.Categories.AnyAsync(category => category.MaLoaiSP == model.MaLoaiSP))
+            {
+                ModelState.AddModelError(nameof(model.MaLoaiSP), "Loại sản phẩm không tồn tại.");
+            }
+
+            await ValidateImageUploadAsync(model.HinhAnhMoi);
+            if (!ModelState.IsValid)
+            {
+                await LoadCategoriesAsync(model);
+                return PartialView("_EditModal", model);
+            }
+
+            var product = new Product
+            {
+                TenSP = model.TenSP.Trim(),
+                MaLoaiSP = model.MaLoaiSP,
+                SoLuongTon = model.SoLuongTon,
+                TrangThai = model.TrangThai,
+                Variants = model.Variants.Select(variant => new ProductVariant
+                {
+                    KichCo = variant.KichCo.Trim(),
+                    GiaBan = variant.GiaBan,
+                    TrangThai = true
+                }).ToList()
+            };
+
+            string? uploadedImagePath = null;
+            if (model.HinhAnhMoi is { Length: > 0 } uploadedImage)
+            {
+                (product.HinhAnh, uploadedImagePath) = await SaveImageAsync(uploadedImage);
+            }
+
+            _context.Products.Add(product);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                DeleteUploadedImage(uploadedImagePath);
+                throw;
+            }
+
+            TempData["Success"] = $"Đã thêm sản phẩm {product.TenSP}.";
+            if (IsAjaxRequest())
+            {
+                return Json(new { success = true });
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
@@ -122,22 +215,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
                 ModelState.AddModelError(nameof(model.MaLoaiSP), "Loại sản phẩm không tồn tại.");
             }
 
-            if (model.HinhAnhMoi is { } imageFile)
-            {
-                var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
-                if (imageFile.Length == 0 || imageFile.Length > 5 * 1024 * 1024)
-                {
-                    ModelState.AddModelError(nameof(model.HinhAnhMoi), "Ảnh phải có dung lượng từ 1 byte đến 5 MB.");
-                }
-                else if (extension is not ".jpg" and not ".jpeg" and not ".png" and not ".webp")
-                {
-                    ModelState.AddModelError(nameof(model.HinhAnhMoi), "Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.");
-                }
-                else if (!await HasValidImageSignatureAsync(imageFile, extension))
-                {
-                    ModelState.AddModelError(nameof(model.HinhAnhMoi), "Nội dung tệp không đúng định dạng ảnh.");
-                }
-            }
+            await ValidateImageUploadAsync(model.HinhAnhMoi);
 
             if (!ModelState.IsValid)
             {
@@ -156,26 +234,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
             string? uploadedImagePath = null;
             if (model.HinhAnhMoi is { Length: > 0 } uploadedImage)
             {
-                var extension = Path.GetExtension(uploadedImage.FileName).ToLowerInvariant();
-                var fileName = $"{Guid.NewGuid():N}{extension}";
-                var imageDirectory = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "picture");
-                Directory.CreateDirectory(imageDirectory);
-                uploadedImagePath = Path.Combine(imageDirectory, fileName);
-                try
-                {
-                    await using var stream = new FileStream(uploadedImagePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                    await uploadedImage.CopyToAsync(stream);
-                }
-                catch (IOException)
-                {
-                    if (System.IO.File.Exists(uploadedImagePath))
-                    {
-                        System.IO.File.Delete(uploadedImagePath);
-                    }
-                    throw;
-                }
-
-                product.HinhAnh = fileName;
+                (product.HinhAnh, uploadedImagePath) = await SaveImageAsync(uploadedImage);
             }
 
             var variantsById = existingVariants.ToDictionary(variant => variant.MaBienThe);
@@ -192,10 +251,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
             }
             catch (DbUpdateException)
             {
-                if (uploadedImagePath != null && System.IO.File.Exists(uploadedImagePath))
-                {
-                    System.IO.File.Delete(uploadedImagePath);
-                }
+                DeleteUploadedImage(uploadedImagePath);
                 throw;
             }
             TempData["Success"] = $"Đã cập nhật sản phẩm {product.TenSP}.";
@@ -236,6 +292,57 @@ namespace CoffeeShop.Areas.Admin.Controllers
 
         private bool IsAjaxRequest() =>
             string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
+
+        private async Task ValidateImageUploadAsync(IFormFile? imageFile)
+        {
+            if (imageFile == null)
+            {
+                return;
+            }
+
+            var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            if (imageFile.Length == 0 || imageFile.Length > 5 * 1024 * 1024)
+            {
+                ModelState.AddModelError(nameof(AdminProductEditViewModel.HinhAnhMoi), "Ảnh phải có dung lượng từ 1 byte đến 5 MB.");
+            }
+            else if (extension is not ".jpg" and not ".jpeg" and not ".png" and not ".webp")
+            {
+                ModelState.AddModelError(nameof(AdminProductEditViewModel.HinhAnhMoi), "Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.");
+            }
+            else if (!await HasValidImageSignatureAsync(imageFile, extension))
+            {
+                ModelState.AddModelError(nameof(AdminProductEditViewModel.HinhAnhMoi), "Nội dung tệp không đúng định dạng ảnh.");
+            }
+        }
+
+        private async Task<(string FileName, string FilePath)> SaveImageAsync(IFormFile imageFile)
+        {
+            var extension = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            var fileName = $"{Guid.NewGuid():N}{extension}";
+            var imageDirectory = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "picture");
+            Directory.CreateDirectory(imageDirectory);
+            var filePath = Path.Combine(imageDirectory, fileName);
+            try
+            {
+                await using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                await imageFile.CopyToAsync(stream);
+            }
+            catch (IOException)
+            {
+                DeleteUploadedImage(filePath);
+                throw;
+            }
+
+            return (fileName, filePath);
+        }
+
+        private static void DeleteUploadedImage(string? imagePath)
+        {
+            if (imagePath != null && System.IO.File.Exists(imagePath))
+            {
+                System.IO.File.Delete(imagePath);
+            }
+        }
 
         private static async Task<bool> HasValidImageSignatureAsync(IFormFile imageFile, string extension)
         {

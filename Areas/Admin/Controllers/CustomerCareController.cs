@@ -22,34 +22,65 @@ public class CustomerCareController : Controller
 
     [HttpGet("")]
     [HttpGet("Index")]
-    public async Task<IActionResult> Index(string tab = "surveys", int? editId = null, int? viewResponses = null)
+    public async Task<IActionResult> Index(
+        string tab = "surveys",
+        int? editId = null,
+        int? viewResponses = null,
+        int surveyPage = 1,
+        int contactPage = 1,
+        int reviewPage = 1)
     {
-        var surveys = await GetSurveyListAsync();
-        var contacts = await _context.ContactMessages
-            .AsNoTracking()
-            .OrderByDescending(c => c.NgayGui)
-            .ToListAsync();
-        var feedbacks = await _context.Feedbacks
-            .AsNoTracking()
-            .Include(f => f.Customer)
-            .Include(f => f.Product)
-            .OrderByDescending(f => f.NgayGui)
-            .ToListAsync();
+        const int pageSize = 10;
+        var activeTab = tab.ToLowerInvariant() switch
+        {
+            "contacts" => "contacts",
+            "reviews" => "reviews",
+            _ => "surveys"
+        };
+        var surveyCount = await _context.Surveys.CountAsync();
+        var activeSurveyCount = await _context.Surveys.CountAsync(survey =>
+            survey.NgayBatDau <= DateTime.Now && survey.NgayKetThuc >= DateTime.Now);
+        var contactCount = await _context.ContactMessages.CountAsync();
+        var reviewCount = await _context.Feedbacks.CountAsync();
+        surveyPage = Math.Clamp(surveyPage, 1, Math.Max(1, (int)Math.Ceiling(surveyCount / (double)pageSize)));
+        contactPage = Math.Clamp(contactPage, 1, Math.Max(1, (int)Math.Ceiling(contactCount / (double)pageSize)));
+        reviewPage = Math.Clamp(reviewPage, 1, Math.Max(1, (int)Math.Ceiling(reviewCount / (double)pageSize)));
+
+        var surveys = activeTab == "surveys" ? await GetSurveyListAsync(surveyPage, pageSize) : new List<SurveyListItemViewModel>();
+        var contacts = activeTab == "contacts"
+            ? await _context.ContactMessages.AsNoTracking().OrderByDescending(c => c.NgayGui)
+                .Skip((contactPage - 1) * pageSize).Take(pageSize).ToListAsync()
+            : new List<ContactMessage>();
+        var feedbacks = activeTab == "reviews"
+            ? await _context.Feedbacks.AsNoTracking().Include(f => f.Customer).Include(f => f.Product)
+                .OrderByDescending(f => f.NgayGui).Skip((reviewPage - 1) * pageSize).Take(pageSize).ToListAsync()
+            : new List<Feedback>();
+
+        var unprocessedCount = await _context.ContactMessages.CountAsync(c => c.TrangThai == "Chưa xử lý");
+        var unansweredReviewsCount = await _context.Feedbacks.CountAsync(f => f.PhanHoiQuanTri == null || f.PhanHoiQuanTri == "");
+        var processedContactCount = await _context.ContactMessages.CountAsync(c => c.TrangThai == "Đã xử lý");
+        var answeredReviewsCount = reviewCount - unansweredReviewsCount;
 
         ViewBag.EditSurvey = editId.HasValue
             ? await _context.Surveys.AsNoTracking().FirstOrDefaultAsync(s => s.MaKhaoSat == editId.Value)
             : null;
         ViewBag.ContactMessages = contacts;
         ViewBag.Feedbacks = feedbacks;
-        ViewBag.ActiveTab = tab.ToLowerInvariant() switch
+        ViewBag.ActiveTab = activeTab;
+        ViewBag.SurveyCount = surveyCount;
+        ViewBag.ActiveSurveyCount = activeSurveyCount;
+        ViewBag.TotalContacts = contactCount;
+        ViewBag.UnprocessedCount = unprocessedCount;
+        ViewBag.ProcessedContactCount = processedContactCount;
+        ViewBag.ReviewCount = reviewCount;
+        ViewBag.AnsweredReviewsCount = answeredReviewsCount;
+        ViewBag.UnansweredReviewsCount = unansweredReviewsCount;
+        ViewBag.Pagination = activeTab switch
         {
-            "contacts" => "contacts",
-            "reviews" => "reviews",
-            _ => "surveys"
+            "contacts" => new PaginationViewModel { PageNumber = contactPage, PageSize = pageSize, TotalCount = contactCount, PageParameter = "contactPage" },
+            "reviews" => new PaginationViewModel { PageNumber = reviewPage, PageSize = pageSize, TotalCount = reviewCount, PageParameter = "reviewPage" },
+            _ => new PaginationViewModel { PageNumber = surveyPage, PageSize = pageSize, TotalCount = surveyCount, PageParameter = "surveyPage" }
         };
-        ViewBag.TotalContacts = contacts.Count;
-        ViewBag.UnprocessedCount = contacts.Count(c => c.TrangThai == "Chưa xử lý");
-        ViewBag.UnansweredReviewsCount = feedbacks.Count(f => string.IsNullOrWhiteSpace(f.PhanHoiQuanTri));
 
         return View(surveys);
     }
@@ -223,9 +254,11 @@ public class CustomerCareController : Controller
 
     #region Helpers
 
-    private Task<List<SurveyListItemViewModel>> GetSurveyListAsync() => _context.Surveys
+    private Task<List<SurveyListItemViewModel>> GetSurveyListAsync(int page = 1, int pageSize = 10) => _context.Surveys
         .AsNoTracking()
         .OrderByDescending(survey => survey.NgayBatDau)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
         .Select(survey => new SurveyListItemViewModel
         {
             MaKhaoSat = survey.MaKhaoSat,
@@ -263,8 +296,31 @@ public class CustomerCareController : Controller
         ViewBag.EditSurvey = survey.MaKhaoSat > 0 ? survey : null;
         ViewBag.FormError = "Vui lòng kiểm tra tiêu đề và thời gian khảo sát (ngày kết thúc phải sau ngày bắt đầu).";
         ViewBag.ActiveTab = "surveys";
-        ViewBag.ContactMessages = await _context.ContactMessages.AsNoTracking().OrderByDescending(c => c.NgayGui).ToListAsync();
-        return View("Index", await GetSurveyListAsync());
+        const int pageSize = 10;
+        var surveyCount = await _context.Surveys.CountAsync();
+        var contactCount = await _context.ContactMessages.CountAsync();
+        var reviewCount = await _context.Feedbacks.CountAsync();
+        var unansweredCount = await _context.Feedbacks.CountAsync(feedback =>
+            feedback.PhanHoiQuanTri == null || feedback.PhanHoiQuanTri == "");
+        ViewBag.SurveyCount = surveyCount;
+        ViewBag.ActiveSurveyCount = await _context.Surveys.CountAsync(item =>
+            item.NgayBatDau <= DateTime.Now && item.NgayKetThuc >= DateTime.Now);
+        ViewBag.TotalContacts = contactCount;
+        ViewBag.UnprocessedCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Chưa xử lý");
+        ViewBag.ProcessedContactCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Đã xử lý");
+        ViewBag.ReviewCount = reviewCount;
+        ViewBag.UnansweredReviewsCount = unansweredCount;
+        ViewBag.AnsweredReviewsCount = reviewCount - unansweredCount;
+        ViewBag.Pagination = new PaginationViewModel
+        {
+            PageNumber = 1,
+            PageSize = pageSize,
+            TotalCount = surveyCount,
+            PageParameter = "surveyPage"
+        };
+        ViewBag.ContactMessages = new List<ContactMessage>();
+        ViewBag.Feedbacks = new List<Feedback>();
+        return View("Index", await GetSurveyListAsync(1, pageSize));
     }
 
     private static void Normalize(Survey survey)

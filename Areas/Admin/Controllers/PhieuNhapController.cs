@@ -16,9 +16,9 @@ public class PhieuNhapController : Controller
 
     public PhieuNhapController(CoffeeShopDbContext context) => _context = context;
 
-    public IActionResult Index()
+    public IActionResult Index(int page = 1)
     {
-        return RedirectToAction("Index", "NhaCungCap", new { tab = "purchases" });
+        return RedirectToAction("Index", "NhaCungCap", new { tab = "purchases", purchasePage = page });
     }
 
     [HttpGet]

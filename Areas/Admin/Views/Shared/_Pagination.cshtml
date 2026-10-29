@@ -1,0 +1,47 @@
+@model CoffeeShop.Models.ViewModels.PaginationViewModel
+@{
+    var currentPage = Math.Max(1, Model.PageNumber);
+    var totalPages = Model.TotalPages;
+    var firstPage = Math.Max(1, currentPage - 2);
+    var lastPage = Math.Min(totalPages, currentPage + 2);
+    var routeValues = ViewContext.HttpContext.Request.Query.ToDictionary(
+        pair => pair.Key,
+        pair => (object?)pair.Value.ToString());
+    routeValues["area"] = "Admin";
+    routeValues["controller"] = ViewContext.RouteData.Values["controller"]?.ToString();
+    routeValues["action"] = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+@if (Model.TotalCount > 0)
+{
+    <nav class="d-flex flex-wrap justify-content-between align-items-center mt-3" aria-label="Phân trang">
+        <small class="text-muted mb-2">
+            Hiển thị @((currentPage - 1) * Model.PageSize + 1)–@Math.Min(currentPage * Model.PageSize, Model.TotalCount)
+            trên @Model.TotalCount mục
+        </small>
+        @if (totalPages > 1)
+        {
+            <ul class="pagination pagination-sm mb-2">
+                @{
+                    routeValues[Model.PageParameter] = Math.Max(1, currentPage - 1);
+                }
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-all-route-data="@(routeValues.ToDictionary(pair => pair.Key, pair => pair.Value?.ToString() ?? string.Empty))" aria-label="Trang trước">‹</a>
+                </li>
+                @for (var pageNumber = firstPage; pageNumber <= lastPage; pageNumber++)
+                {
+                    routeValues[Model.PageParameter] = pageNumber;
+                    <li class="page-item @(pageNumber == currentPage ? "active" : "")">
+                        <a class="page-link" asp-all-route-data="@(routeValues.ToDictionary(pair => pair.Key, pair => pair.Value?.ToString() ?? string.Empty))">@pageNumber</a>
+                    </li>
+                }
+                @{
+                    routeValues[Model.PageParameter] = Math.Min(totalPages, currentPage + 1);
+                }
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-all-route-data="@(routeValues.ToDictionary(pair => pair.Key, pair => pair.Value?.ToString() ?? string.Empty))" aria-label="Trang sau">›</a>
+                </li>
+            </ul>
+        }
+    </nav>
+}

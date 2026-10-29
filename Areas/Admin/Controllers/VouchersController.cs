@@ -14,9 +14,13 @@ public class VouchersController : Controller
     private readonly CoffeeShopDbContext _context;
     public VouchersController(CoffeeShopDbContext context) => _context = context;
 
-    public async Task<IActionResult> Index(int? editId)
+    public async Task<IActionResult> Index(int? editId, int page = 1)
     {
-        var vouchers = await GetVouchersAsync();
+        const int pageSize = 10;
+        var totalCount = await _context.Vouchers.CountAsync();
+        page = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize)));
+        var vouchers = await GetVouchersAsync(page, pageSize);
+        ViewBag.Pagination = new PaginationViewModel { PageNumber = page, PageSize = pageSize, TotalCount = totalCount };
         if (editId.HasValue)
             ViewBag.EditVoucher = await _context.Vouchers.AsNoTracking().FirstOrDefaultAsync(voucher => voucher.MaVoucher == editId.Value);
         return View(vouchers);
@@ -92,12 +96,21 @@ public class VouchersController : Controller
     {
         ViewBag.EditVoucher = voucher.MaVoucher > 0 ? voucher : null;
         ViewBag.FormError = "Vui lòng kiểm tra lại thông tin voucher.";
-        return View("Index", await GetVouchersAsync());
+        var totalCount = await _context.Vouchers.CountAsync();
+        ViewBag.Pagination = new PaginationViewModel
+        {
+            PageNumber = 1,
+            PageSize = 10,
+            TotalCount = totalCount
+        };
+        return View("Index", await GetVouchersAsync(1, 10));
     }
 
-    private Task<List<VoucherListItemViewModel>> GetVouchersAsync() => _context.Vouchers
+    private Task<List<VoucherListItemViewModel>> GetVouchersAsync(int page, int pageSize) => _context.Vouchers
         .AsNoTracking()
         .OrderByDescending(voucher => voucher.MaVoucher)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
         .Select(voucher => new VoucherListItemViewModel
         {
             MaVoucher = voucher.MaVoucher,

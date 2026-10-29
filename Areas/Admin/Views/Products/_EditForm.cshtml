@@ -1,8 +1,14 @@
 @model CoffeeShop.Models.ViewModels.AdminProductEditViewModel
+@{
+    var isNewProduct = Model.MaSP == 0;
+}
 
-<form asp-action="Edit" asp-route-id="@Model.MaSP" method="post" enctype="multipart/form-data" class="product-edit-form">
+<form asp-action="@(isNewProduct ? "Create" : "Edit")" asp-route-id="@(isNewProduct ? null : Model.MaSP)" method="post" enctype="multipart/form-data" class="product-edit-form">
     @Html.AntiForgeryToken()
-    <input asp-for="MaSP" type="hidden" />
+    @if (!isNewProduct)
+    {
+        <input asp-for="MaSP" type="hidden" />
+    }
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
     <div class="form-row">
@@ -38,7 +44,7 @@
             </div>
         </div>
         <div class="form-group col-md-4">
-            <label>Hình ảnh hiện tại</label>
+            <label>@(isNewProduct ? "Hình ảnh sản phẩm" : "Hình ảnh hiện tại")</label>
             <div class="d-flex align-items-center">
                 @if (!string.IsNullOrWhiteSpace(Model.HinhAnh))
                 {
@@ -53,18 +59,29 @@
         </div>
     </div>
     <div class="form-group">
-        <label asp-for="HinhAnhMoi">Đổi hình ảnh (không bắt buộc)</label>
+        <label asp-for="HinhAnhMoi">@(isNewProduct ? "Chọn hình ảnh (không bắt buộc)" : "Đổi hình ảnh (không bắt buộc)")</label>
         <input asp-for="HinhAnhMoi" class="form-control-file" type="file" accept=".jpg,.jpeg,.png,.webp" />
         <small class="form-text text-muted">Chấp nhận JPG, PNG, WebP; dung lượng tối đa 5 MB.</small>
         <span asp-validation-for="HinhAnhMoi" class="text-danger"></span>
     </div>
 
     <h6 class="font-weight-bold mt-3">Kích cỡ và giá bán</h6>
-    <p class="text-muted small">Thay đổi giá hoặc tên kích cỡ hiện có. Liên hệ quản trị viên nếu cần thêm/xóa kích cỡ.</p>
+    @if (isNewProduct)
+    {
+        <p class="text-muted small">Thêm ít nhất một kích cỡ và giá bán cho sản phẩm.</p>
+    }
+    else
+    {
+        <p class="text-muted small">Thay đổi giá hoặc tên kích cỡ hiện có. Liên hệ quản trị viên nếu cần thêm/xóa kích cỡ.</p>
+    }
+    <div id="productVariants">
     @for (var index = 0; index < Model.Variants.Count; index++)
     {
-        <div class="form-row align-items-end">
-            <input asp-for="Variants[index].MaBienThe" type="hidden" />
+        <div class="form-row align-items-end product-variant-row">
+            @if (!isNewProduct)
+            {
+                <input asp-for="Variants[index].MaBienThe" type="hidden" />
+            }
             <div class="form-group col-md-5">
                 <label asp-for="Variants[index].KichCo">Kích cỡ</label>
                 <input asp-for="Variants[index].KichCo" class="form-control" />
@@ -75,14 +92,27 @@
                 <input asp-for="Variants[index].GiaBan" class="form-control" type="number" min="0.01" step="1000" />
                 <span asp-validation-for="Variants[index].GiaBan" class="text-danger"></span>
             </div>
+            @if (isNewProduct)
+            {
+                <div class="form-group col-md-2">
+                    <button type="button" class="button button-small button-outline text-danger js-remove-product-variant">Xóa</button>
+                </div>
+            }
         </div>
     }
+    </div>
     <span asp-validation-for="Variants" class="text-danger"></span>
 
     <div class="mt-3">
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> Lưu thay đổi
+        @if (isNewProduct)
+        {
+            <button type="button" class="button button-outline js-add-product-variant">
+                <i class="fas fa-plus"></i> Thêm kích cỡ
+            </button>
+        }
+        <button type="submit" class="button button-primary">
+            <i class="fas fa-save"></i> @(isNewProduct ? "Thêm sản phẩm" : "Lưu thay đổi")
         </button>
-        <button type="button" class="btn btn-light" data-dismiss="modal">Hủy</button>
+        <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
     </div>
 </form>

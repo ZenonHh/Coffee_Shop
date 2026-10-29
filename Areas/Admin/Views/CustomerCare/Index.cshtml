@@ -44,7 +44,7 @@
        class="button @(isSurveysTab ? "button-primary" : "button-outline")" 
        style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: 600; padding: 10px 20px; font-size: 14px;">
          Tab 1 - Quản lý khảo sát (Chính)
-        <span class="badge @(isSurveysTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@Model.Count</span>
+        <span class="badge @(isSurveysTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@ViewBag.SurveyCount</span>
     </a>
     <a asp-action="Index" asp-route-tab="contacts" 
        class="button @(isContactsTab ? "button-primary" : "button-outline")"
@@ -56,7 +56,7 @@
         }
         else
         {
-            <span class="badge @(isContactsTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@contacts.Count</span>
+            <span class="badge @(isContactsTab ? "badge-dark" : "badge-secondary") ml-1" style="font-size: 12px;">@ViewBag.TotalContacts</span>
         }
     </a>
     <a asp-action="Index" asp-route-tab="reviews"
@@ -70,7 +70,7 @@
             }
             else
             {
-                <text>@feedbacks.Count</text>
+                <text>@ViewBag.ReviewCount</text>
             }
         </span>
     </a>
@@ -176,12 +176,12 @@
 
             <div class="category-note mt-3">
                 <span class="d-block muted-cell small">TỔNG ĐỢT KHẢO SÁT</span>
-                <strong style="font-size: 20px; color: #fff;">@Model.Count</strong> đợt khảo sát trong hệ thống.
+                <strong style="font-size: 20px; color: #fff;">@ViewBag.SurveyCount</strong> đợt khảo sát trong hệ thống.
             </div>
 
             <div class="category-note mt-3">
                 <span class="d-block muted-cell small">ĐANG MỞ TRÊN WEB &amp; POP-UP</span>
-                <strong style="font-size: 20px; color: #c49b63;">@Model.Count(s => s.NgayBatDau <= DateTime.Now && s.NgayKetThuc >= DateTime.Now)</strong> đợt khảo sát hoạt động.
+                <strong style="font-size: 20px; color: #c49b63;">@ViewBag.ActiveSurveyCount</strong> đợt khảo sát hoạt động.
             </div>
 
             <div class="category-note mt-3">
@@ -366,6 +366,7 @@
                 </tbody>
             </table>
         </div>
+        <partial name="_Pagination" model="ViewBag.Pagination" />
     </section>
 }
 else if (isContactsTab)
@@ -375,21 +376,21 @@ else if (isContactsTab)
         <div class="col-md-4">
             <div class="panel p-3">
                 <span class="muted-cell small d-block">TỔNG TIN NHẮN LIÊN HỆ</span>
-                <strong style="font-size: 22px; color: #fff;">@contacts.Count</strong>
+                <strong style="font-size: 22px; color: #fff;">@ViewBag.TotalContacts</strong>
                 <span class="muted-cell small d-block mt-1">Từ trang liên hệ /Home/Contact</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="panel p-3">
                 <span class="muted-cell small d-block">CHƯA XỬ LÝ</span>
-                <strong style="font-size: 22px; color: #ffc107;">@contacts.Count(c => c.TrangThai == "Chưa xử lý")</strong>
+                <strong style="font-size: 22px; color: #ffc107;">@ViewBag.UnprocessedCount</strong>
                 <span class="muted-cell small d-block mt-1">Cần xem xét và phản hồi qua email</span>
             </div>
         </div>
         <div class="col-md-4">
             <div class="panel p-3">
                 <span class="muted-cell small d-block">ĐÃ XỬ LÝ</span>
-                <strong style="font-size: 22px; color: #28a745;">@contacts.Count(c => c.TrangThai == "Đã xử lý")</strong>
+                <strong style="font-size: 22px; color: #28a745;">@ViewBag.ProcessedContactCount</strong>
                 <span class="muted-cell small d-block mt-1">Đã hoàn tất hỗ trợ khách hàng</span>
             </div>
         </div>
@@ -499,6 +500,7 @@ else if (isContactsTab)
                 </tbody>
             </table>
         </div>
+        <partial name="_Pagination" model="ViewBag.Pagination" />
     </section>
 
     <!-- MODAL XEM CHI TIẾT LỜI NHẮN LIÊN HỆ -->
@@ -562,7 +564,7 @@ else
         <div class="col-md-4">
             <div class="panel p-3">
                 <span class="muted-cell small d-block">TỔNG ĐÁNH GIÁ</span>
-                <strong style="font-size: 22px; color: #3400f2;">@feedbacks.Count</strong>
+                <strong style="font-size: 22px; color: #3400f2;">@ViewBag.ReviewCount</strong>
                 <span class="muted-cell small d-block mt-1">Ý kiến từ khách hàng trên website</span>
             </div>
         </div>
@@ -576,7 +578,7 @@ else
         <div class="col-md-4">
             <div class="panel p-3">
                 <span class="muted-cell small d-block">ĐÃ PHẢN HỒI</span>
-                <strong style="font-size: 22px; color: #28a745;">@(feedbacks.Count - unansweredReviews)</strong>
+                <strong style="font-size: 22px; color: #28a745;">@ViewBag.AnsweredReviewsCount</strong>
                 <span class="muted-cell small d-block mt-1">Có phản hồi từ cửa hàng</span>
             </div>
         </div>
@@ -647,6 +649,7 @@ else
                 </tbody>
             </table>
         </div>
+        <partial name="_Pagination" model="ViewBag.Pagination" />
     </section>
 }
 

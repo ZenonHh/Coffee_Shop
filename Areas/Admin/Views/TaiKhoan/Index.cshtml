@@ -36,61 +36,26 @@
     <a asp-action="Index" asp-route-tab="internal" 
        class="btn @(activeTab == "internal" ? "btn-primary font-weight-bold" : "btn-outline-primary") py-2 px-4" 
        style="border-radius: 8px 8px 0 0; font-size: 14px;">
-        🛡️ Tài Khoản Quản Trị &amp; Nhân Viên (@Model.InternalAccounts.Count)
+         Tài Khoản Quản Trị &amp; Nhân Viên (@Model.InternalAccountCount)
     </a>
     <a asp-action="Index" asp-route-tab="customer" 
        class="btn @(activeTab == "customer" ? "btn-primary font-weight-bold" : "btn-outline-primary") py-2 px-4" 
        style="border-radius: 8px 8px 0 0; font-size: 14px;">
-        👥 Tài Khoản Khách Hàng Thành Viên (@Model.CustomerAccounts.Count)
+         Tài Khoản Khách Hàng Thành Viên (@Model.CustomerAccountCount)
     </a>
 </div>
 
 @if (activeTab == "internal")
 {
-    <!-- TAB 1: TÀI KHOẢN NỘI BỘ (ADMIN & NHÂN VIÊN) -->
-    <div class="dashboard-grid">
-        <section class="panel">
-            <div class="panel-heading">
-                <div>
-                    <h2>Tạo tài khoản nhân viên</h2>
-                    <p>Mật khẩu được băm bảo mật BCrypt trước khi lưu.</p>
-                </div>
-            </div>
-            <form asp-action="Create" method="post" class="dialog-form px-0">
-                @Html.AntiForgeryToken()
-                <label>
-                    Tên đăng nhập
-                    <input name="TenDangNhap" value="@formModel.TenDangNhap" maxlength="50" autocomplete="username" required placeholder="ví dụ: staff_01" />
-                </label>
-                <label>
-                    Họ và tên
-                    <input name="HoTen" value="@formModel.HoTen" maxlength="100" required placeholder="ví dụ: Nguyễn Văn A" />
-                </label>
-                <label>
-                    Vai trò phân quyền
-                    <select name="MaVaiTro" required>
-                        @foreach (var role in roles)
-                        {
-                            <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@role.TenVaiTro</option>
-                        }
-                    </select>
-                </label>
-                <label>
-                    Mật khẩu khởi tạo
-                    <input name="MatKhau" type="password" minlength="8" maxlength="72" autocomplete="new-password" required placeholder="Tối thiểu 8 ký tự" />
-                </label>
-                <div class="dialog-actions mt-3">
-                    <button class="button button-primary" type="submit">+ Tạo tài khoản mới</button>
-                </div>
-            </form>
-        </section>
-
-        <section class="panel table-panel">
-            <div class="panel-heading">
+    <section class="panel table-panel">
+            <div class="panel-heading table-heading">
                 <div>
                     <h2>Danh sách nhân sự &amp; quản trị</h2>
-                    <p>Hiện có @Model.InternalAccounts.Count tài khoản trong hệ thống nội bộ.</p>
+                    <p>Hiện có @Model.InternalAccountCount tài khoản trong hệ thống nội bộ.</p>
                 </div>
+                <button type="button" class="button button-primary" data-toggle="modal" data-target="#createInternalAccountModal">
+                    + Tạo tài khoản mới
+                </button>
             </div>
             <div class="table-scroll">
                 <table class="data-table">
@@ -137,8 +102,48 @@
                     </tbody>
                 </table>
             </div>
-        </section>
+    </section>
+    <partial name="_Pagination" model="ViewBag.Pagination" />
+
+    <div class="modal fade" id="createInternalAccountModal" tabindex="-1" role="dialog" aria-labelledby="createInternalAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form asp-action="Create" method="post" class="dialog-form">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createInternalAccountModalLabel">Tạo tài khoản nhân viên</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted">Mật khẩu được băm bảo mật BCrypt trước khi lưu.</p>
+                        <label>Tên đăng nhập<input name="TenDangNhap" value="@formModel.TenDangNhap" maxlength="50" autocomplete="username" required placeholder="ví dụ: staff_01" /></label>
+                        <label>Họ và tên<input name="HoTen" value="@formModel.HoTen" maxlength="100" required placeholder="ví dụ: Nguyễn Văn A" /></label>
+                        <label>Vai trò phân quyền
+                            <select name="MaVaiTro" required>
+                                @foreach (var role in roles)
+                                {
+                                    <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@role.TenVaiTro</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Mật khẩu khởi tạo<input name="MatKhau" type="password" minlength="8" maxlength="72" autocomplete="new-password" required placeholder="Tối thiểu 8 ký tự" /></label>
+                        @if (ViewBag.OpenInternalModal == true)
+                        {
+                            <div asp-validation-summary="All" class="alert alert-danger"></div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
+                        <button class="button button-primary" type="submit">Tạo tài khoản mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+    @if (ViewBag.OpenInternalModal == true)
+    {
+        <script>$(function () { $("#createInternalAccountModal").modal("show"); });</script>
+    }
 }
 else
 {
@@ -147,17 +152,20 @@ else
         <div class="panel-heading d-flex flex-wrap justify-content-between align-items-center">
             <div>
                 <h2>Danh sách khách hàng thành viên</h2>
-                <p>Tổng cộng @Model.CustomerAccounts.Count khách hàng đã đăng ký và mua sắm.</p>
+                <p>Tổng cộng @Model.CustomerAccountCount khách hàng đã đăng ký và mua sắm.</p>
             </div>
-            <div class="d-flex" style="gap: 15px;">
+            <div class="d-flex flex-wrap align-items-center" style="gap: 12px;">
                 <div class="p-2 px-3 rounded" style="background: rgba(196, 155, 99, 0.1); border: 1px solid rgba(196, 155, 99, 0.3);">
                     <small class="text-muted d-block">Hoạt động:</small>
-                    <strong class="text-success">@Model.CustomerAccounts.Count(c => c.TrangThai)</strong>
+                    <strong class="text-success">@Model.ActiveCustomerCount</strong>
                 </div>
                 <div class="p-2 px-3 rounded" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
                     <small class="text-muted d-block">Đã khóa:</small>
-                    <strong class="text-danger">@Model.CustomerAccounts.Count(c => !c.TrangThai)</strong>
+                    <strong class="text-danger">@Model.LockedCustomerCount</strong>
                 </div>
+                <button type="button" class="button button-primary js-create-customer" data-url="@Url.Action("CreateCustomer")">
+                    + Thêm khách hàng
+                </button>
             </div>
         </div>
 
@@ -224,6 +232,9 @@ else
                                 </span>
                             </td>
                             <td>
+                                <button type="button" class="button button-small button-outline js-edit-customer" data-url="@Url.Action("EditCustomer", new { id = customer.MaKH })">
+                                    Sửa
+                                </button>
                                 <form asp-action="ToggleCustomerStatus" method="post" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái tài khoản khách hàng @customer.HoTen?');">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@customer.MaKH" />
@@ -242,4 +253,60 @@ else
             </table>
         </div>
     </section>
+    <partial name="_Pagination" model="ViewBag.Pagination" />
+}
+
+<div class="modal fade" id="customerAccountModal" tabindex="-1" role="dialog" aria-hidden="true"></div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const modal = $("#customerAccountModal");
+
+            async function loadCustomerForm(url) {
+                const response = await fetch(url, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                if (!response.ok) throw new Error("Không tải được biểu mẫu khách hàng.");
+                modal.html(await response.text()).modal("show");
+            }
+
+            document.addEventListener("click", async function (event) {
+                const button = event.target.closest(".js-edit-customer, .js-create-customer");
+                if (!button) return;
+                try {
+                    await loadCustomerForm(button.dataset.url);
+                } catch (error) {
+                    window.alert(error.message);
+                }
+            });
+
+            $(document).on("submit", ".customer-edit-form", async function (event) {
+                event.preventDefault();
+                const form = event.currentTarget;
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                try {
+                    const response = await fetch(form.action, {
+                        method: "POST",
+                        body: new FormData(form),
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+                    if (!response.ok) throw new Error("Không thể lưu khách hàng. Vui lòng thử lại.");
+                    const contentType = response.headers.get("content-type") || "";
+                    if (contentType.includes("application/json")) {
+                        modal.modal("hide");
+                        window.location.reload();
+                        return;
+                    }
+                    modal.html(await response.text()).modal("show");
+                } catch (error) {
+                    window.alert(error.message);
+                    submitButton.disabled = false;
+                }
+            });
+
+            modal.on("hidden.bs.modal", function () { modal.empty(); });
+        })();
+    </script>
 }
