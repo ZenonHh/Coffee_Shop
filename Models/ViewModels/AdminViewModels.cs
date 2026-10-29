@@ -72,6 +72,8 @@ namespace CoffeeShop.Models.ViewModels
         public string ActiveTab { get; set; } = "suppliers";
         public List<SupplierListItemViewModel> Suppliers { get; set; } = new();
         public List<PurchaseListItemViewModel> Purchases { get; set; } = new();
+        public int SupplierCount { get; set; }
+        public int PurchaseCount { get; set; }
     }
 
     public class PurchaseListItemViewModel
@@ -151,11 +153,50 @@ namespace CoffeeShop.Models.ViewModels
         public int TotalOrders { get; set; }
     }
 
+    public class AdminCustomerEditViewModel
+    {
+        public int MaKH { get; set; }
+
+        [StringLength(50, ErrorMessage = "Tên đăng nhập tối đa 50 ký tự.")]
+        public string? TaiKhoan { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập họ và tên.")]
+        [StringLength(100, ErrorMessage = "Họ tên tối đa 100 ký tự.")]
+        public string HoTen { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập số điện thoại.")]
+        [StringLength(20, ErrorMessage = "Số điện thoại tối đa 20 ký tự.")]
+        [Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
+        public string Sdt { get; set; } = string.Empty;
+
+        [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+        [StringLength(100, ErrorMessage = "Email tối đa 100 ký tự.")]
+        public string? Email { get; set; }
+
+        [StringLength(72, ErrorMessage = "Mật khẩu tối đa 72 ký tự.")]
+        [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự.")]
+        [DataType(DataType.Password)]
+        public string? MatKhauMoi { get; set; }
+    }
+
     public class AdminAccountIndexViewModel
     {
         public string ActiveTab { get; set; } = "internal";
         public List<InternalAccountListItemViewModel> InternalAccounts { get; set; } = new();
         public List<CustomerAccountListItemViewModel> CustomerAccounts { get; set; } = new();
+        public int InternalAccountCount { get; set; }
+        public int CustomerAccountCount { get; set; }
+        public int ActiveCustomerCount { get; set; }
+        public int LockedCustomerCount { get; set; }
+    }
+
+    public class PaginationViewModel
+    {
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public int TotalCount { get; set; }
+        public string PageParameter { get; set; } = "page";
+        public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
     }
 
     public class AdminProductListItemViewModel
@@ -173,6 +214,58 @@ namespace CoffeeShop.Models.ViewModels
     {
         public string KichCo { get; set; } = string.Empty;
         public decimal GiaBan { get; set; }
+    }
+
+    public class AdminProductEditViewModel
+    {
+        public int MaSP { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tên sản phẩm.")]
+        [StringLength(100, ErrorMessage = "Tên sản phẩm không được vượt quá 100 ký tự.")]
+        public string TenSP { get; set; } = string.Empty;
+
+        [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn loại sản phẩm.")]
+        public int MaLoaiSP { get; set; }
+
+        [Range(0, int.MaxValue, ErrorMessage = "Số lượng tồn không được âm.")]
+        public int SoLuongTon { get; set; }
+
+        public bool TrangThai { get; set; }
+
+        public string? HinhAnh { get; set; }
+
+        public IFormFile? HinhAnhMoi { get; set; }
+
+        public List<AdminProductCategoryOptionViewModel> Categories { get; set; } = new();
+        public List<AdminProductVariantEditViewModel> Variants { get; set; } = new();
+    }
+
+    public class AdminProductCategoryOptionViewModel
+    {
+        public int MaLoaiSP { get; set; }
+        public string TenLoaiSP { get; set; } = string.Empty;
+    }
+
+    public class AdminProductVariantEditViewModel
+    {
+        public int MaBienThe { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập kích cỡ.")]
+        [StringLength(20, ErrorMessage = "Kích cỡ không được vượt quá 20 ký tự.")]
+        public string KichCo { get; set; } = string.Empty;
+
+        [ProductPrice]
+        public decimal GiaBan { get; set; }
+    }
+
+    public sealed class ProductPriceAttribute : ValidationAttribute
+    {
+        public ProductPriceAttribute()
+        {
+            ErrorMessage = "Giá bán phải lớn hơn 0.";
+        }
+
+        public override bool IsValid(object? value) => value is decimal price && price > 0;
     }
 
     public class AdminOrderListItemViewModel

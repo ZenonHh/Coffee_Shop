@@ -4,10 +4,10 @@
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url('/images/bg_3.jpg'); height: 450px; min-height: 450px;">
+    <div class="slider-item" style="background-image: url('/images/bg_3.jpg'); height: 670px; min-height: 670px;">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
                 <div class="col-md-8 col-sm-12 text-center ftco-animate">
                     <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
                     <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Thực Đơn Cửa Hàng</h1>
@@ -23,10 +23,7 @@
         <div class="row justify-content-center mb-4">
             <div class="col-lg-7 col-md-9">
                 <form asp-action="Index" method="get" class="search-form shop-search-form">
-                    @if (Model.SelectedCategoryId.HasValue)
-                    {
-                        <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId.Value" />
-                    }
+                    <input type="hidden" id="shopSelectedCategoryId" name="categoryId" value="@Model.SelectedCategoryId" />
                     <div class="shop-search-control">
                         <span class="icon-search shop-search-icon" aria-hidden="true"></span>
                         <input type="search" name="keyword" value="@Model.Keyword" class="form-control shop-search-input" placeholder="Tìm món uống yêu thích..." aria-label="Tìm kiếm món uống" />
@@ -42,68 +39,176 @@
         <div class="row justify-content-center mb-5">
             <div class="col-12 text-center">
                 <p class="mb-2">
-                    <a asp-action="Index" asp-route-keyword="@Model.Keyword" class="btn btn-sm @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary") m-1">Tất cả</a>
+                 <!--   <a asp-action="Index" asp-route-keyword="@Model.Keyword" class="btn btn-sm @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary") m-1">Tất cả</a> -->
                     @foreach (var category in Model.Categories)
                     {
-                        <a asp-action="Index" asp-route-categoryId="@category.MaLoaiSP" asp-route-keyword="@Model.Keyword" class="btn btn-sm @(Model.SelectedCategoryId == category.MaLoaiSP ? "btn-primary" : "btn-outline-primary") m-1">@category.TenLoaiSP</a>
+                        <a asp-action="Index" asp-route-categoryId="@category.MaLoaiSP" asp-route-keyword="@Model.Keyword" class="btn btn-sm shop-category-link @(Model.SelectedCategoryId == category.MaLoaiSP ? "btn-primary" : "btn-outline-primary") m-1" aria-current="@(Model.SelectedCategoryId == category.MaLoaiSP ? "true" : null)">@category.TenLoaiSP</a>
                     }
                 </p>
             </div>
         </div>
 
-        <div class="row">
-            @if (Model.Products.Any())
-            {
-                foreach (var product in Model.Products)
-                {
-                    var isOutOfStock = product.SoLuongTon <= 0;
-                    var imageUrl = Url.Content("~/picture/" + (product.HinhAnh ?? string.Empty));
-                    <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex">
-                        <div class="menu-entry w-100 d-flex flex-column">
-                            <div class="position-relative">
-                                <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP"
-                                   class="block-20 d-block"
-                                   style="height:auto; aspect-ratio:1/1; background-image:url('@imageUrl'); background-size:contain; background-repeat:no-repeat; background-position:center; background-color:#171717; @(isOutOfStock ? "filter:opacity(.55);" : "")"
-                                   aria-label="@product.TenSP"></a>
-                                @if (isOutOfStock)
-                                {
-                                    <span class="badge badge-danger position-absolute" style="top:12px; right:12px;">HẾT HÀNG</span>
-                                }
-                            </div>
-                            <div class="text text-center pt-3 d-flex flex-column flex-grow-1">
-                                <h3 class="mb-1"><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
-                                <p class="text-muted small mb-2">@product.TenLoaiSP</p>
-                                <p class="price mt-auto mb-3"><span>@(product.GiaBan?.ToString("N0") ?? "Liên hệ") đ</span></p>
-                                @if (isOutOfStock)
-                                {
-                                    <button type="button" class="btn btn-secondary btn-sm disabled-stock-btn" data-name="@product.TenSP" aria-disabled="true">Hết hàng</button>
-                                }
-                                else
-                                {
-                                    <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm">Chọn mua</a>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            }
-            else
-            {
-                <div class="col-12 text-center py-5">
-                    <h4>Không tìm thấy món uống phù hợp.</h4>
-                    <a asp-action="Index" class="btn btn-primary mt-3">Xem toàn bộ thực đơn</a>
-                </div>
-            }
+        <div id="shopFilterError" class="alert alert-danger d-none" role="alert">
+            Không thể tải danh sách món. Vui lòng thử lại.
+        </div>
+        <div id="shopProductGrid" aria-live="polite" aria-busy="false">
+            @await Html.PartialAsync("_ProductGrid", Model)
         </div>
     </div>
 </section>
 
+<style>
+    .shop-product-card .menu-entry {
+        transition: transform 250ms ease, box-shadow 250ms ease;
+    }
+
+    .shop-product-card .menu-entry:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    }
+
+    #shopProductGrid {
+        transition: opacity 180ms ease;
+    }
+
+    #shopProductGrid.is-loading {
+        opacity: 0.55;
+        pointer-events: none;
+    }
+
+    .shop-product-grid.is-entering .shop-product-card {
+        opacity: 0;
+        transform: translateY(18px);
+        animation: shop-product-enter 420ms ease forwards;
+        animation-delay: var(--shop-card-delay, 0ms);
+    }
+
+    .shop-product-grid.is-entering .shop-product-card:nth-child(4n + 2) {
+        --shop-card-delay: 60ms;
+    }
+
+    .shop-product-grid.is-entering .shop-product-card:nth-child(4n + 3) {
+        --shop-card-delay: 120ms;
+    }
+
+    .shop-product-grid.is-entering .shop-product-card:nth-child(4n + 4) {
+        --shop-card-delay: 180ms;
+    }
+
+    @@keyframes shop-product-enter {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .shop-product-card .menu-entry,
+        #shopProductGrid,
+        .shop-product-grid.is-entering .shop-product-card {
+            transition: none;
+            animation: none;
+            opacity: 1;
+            transform: none;
+        }
+    }
+</style>
+
 @section Scripts {
     <script>
-        document.querySelectorAll('.disabled-stock-btn').forEach(function (button) {
-            button.addEventListener('click', function () {
-                alert('Món ' + this.dataset.name + ' hiện đã hết hàng. Vui lòng chọn món khác.');
+        (function() {
+            var grid = document.getElementById('shopProductGrid');
+            var categoryLinks = document.querySelectorAll('.shop-category-link');
+            var categoryInput = document.getElementById('shopSelectedCategoryId');
+            var filterError = document.getElementById('shopFilterError');
+            var activeRequest = null;
+
+            function setActiveCategory(selectedLink) {
+                categoryLinks.forEach(function(link) {
+                    var isActive = link === selectedLink;
+                    link.classList.toggle('btn-primary', isActive);
+                    link.classList.toggle('btn-outline-primary', !isActive);
+                    if (isActive) {
+                        link.setAttribute('aria-current', 'true');
+                    } else {
+                        link.removeAttribute('aria-current');
+                    }
+                });
+                if (categoryInput) {
+                    var selectedUrl = selectedLink ? new URL(selectedLink.href) : null;
+                    categoryInput.value = selectedUrl ? selectedUrl.searchParams.get('categoryId') || '' : '';
+                }
+            }
+
+            async function loadProducts(url, selectedLink, updateHistory) {
+                if (activeRequest) activeRequest.abort();
+                var request = new AbortController();
+                activeRequest = request;
+                grid.classList.add('is-loading');
+                grid.setAttribute('aria-busy', 'true');
+                filterError.classList.add('d-none');
+
+                try {
+                    var response = await fetch(url, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        signal: request.signal
+                    });
+                    if (!response.ok) throw new Error('Không tải được danh sách sản phẩm.');
+
+                    var html = await response.text();
+                    if (request.signal.aborted) return;
+
+                    grid.innerHTML = html;
+                    grid.querySelectorAll('.ftco-animate').forEach(function(element) {
+                        element.classList.add('ftco-animated');
+                    });
+                    var productGrid = grid.querySelector('.shop-product-grid');
+                    if (productGrid) productGrid.classList.add('is-entering');
+                    setActiveCategory(selectedLink);
+                    if (updateHistory) window.history.pushState({ shop: true }, '', url);
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error(error);
+                        filterError.classList.remove('d-none');
+                    }
+                } finally {
+                    if (activeRequest === request) {
+                        activeRequest = null;
+                        grid.classList.remove('is-loading');
+                        grid.setAttribute('aria-busy', 'false');
+                    }
+                }
+            }
+
+            categoryLinks.forEach(function(link) {
+                link.addEventListener('click', function(event) {
+                    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                    event.preventDefault();
+                    loadProducts(link.href, link, true);
+                });
             });
-        });
+
+            document.addEventListener('click', function(event) {
+                var button = event.target.closest('.disabled-stock-btn');
+                if (button) {
+                    alert('Món ' + button.dataset.name + ' hiện đã hết hàng. Vui lòng chọn món khác.');
+                }
+            });
+
+            window.addEventListener('popstate', function() {
+                var currentUrl = new URL(window.location.href);
+                var categoryId = currentUrl.searchParams.get('categoryId');
+                var selectedLink = Array.prototype.find.call(categoryLinks, function(link) {
+                    var linkUrl = new URL(link.href);
+                    return linkUrl.searchParams.get('categoryId') === categoryId;
+                });
+                if (!categoryId) {
+                    selectedLink = Array.prototype.find.call(categoryLinks, function(link) {
+                        return link.textContent.trim().toLowerCase().includes('espresso');
+                    });
+                }
+                loadProducts(window.location.href, selectedLink, false);
+            });
+        })();
     </script>
 }

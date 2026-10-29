@@ -83,7 +83,6 @@
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
                                 </td>
                                 <td>@order.HoTenNguoiNhan</td>
                                 <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
@@ -139,6 +138,9 @@
                 </tbody>
             </table>
         </div>
+    </div>
+    <div class="card-body pt-0">
+        <partial name="_Pagination" model="Model.Pagination" />
     </div>
 </div>
 

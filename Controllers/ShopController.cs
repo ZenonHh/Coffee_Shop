@@ -17,6 +17,24 @@ namespace CoffeeShop.Controllers
         public async Task<IActionResult> Index(int? categoryId, string? keyword)
         {
             keyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
+            var categories = await _context.Categories
+                .AsNoTracking()
+                .Where(category => category.MaLoaiSP != 9)
+                .OrderBy(category => category.ThuTuHienThi)
+                .Select(category => new ShopCategoryViewModel
+                {
+                    MaLoaiSP = category.MaLoaiSP,
+                    TenLoaiSP = category.TenLoaiSP
+                })
+                .ToListAsync();
+
+            if (!categoryId.HasValue)
+            {
+                categoryId = categories
+                    .FirstOrDefault(category => category.TenLoaiSP.Contains("Espresso", StringComparison.OrdinalIgnoreCase))
+                    ?.MaLoaiSP;
+            }
+
             var query = _context.Products
                 .AsNoTracking()
                 .Where(p => p.TrangThai && p.MaLoaiSP != 9);
@@ -31,19 +49,9 @@ namespace CoffeeShop.Controllers
                 query = query.Where(p => p.TenSP.Contains(keyword));
             }
 
-            var categories = await _context.Categories
-                .AsNoTracking()
-                .Where(category => category.MaLoaiSP != 9)
-                .OrderBy(category => category.ThuTuHienThi)
-                .Select(category => new ShopCategoryViewModel
-                {
-                    MaLoaiSP = category.MaLoaiSP,
-                    TenLoaiSP = category.TenLoaiSP
-                })
-                .ToListAsync();
-
             var products = await query
-                .OrderBy(product => product.TenSP)
+                .OrderBy(product => product.Category!.TenLoaiSP.Contains("Espresso") ? 0 : 1)
+                .ThenBy(product => product.TenSP)
                 .Select(product => new ShopProductCardViewModel
                 {
                     MaSP = product.MaSP,
@@ -66,6 +74,11 @@ namespace CoffeeShop.Controllers
                 SelectedCategoryId = categoryId,
                 Keyword = keyword
             };
+
+            if (string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase))
+            {
+                return PartialView("_ProductGrid", viewModel);
+            }
 
             return View(viewModel);
         }

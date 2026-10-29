@@ -14,11 +14,11 @@
 }
 
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); min-height: 450px; height: 450px;">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); min-height: 670px; height: 670px;">
         <div class="overlay"></div>
         <div class="container">
             <!-- Thêm padding-top để chữ không bị đè bởi navbar và căn giữa đẹp mắt -->
-            <div class="row slider-text justify-content-center align-items-center" style="height: 450px; padding-top: 90px;">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
                 <div class="col-md-8 col-sm-12 text-center ftco-animate">
                     <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
                     <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Khám Phá Món Mới</h1>
@@ -27,7 +27,6 @@
                         <span>Khám phá món</span>
                     </p>
                     <p class="text-white-50" style="max-width: 600px; margin: 0 auto;">
-                        Khám phá công thức pha chế sáng tạo và các dòng thức uống đặc trưng của Katinat Coffee.
                     </p>
                 </div>
             </div>
@@ -81,14 +80,14 @@
                         </div>
                     </div>
 
-                    <div class="row d-flex">
+                    <div class="row d-flex blog-product-grid">
                         @foreach (var product in activeProducts)
                         {
                             var imagePath = !string.IsNullOrEmpty(product.HinhAnh) 
                                 ? (product.HinhAnh.StartsWith("/") ? product.HinhAnh : $"/picture/{product.HinhAnh}") 
                                 : "/images/menu-1.jpg";
 
-                            <div class="col-md-6 col-lg-4 d-flex ftco-animate">
+                            <div class="col-md-6 col-lg-4 d-flex blog-product-card ftco-animate">
                                 <div class="blog-entry align-self-stretch w-100 position-relative" 
                                      style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; margin-bottom: 30px;">
                                     
@@ -143,3 +142,21 @@
         }
     </div>
 </section>
+
+<style>
+    .blog-product-card .blog-entry {
+        transition: transform 250ms ease, box-shadow 250ms ease;
+    }
+
+    .blog-product-card .blog-entry:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    }
+
+    @@media (prefers-reduced-motion: reduce) {
+        .blog-product-card .blog-entry {
+            transition: none;
+            transform: none;
+        }
+    }
+</style>

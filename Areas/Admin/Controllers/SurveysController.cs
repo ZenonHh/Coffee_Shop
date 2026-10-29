@@ -97,9 +97,11 @@ public class SurveysController : Controller
         return RedirectToAction(nameof(Index), new { editId = surveyId });
     }
 
-    private Task<List<SurveyListItemViewModel>> GetSurveyListAsync() => _context.Surveys
+    private Task<List<SurveyListItemViewModel>> GetSurveyListAsync(int page = 1, int pageSize = 10) => _context.Surveys
         .AsNoTracking()
         .OrderByDescending(survey => survey.NgayBatDau)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
         .Select(survey => new SurveyListItemViewModel
         {
             MaKhaoSat = survey.MaKhaoSat,
@@ -136,7 +138,31 @@ public class SurveysController : Controller
     {
         ViewBag.EditSurvey = survey.MaKhaoSat > 0 ? survey : null;
         ViewBag.FormError = "Vui lòng kiểm tra tiêu đề và thời gian khảo sát.";
-        return View("Index", await GetSurveyListAsync());
+        const int pageSize = 10;
+        var surveyCount = await _context.Surveys.CountAsync();
+        var reviewCount = await _context.Feedbacks.CountAsync();
+        var unansweredCount = await _context.Feedbacks.CountAsync(feedback =>
+            feedback.PhanHoiQuanTri == null || feedback.PhanHoiQuanTri == "");
+        ViewBag.ActiveTab = "surveys";
+        ViewBag.SurveyCount = surveyCount;
+        ViewBag.ActiveSurveyCount = await _context.Surveys.CountAsync(item =>
+            item.NgayBatDau <= DateTime.Now && item.NgayKetThuc >= DateTime.Now);
+        ViewBag.TotalContacts = await _context.ContactMessages.CountAsync();
+        ViewBag.UnprocessedCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Chưa xử lý");
+        ViewBag.ProcessedContactCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Đã xử lý");
+        ViewBag.ReviewCount = reviewCount;
+        ViewBag.UnansweredReviewsCount = unansweredCount;
+        ViewBag.AnsweredReviewsCount = reviewCount - unansweredCount;
+        ViewBag.Pagination = new PaginationViewModel
+        {
+            PageNumber = 1,
+            PageSize = pageSize,
+            TotalCount = surveyCount,
+            PageParameter = "surveyPage"
+        };
+        ViewBag.ContactMessages = new List<ContactMessage>();
+        ViewBag.Feedbacks = new List<Feedback>();
+        return View("Index", await GetSurveyListAsync(1, pageSize));
     }
 
     private static void Normalize(Survey survey)

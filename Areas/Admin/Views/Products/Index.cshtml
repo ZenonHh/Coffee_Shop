@@ -5,7 +5,10 @@
 
 <div class="card stat-card mb-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0 font-weight-bold">Danh Sách Món Uống &amp; Bánh Ngọt (@Model.Count)</h5>
+        <h5 class="mb-0 font-weight-bold">Danh Sách Món Uống &amp; Bánh Ngọt (@(((CoffeeShop.Models.ViewModels.PaginationViewModel)ViewBag.Pagination).TotalCount))</h5>
+        <a asp-action="Create" class="button button-primary js-create-product">
+            <i class="fas fa-plus"></i> Thêm sản phẩm
+        </a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -54,6 +57,9 @@
                                     }
                                 </td>
                                 <td>
+                                    <a asp-action="Edit" asp-route-id="@product.MaSP" class="btn btn-sm btn-outline-primary mb-1 js-edit-product">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
                                     <form asp-action="ToggleStatus" method="post" class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="id" value="@product.MaSP" />
@@ -84,4 +90,97 @@
             </table>
         </div>
     </div>
+    <div class="card-body pt-0">
+        <partial name="_Pagination" model="ViewBag.Pagination" />
+    </div>
 </div>
+
+<div class="modal fade" id="productEditModal" tabindex="-1" role="dialog" aria-labelledby="productEditModalLabel" aria-hidden="true"></div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const modalElement = document.getElementById("productEditModal");
+            const modal = $(modalElement);
+
+            document.addEventListener("click", async function (event) {
+                const link = event.target.closest(".js-edit-product, .js-create-product");
+                if (!link) return;
+
+                event.preventDefault();
+                try {
+                    const response = await fetch(link.href, {
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+                    if (!response.ok) throw new Error("Không tải được thông tin sản phẩm.");
+                    modal.html(await response.text());
+                    modal.modal("show");
+                } catch (error) {
+                    window.alert(error.message);
+                }
+            });
+
+            modal.on("submit", ".product-edit-form", async function (event) {
+                event.preventDefault();
+                const form = event.currentTarget;
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: "POST",
+                        body: new FormData(form),
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+                    const contentType = response.headers.get("content-type") || "";
+                    if (!response.ok) throw new Error("Không thể lưu sản phẩm. Vui lòng thử lại.");
+
+                    if (contentType.includes("application/json")) {
+                        modal.modal("hide");
+                        window.location.reload();
+                        return;
+                    }
+
+                    modal.html(await response.text());
+                    modal.modal("show");
+                } catch (error) {
+                    window.alert(error.message);
+                    submitButton.disabled = false;
+                }
+            });
+
+            modal.on("click", ".js-add-product-variant", function () {
+                const container = modal.find("#productVariants");
+                const index = container.find(".product-variant-row").length;
+                const row = `
+                        <div class="form-row align-items-end product-variant-row">
+                            <div class="form-group col-md-5">
+                                <label>Kích cỡ</label>
+                                <input name="Variants[${index}].KichCo" class="form-control" maxlength="20" required />
+                            </div>
+                            <div class="form-group col-md-5">
+                                <label>Giá bán (đ)</label>
+                                <input name="Variants[${index}].GiaBan" class="form-control" type="number" min="0.01" step="1000" required />
+                            </div>
+                            <div class="form-group col-md-2">
+                                <button type="button" class="button button-small button-outline text-danger js-remove-product-variant">Xóa</button>
+                            </div>
+                        </div>`;
+                container.append(row);
+            });
+
+            modal.on("click", ".js-remove-product-variant", function () {
+                $(this).closest(".product-variant-row").remove();
+                modal.find("#productVariants .product-variant-row").each(function (index) {
+                    $(this).find("[name]").each(function () {
+                        this.name = this.name.replace(/Variants\[\d+\]/, `Variants[${index}]`);
+                    });
+                });
+            });
+
+            modal.on("hidden.bs.modal", function () {
+                modal.empty();
+            });
+        })();
+    </script>
+}

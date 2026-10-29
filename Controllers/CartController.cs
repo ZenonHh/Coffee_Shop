@@ -64,6 +64,17 @@ namespace CoffeeShop.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int variantId, List<int>? toppingIds, int quantity = 1)
         {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                var returnUrl = Url.Action("Detail", "Shop", new { id = productId });
+                return Json(new
+                {
+                    success = false,
+                    message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.",
+                    loginUrl = Url.Action("Login", "Account", new { returnUrl })
+                });
+            }
+
             quantity = Math.Clamp(quantity, 1, 50);
             var product = await _context.Products.FirstOrDefaultAsync(p => p.MaSP == productId && p.TrangThai && p.SoLuongTon > 0 && p.MaLoaiSP != 9);
             var variant = await _context.ProductVariants.FirstOrDefaultAsync(v => v.MaBienThe == variantId && v.MaSP == productId && v.TrangThai);
@@ -98,7 +109,7 @@ namespace CoffeeShop.Controllers
             else cart.Items.Add(newItem);
             await RefreshDiscounts(cart);
             await _cartStore.SaveCartAsync(cart);
-            return Json(new { success = true, message = $"Đã thêm {product.TenSP} vào giỏ hàng!", cartCount = cart.Items.Sum(i => i.Quantity), cartTotal = cart.GrandTotal });
+            return Json(new { success = true, message = $"Đã thêm {product.TenSP} vào giỏ hàng!", cartCount = cart.Items.Count, cartTotal = cart.GrandTotal });
         }
 
         [HttpPost]
@@ -113,7 +124,7 @@ namespace CoffeeShop.Controllers
             }
             await RefreshDiscounts(cart);
             await _cartStore.SaveCartAsync(cart);
-            return Json(new { success = true, cartCount = cart.Items.Sum(i => i.Quantity), subTotal = cart.SubTotal, automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal, itemTotal = item?.TotalPrice ?? 0, voucherCode = cart.VoucherCode });
+            return Json(new { success = true, cartCount = cart.Items.Count, subTotal = cart.SubTotal, automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal, itemTotal = item?.TotalPrice ?? 0, voucherCode = cart.VoucherCode });
         }
 
         [HttpPost]
@@ -158,7 +169,7 @@ namespace CoffeeShop.Controllers
         public async Task<IActionResult> GetCartCount()
         {
             var cart = await _cartStore.GetCartAsync();
-            return Json(new { count = cart.Items.Sum(i => i.Quantity) });
+            return Json(new { count = cart.Items.Count });
         }
     }
 }

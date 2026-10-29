@@ -16,14 +16,25 @@ public class NhaCungCapController : Controller
 
     public NhaCungCapController(CoffeeShopDbContext context) => _context = context;
 
-    public async Task<IActionResult> Index(string tab = "suppliers")
+    public async Task<IActionResult> Index(string tab = "suppliers", int supplierPage = 1, int purchasePage = 1)
     {
+        const int pageSize = 10;
+        var activeTab = tab?.ToLower() == "purchases" ? "purchases" : "suppliers";
+        var supplierCount = await _context.Suppliers.CountAsync();
+        var purchaseCount = await _context.Purchases.CountAsync();
+        supplierPage = Math.Clamp(supplierPage, 1, Math.Max(1, (int)Math.Ceiling(supplierCount / (double)pageSize)));
+        purchasePage = Math.Clamp(purchasePage, 1, Math.Max(1, (int)Math.Ceiling(purchaseCount / (double)pageSize)));
         var model = new SupplierManagementViewModel
         {
-            ActiveTab = tab?.ToLower() == "purchases" ? "purchases" : "suppliers",
-            Suppliers = await GetSuppliersAsync(),
-            Purchases = await GetPurchasesAsync()
+            ActiveTab = activeTab,
+            Suppliers = activeTab == "suppliers" ? await GetSuppliersAsync(supplierPage, pageSize) : new(),
+            Purchases = activeTab == "purchases" ? await GetPurchasesAsync(purchasePage, pageSize) : new(),
+            SupplierCount = supplierCount,
+            PurchaseCount = purchaseCount
         };
+        ViewBag.Pagination = activeTab == "suppliers"
+            ? new PaginationViewModel { PageNumber = supplierPage, PageSize = pageSize, TotalCount = supplierCount, PageParameter = "supplierPage" }
+            : new PaginationViewModel { PageNumber = purchasePage, PageSize = pageSize, TotalCount = purchaseCount, PageParameter = "purchasePage" };
         return View(model);
     }
 
@@ -39,11 +50,20 @@ public class NhaCungCapController : Controller
         if (!ModelState.IsValid)
         {
             ViewBag.FormError = "Vui lòng kiểm tra thông tin nhà cung cấp.";
+            ViewBag.OpenSupplierModal = true;
             var model = new SupplierManagementViewModel
             {
                 ActiveTab = "suppliers",
-                Suppliers = await GetSuppliersAsync(),
-                Purchases = await GetPurchasesAsync()
+                Suppliers = await GetSuppliersAsync(1, 10),
+                SupplierCount = await _context.Suppliers.CountAsync(),
+                PurchaseCount = await _context.Purchases.CountAsync()
+            };
+            ViewBag.Pagination = new PaginationViewModel
+            {
+                PageNumber = 1,
+                PageSize = 10,
+                TotalCount = model.SupplierCount,
+                PageParameter = "supplierPage"
             };
             return View("Index", model);
         }
@@ -71,11 +91,13 @@ public class NhaCungCapController : Controller
         return RedirectToAction(nameof(Index), new { tab = "suppliers" });
     }
 
-    private async Task<List<SupplierListItemViewModel>> GetSuppliersAsync()
+    private async Task<List<SupplierListItemViewModel>> GetSuppliersAsync(int page, int pageSize)
     {
         var suppliers = await _context.Suppliers
             .AsNoTracking()
             .OrderBy(s => s.TenNCC)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(s => new SupplierListItemViewModel
             {
                 MaNCC = s.MaNCC,
@@ -93,11 +115,13 @@ public class NhaCungCapController : Controller
         return suppliers;
     }
 
-    private async Task<List<PurchaseListItemViewModel>> GetPurchasesAsync()
+    private async Task<List<PurchaseListItemViewModel>> GetPurchasesAsync(int page, int pageSize)
     {
         return await _context.Purchases
             .AsNoTracking()
             .OrderByDescending(p => p.NgayNhap)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(p => new PurchaseListItemViewModel
             {
                 MaPN = p.MaPN,

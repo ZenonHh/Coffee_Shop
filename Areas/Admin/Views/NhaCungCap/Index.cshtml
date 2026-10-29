@@ -10,11 +10,6 @@
         <h1>Quản lý nhà cung cấp</h1>
         <p class="page-subtitle">Quản lý danh bạ đối tác cung ứng, tiếp nhận hàng hóa và theo dõi phiếu nhập kho toàn diện.</p>
     </div>
-    <div class="d-flex" style="gap: 10px;">
-        <a asp-area="Admin" asp-controller="PhieuNhap" asp-action="Create" class="button button-primary">
-            + Tạo phiếu nhập hàng
-        </a>
-    </div>
 </div>
 
 @if (ViewBag.FormError != null)
@@ -31,117 +26,129 @@
     <a asp-action="Index" asp-route-tab="suppliers" 
        class="button @(!isPurchasesTab ? "button-primary" : "button-outline")" 
        style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: 600;">
-        🏢 Danh sách nhà cung cấp (@Model.Suppliers.Count)
+        🏢 Danh sách nhà cung cấp (@Model.SupplierCount)
     </a>
     <a asp-action="Index" asp-route-tab="purchases" 
        class="button @(isPurchasesTab ? "button-primary" : "button-outline")" 
        style="border-bottom-left-radius: 0; border-bottom-right-radius: 0; font-weight: 600;">
-        📥 Lịch sử &amp; Phiếu nhập kho (@Model.Purchases.Count)
+        📥 Lịch sử &amp; Phiếu nhập kho (@Model.PurchaseCount)
     </a>
 </div>
 
 @if (!isPurchasesTab)
 {
-    <!-- TAB 1: DANH SÁCH NHÀ CUNG CẤP -->
-    <div class="dashboard-grid">
-        <!-- FORM THÊM NHÀ CUNG CẤP MỚI -->
-        <section class="panel">
-            <div class="panel-heading">
-                <div>
-                    <h2>Thêm nhà cung cấp mới</h2>
-                    <p>Lưu thông tin đối tác cung cấp nguyên liệu &amp; sản phẩm.</p>
-                </div>
+    <section class="panel table-panel">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Danh bạ đối tác cung ứng</h2>
+                <p>Hiện có @Model.SupplierCount nhà cung cấp.</p>
             </div>
-            <form asp-action="Create" method="post" class="dialog-form px-0">
-                @Html.AntiForgeryToken()
-                <label>
-                    Tên nhà cung cấp *
-                    <input name="tenNCC" maxlength="150" required placeholder="VD: Công ty Cà Phê Việt Nam" />
-                </label>
-                <label>
-                    Số điện thoại
-                    <input name="sdt" maxlength="20" placeholder="VD: 028 3812 3456" />
-                </label>
-                <label>
-                    Địa chỉ kho / trụ sở
-                    <input name="diaChi" maxlength="255" placeholder="VD: 123 Lê Lợi, Q.1, TP.HCM" />
-                </label>
-                <div class="dialog-actions">
-                    <button type="submit" class="button button-primary">Thêm nhà cung cấp</button>
-                </div>
-            </form>
-        </section>
-
-        <!-- DANH SÁCH NHÀ CUNG CẤP -->
-        <section class="panel table-panel">
-            <div class="panel-heading table-heading">
-                <div>
-                    <h2>Danh bạ đối tác cung ứng</h2>
-                    <p>Hiện có @Model.Suppliers.Count nhà cung cấp.</p>
-                </div>
-            </div>
-            <div class="table-scroll">
-                <table class="data-table">
-                    <thead>
+            <button type="button" class="button button-primary" data-toggle="modal" data-target="#createSupplierModal">
+                + Thêm nhà cung cấp
+            </button>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>TÊN NHÀ CUNG CẤP</th>
+                        <th>ĐIỆN THOẠI</th>
+                        <th>ĐỊA CHỈ</th>
+                        <th>ĐÃ NHẬP KHO</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var supplier in Model.Suppliers)
+                    {
                         <tr>
-                            <th>TÊN NHÀ CUNG CẤP</th>
-                            <th>ĐIỆN THOẠI</th>
-                            <th>ĐỊA CHỈ</th>
-                            <th>ĐÃ NHẬP KHO</th>
-                            <th>TRẠNG THÁI</th>
-                            <th>THAO TÁC</th>
+                            <td>
+                                <strong>@supplier.TenNCC</strong>
+                                <div class="muted-cell" style="font-size: 11px;">Mã NCC: #@supplier.MaNCC</div>
+                            </td>
+                            <td>@(string.IsNullOrEmpty(supplier.Sdt) ? "—" : supplier.Sdt)</td>
+                            <td>@(string.IsNullOrEmpty(supplier.DiaChi) ? "—" : supplier.DiaChi)</td>
+                            <td>
+                                <span style="color: #c49b63; font-weight: 600;">@supplier.TotalPurchases đơn</span>
+                                @if (supplier.TotalPurchasedAmount > 0)
+                                {
+                                    <div class="muted-cell small">@supplier.TotalPurchasedAmount.ToString("N0") đ</div>
+                                }
+                            </td>
+                            <td>
+                                <span class="status @(supplier.TrangThai == true ? "status-success" : "status-muted")">
+                                    <i></i>@(supplier.TrangThai == true ? "Đang hoạt động" : "Đã ngừng")
+                                </span>
+                            </td>
+                            <td style="white-space: nowrap;">
+                                @if (supplier.TrangThai == true)
+                                {
+                                    <a asp-controller="PhieuNhap" asp-action="Create" class="button button-small button-primary mr-1" title="Tạo phiếu nhập từ NCC này">
+                                        + Nhập hàng
+                                    </a>
+                                }
+                                <form asp-action="ToggleStatus" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@supplier.MaNCC" />
+                                    <button type="submit" class="button button-small button-outline">
+                                        @(supplier.TrangThai == true ? "Ngừng" : "Kích hoạt")
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var supplier in Model.Suppliers)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>@supplier.TenNCC</strong>
-                                    <div class="muted-cell" style="font-size: 11px;">Mã NCC: #@supplier.MaNCC</div>
-                                </td>
-                                <td>@(string.IsNullOrEmpty(supplier.Sdt) ? "—" : supplier.Sdt)</td>
-                                <td>@(string.IsNullOrEmpty(supplier.DiaChi) ? "—" : supplier.DiaChi)</td>
-                                <td>
-                                    <span style="color: #c49b63; font-weight: 600;">@supplier.TotalPurchases đơn</span>
-                                    @if (supplier.TotalPurchasedAmount > 0)
-                                    {
-                                        <div class="muted-cell small">@supplier.TotalPurchasedAmount.ToString("N0") đ</div>
-                                    }
-                                </td>
-                                <td>
-                                    <span class="status @(supplier.TrangThai == true ? "status-success" : "status-muted")">
-                                        <i></i>@(supplier.TrangThai == true ? "Đang hoạt động" : "Đã ngừng")
-                                    </span>
-                                </td>
-                                <td style="white-space: nowrap;">
-                                    @if (supplier.TrangThai == true)
-                                    {
-                                        <a asp-controller="PhieuNhap" asp-action="Create" class="button button-small button-primary mr-1" title="Tạo phiếu nhập từ NCC này">
-                                            + Nhập hàng
-                                        </a>
-                                    }
-                                    <form asp-action="ToggleStatus" method="post" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@supplier.MaNCC" />
-                                        <button type="submit" class="button button-small button-outline">
-                                            @(supplier.TrangThai == true ? "Ngừng" : "Kích hoạt")
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                        @if (!Model.Suppliers.Any())
-                        {
-                            <tr>
-                                <td colspan="6" class="text-center py-4 muted-cell">Chưa có nhà cung cấp nào trong danh bạ.</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                    }
+                    @if (!Model.Suppliers.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 muted-cell">Chưa có nhà cung cấp nào trong danh bạ.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_Pagination" model="ViewBag.Pagination" />
+    </section>
+
+    <div class="modal fade" id="createSupplierModal" tabindex="-1" role="dialog" aria-labelledby="createSupplierModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form asp-action="Create" method="post" class="dialog-form">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createSupplierModalLabel">Thêm nhà cung cấp</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Đóng">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <label>
+                            Tên nhà cung cấp *
+                            <input name="tenNCC" maxlength="150" required placeholder="VD: Công ty Cà Phê Việt Nam" />
+                        </label>
+                        <label>
+                            Số điện thoại
+                            <input name="sdt" maxlength="20" placeholder="VD: 028 3812 3456" />
+                        </label>
+                        <label>
+                            Địa chỉ kho / trụ sở
+                            <input name="diaChi" maxlength="255" placeholder="VD: 123 Lê Lợi, Q.1, TP.HCM" />
+                        </label>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
+                        <button type="submit" class="button button-primary">Thêm nhà cung cấp</button>
+                    </div>
+                </form>
             </div>
-        </section>
+        </div>
     </div>
+    @if (ViewBag.OpenSupplierModal == true)
+    {
+        <script>
+            $(function () { $("#createSupplierModal").modal("show"); });
+        </script>
+    }
 }
 else
 {
@@ -211,5 +218,6 @@ else
                 </tbody>
             </table>
         </div>
+        <partial name="_Pagination" model="ViewBag.Pagination" />
     </section>
 }
