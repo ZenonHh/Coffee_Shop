@@ -2,55 +2,92 @@
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
                xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-               x:Class="CoffeeShop.Mobile.Views.ProductDetailBottomSheet">
-    <Border x:Name="SheetContent" BackgroundColor="#F9F6F0" StrokeThickness="0" StrokeShape="RoundRectangle 24"
+               x:Class="CoffeeShop.Mobile.Views.ProductDetailBottomSheet"
+               x:Name="ProductPopup">
+    <Border x:Name="SheetContent" BackgroundColor="{StaticResource CoffeeBackground}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 24"
             VerticalOptions="End" Padding="18" WidthRequest="380" HeightRequest="720">
         <Grid RowDefinitions="*,Auto">
             <ScrollView>
                 <VerticalStackLayout Spacing="14">
-                    <Image Source="{Binding Product.HinhAnh}" HeightRequest="210" Aspect="AspectFill" />
-                    <Label Text="{Binding Product.TenSP}" FontSize="23" FontAttributes="Bold" TextColor="#2E1A11" />
-                    <Label Text="{Binding Product.TenLoaiSP}" TextColor="#806F63" />
-                    <Label Text="Chọn kích cỡ" FontAttributes="Bold" TextColor="#2E1A11" />
-                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Product.Variants}" Spacing="8">
+                    <Grid HeightRequest="210">
+                        <Image Source="{Binding Product.HinhAnh, FallbackValue=coffee_swirl.svg}"
+                               Aspect="AspectFill" />
+                        <Button Text="×" Clicked="OnCloseClicked" WidthRequest="42" HeightRequest="42"
+                                Padding="0" FontSize="26" BackgroundColor="#AA12100D"
+                                TextColor="{StaticResource CoffeeText}" HorizontalOptions="End"
+                                VerticalOptions="Start" />
+                    </Grid>
+                    <Label Text="{Binding Product.TenSP}" FontSize="23" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
+                    <Label Text="{Binding Product.TenLoaiSP}" TextColor="{StaticResource CoffeeMuted}" />
+                    <Button Text="{Binding FavoriteButtonText}"
+                            Command="{Binding ToggleFavoriteCommand}"
+                            BackgroundColor="{StaticResource CoffeeSurface}"
+                            TextColor="{StaticResource CoffeeAccent}" HorizontalOptions="Start" />
+                    <Label Text="{Binding SelectedVariant.GiaBan, StringFormat='Giá cơ bản · {0:N0} đ'}"
+                           FontAttributes="Bold" TextColor="{StaticResource CoffeeAccent}" />
+                    <Label Text="Chọn kích cỡ" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
+                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Variants}" Spacing="8">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate>
-                                <RadioButton Content="{Binding KichCo}" Value="{Binding MaBienThe}"
-                                             GroupName="sizes" CheckedChanged="OnSizeChecked"
-                                             BackgroundColor="White" TextColor="#2E1A11" />
+                                <Border BackgroundColor="{StaticResource CoffeeSurface}"
+                                        Stroke="{StaticResource CoffeeBorder}"
+                                        StrokeShape="RoundRectangle 12" Padding="6,2">
+                                    <VerticalStackLayout Spacing="0">
+                                        <RadioButton Content="{Binding Item.KichCo}" Value="{Binding Item.MaBienThe}"
+                                                     IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                     GroupName="sizes" CheckedChanged="OnSizeChecked"
+                                                     BackgroundColor="Transparent"
+                                                     TextColor="{StaticResource CoffeeText}" />
+                                        <Label Text="{Binding Item.GiaBan, StringFormat='{0:N0} đ'}"
+                                               TextColor="{StaticResource CoffeeAccent}" FontSize="11"
+                                               HorizontalTextAlignment="Center" />
+                                    </VerticalStackLayout>
+                                </Border>
                             </DataTemplate>
                         </BindableLayout.ItemTemplate>
                     </HorizontalStackLayout>
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
                         <VerticalStackLayout>
-                            <Label Text="Mức đường" FontAttributes="Bold" TextColor="#2E1A11" />
+                            <Label Text="Mức đường" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                             <Picker ItemsSource="{Binding SugarOptions}" SelectedItem="{Binding SugarLevel}" />
                         </VerticalStackLayout>
                         <VerticalStackLayout Grid.Column="1">
-                            <Label Text="Mức đá" FontAttributes="Bold" TextColor="#2E1A11" />
+                            <Label Text="Mức đá" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                             <Picker ItemsSource="{Binding IceOptions}" SelectedItem="{Binding IceLevel}" />
                         </VerticalStackLayout>
                     </Grid>
-                    <Label Text="Topping" FontAttributes="Bold" TextColor="#2E1A11" />
-                    <CollectionView ItemsSource="{Binding Toppings}" SelectionMode="None" HeightRequest="180">
+                    <Label Text="Topping" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
+                    <CollectionView ItemsSource="{Binding Toppings}" SelectionMode="None" HeightRequest="160">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,7">
-                                    <CheckBox IsChecked="{Binding IsSelected}" Color="#C49B63" />
-                                    <Label Grid.Column="1" Text="{Binding Item.TenSP}" TextColor="#2E1A11" VerticalOptions="Center" />
+                                    <CheckBox IsChecked="{Binding IsSelected}" Color="{StaticResource CoffeeAccent}" />
+                                    <Label Grid.Column="1" Text="{Binding Item.TenSP}" TextColor="{StaticResource CoffeeText}" VerticalOptions="Center" />
                                     <Label Grid.Column="2" Text="{Binding Item.GiaBan, StringFormat='+{0:N0} đ'}"
-                                           TextColor="#806F63" VerticalOptions="Center" />
+                                           TextColor="{StaticResource CoffeeMuted}" VerticalOptions="Center" />
                                 </Grid>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
-                    <Label Text="Ghi chú cho Barista" FontAttributes="Bold" TextColor="#2E1A11" />
+                    <Label Text="Ghi chú cho Barista" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                     <Editor Text="{Binding Note}" Placeholder="Ít ngọt, đá để riêng..." AutoSize="TextChanges"
-                            BackgroundColor="White" HeightRequest="75" />
+                            BackgroundColor="{StaticResource CoffeeSurface}" TextColor="{StaticResource CoffeeText}"
+                            PlaceholderColor="{StaticResource CoffeeMuted}" HeightRequest="75" />
                 </VerticalStackLayout>
             </ScrollView>
-            <Button Grid.Row="1" Text="{Binding TotalPrice, StringFormat='Thêm vào giỏ hàng · {0:N0} đ'}"
-                    Clicked="OnAddClicked" Margin="0,12,0,0" />
+            <Grid Grid.Row="1" RowDefinitions="Auto,Auto" Margin="0,10,0,0" RowSpacing="8">
+                <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="10">
+                    <Label Text="Số lượng" TextColor="{StaticResource CoffeeText}" VerticalOptions="Center" />
+                    <Button Grid.Column="1" Text="−" Command="{Binding DecreaseQuantityCommand}"
+                            WidthRequest="40" HeightRequest="40" Padding="0" />
+                    <Label Grid.Column="2" Text="{Binding Quantity}" TextColor="{StaticResource CoffeeText}"
+                           HorizontalTextAlignment="Center" VerticalOptions="Center" WidthRequest="28" />
+                    <Button Grid.Column="3" Text="+" Command="{Binding IncreaseQuantityCommand}"
+                            WidthRequest="40" HeightRequest="40" Padding="0" />
+                </Grid>
+                <Button Grid.Row="1" Text="{Binding TotalPrice, StringFormat='Thêm vào giỏ hàng · {0:N0} đ'}"
+                        Clicked="OnAddClicked" IsEnabled="{Binding CanAddToCart}" />
+            </Grid>
         </Grid>
     </Border>
 </toolkit:Popup>

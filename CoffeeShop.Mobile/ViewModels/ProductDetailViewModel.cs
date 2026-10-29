@@ -14,10 +14,20 @@ public sealed partial class ToppingSelection(ToppingItem item) : ObservableObjec
     private bool isSelected;
 }
 
+public sealed partial class ProductVariantSelection(ProductVariantItem item) : ObservableObject
+{
+    public ProductVariantItem Item { get; } = item;
+
+    [ObservableProperty]
+    private bool isSelected;
+}
+
 public partial class ProductDetailViewModel : ObservableObject
 {
     private readonly CartService _cart;
+    private readonly FavoriteService _favorites;
     public ProductDetail Product { get; }
+    public ObservableCollection<ProductVariantSelection> Variants { get; } = [];
     public ObservableCollection<ToppingSelection> Toppings { get; } = [];
     public IReadOnlyList<string> SugarOptions { get; } = ["100%", "70%", "50%", "0%"];
     public IReadOnlyList<string> IceOptions { get; } = ["100%", "70%", "50%", "0%"];
@@ -34,25 +44,72 @@ public partial class ProductDetailViewModel : ObservableObject
     [ObservableProperty]
     private string note = string.Empty;
 
-    public decimal TotalPrice =>
-        (SelectedVariant?.GiaBan ?? 0m) + Toppings.Where(topping => topping.IsSelected).Sum(topping => topping.Item.GiaBan);
+    [ObservableProperty]
+    private int quantity = 1;
 
-    public ProductDetailViewModel(ProductDetail product, CartService cart)
+    [ObservableProperty]
+    private bool isFavorite;
+
+    public decimal TotalPrice => UnitPrice * Quantity;
+    public bool CanAddToCart => SelectedVariant is not null && Product.SoLuongTon > 0;
+    public decimal UnitPrice =>
+        (SelectedVariant?.GiaBan ?? 0m) + Toppings.Where(topping => topping.IsSelected).Sum(topping => topping.Item.GiaBan);
+    public string FavoriteButtonText => IsFavorite ? "♥ Đã lưu yêu thích" : "♡ Thêm vào yêu thích";
+
+    public ProductDetailViewModel(ProductDetail product, CartService cart, FavoriteService favorites)
     {
         Product = product;
         _cart = cart;
+        _favorites = favorites;
+        IsFavorite = favorites.Contains(product.MaSP);
         SelectedVariant = product.Variants.FirstOrDefault();
+        foreach (var variant in product.Variants)
+            Variants.Add(new ProductVariantSelection(variant)
+            {
+                IsSelected = variant.MaBienThe == SelectedVariant?.MaBienThe
+            });
         foreach (var topping in product.Toppings)
             Toppings.Add(new ToppingSelection(topping));
         foreach (var topping in Toppings)
-            topping.PropertyChanged += (_, _) => OnPropertyChanged(nameof(TotalPrice));
+            topping.PropertyChanged += (_, _) =>
+            {
+                OnPropertyChanged(nameof(UnitPrice));
+                OnPropertyChanged(nameof(TotalPrice));
+            };
     }
 
-    partial void OnSelectedVariantChanged(ProductVariantItem? value) =>
-        OnPropertyChanged(nameof(TotalPrice));
+    partial void OnSelectedVariantChanged(ProductVariantItem? value)
+    {
+        NotifyPriceChanged();
+        OnPropertyChanged(nameof(CanAddToCart));
+    }
+
+    partial void OnIsFavoriteChanged(bool value) => OnPropertyChanged(nameof(FavoriteButtonText));
 
     [RelayCommand]
-    private void SelectVariant(ProductVariantItem? variant) => SelectedVariant = variant;
+    private void SelectVariant(ProductVariantSelection? variant)
+    {
+        if (variant is null)
+            return;
+
+        foreach (var option in Variants)
+            option.IsSelected = option == variant;
+        SelectedVariant = variant.Item;
+    }
+
+    [RelayCommand]
+    private void DecreaseQuantity()
+    {
+        if (Quantity > 1)
+            Quantity--;
+    }
+
+    [RelayCommand]
+    private void IncreaseQuantity()
+    {
+        if (Quantity < 50)
+            Quantity++;
+    }
 
     [RelayCommand]
     private void AddToCart()
@@ -64,6 +121,7 @@ public partial class ProductDetailViewModel : ObservableObject
             Product = Product,
             Variant = SelectedVariant,
             Toppings = Toppings.Where(topping => topping.IsSelected).Select(topping => topping.Item).ToList(),
+            Quantity = Quantity,
             Note = string.Join("; ", new[]
             {
                 string.IsNullOrWhiteSpace(SugarLevel) ? null : $"Đường {SugarLevel}",
@@ -72,72 +130,18 @@ public partial class ProductDetailViewModel : ObservableObject
             }.Where(text => text is not null))
         });
     }
-}
-
-public partial class HomeViewModel(ApiService api, CartService cart) : ObservableObject
-{
-    public ObservableCollection<ProductItem> BestSellers { get; } = [];
-    public string MemberSummary { get; private set; } = "Thành viên Đồng · 0 điểm";
-    public IReadOnlyList<string?> Banners { get; } =
-    [
-        api.ResolveImageUrl("images/bg_1.jpg"),
-        api.ResolveImageUrl("images/bg_2.jpg"),
-        api.ResolveImageUrl("images/bg_3.jpg")
-    ];
-
-    [ObservableProperty]
-    private string greeting = GreetingText();
-
-    [ObservableProperty]
-    private string customerName = "Khách hàng";
-
-    [ObservableProperty]
-    private bool isDelivery = true;
 
     [RelayCommand]
-    private void SelectDelivery()
+    private void ToggleFavorite()
     {
-        IsDelivery = true;
-        cart.SelectedFulfillment = "Giao tận nơi";
+        IsFavorite = _favorites.Toggle(Product.MaSP);
     }
 
-    [RelayCommand]
-    private void SelectPickup()
-    {
-        IsDelivery = false;
-        cart.SelectedFulfillment = "Mang đi";
-    }
+    partial void OnQuantityChanged(int value) => OnPropertyChanged(nameof(TotalPrice));
 
-    public async Task LoadAsync()
+    private void NotifyPriceChanged()
     {
-        try
-        {
-            var profile = await api.GetProfileAsync();
-            if (profile is not null)
-            {
-                CustomerName = profile.HoTen;
-                MemberSummary = $"Thành viên {profile.HangTV} · {profile.DiemTichLuy} điểm";
-                OnPropertyChanged(nameof(MemberSummary));
-            }
-            var products = await api.GetProductsAsync(null, null);
-            BestSellers.Clear();
-            foreach (var item in products.Take(8))
-                BestSellers.Add(item with { HinhAnh = api.ResolveImageUrl(item.HinhAnh) });
-        }
-        catch (InvalidOperationException)
-        {
-            CustomerName = "Khách hàng";
-        }
-        catch (Exception exception)
-        {
-            await Shell.Current.DisplayAlertAsync("Không thể tải trang chủ", exception.Message, "Đóng");
-        }
+        OnPropertyChanged(nameof(UnitPrice));
+        OnPropertyChanged(nameof(TotalPrice));
     }
-
-    private static string GreetingText() => DateTime.Now.Hour switch
-    {
-        < 11 => "Chào buổi sáng",
-        < 18 => "Chào buổi chiều",
-        _ => "Chào buổi tối"
-    };
 }

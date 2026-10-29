@@ -88,9 +88,14 @@
                                 <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td class="font-weight-bold">@order.TongTien.ToString("N0") đ</td>
                                 <td>
-                                    @if (order.PhuongThucThanhToan.Contains("Đã thanh toán") || order.PhuongThucThanhToan == "Transfer")
+                                    @if (order.PhuongThucThanhToan.Contains("Đã thanh toán"))
                                     {
                                         <span class="badge badge-success"><i class="fa fa-check-circle"></i> Đã thanh toán</span>
+                                    }
+                                    else if (order.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
+                                        || order.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span class="badge badge-warning">Chờ thanh toán</span>
                                     }
                                     else
                                     {
@@ -99,7 +104,10 @@
                                 </td>
                                 <td><span class="badge @BadgeClass(order.TrangThai)">@order.TrangThai</span></td>
                                 <td class="text-right text-nowrap">
-                                    @if (order.TrangThai == "Chờ xác nhận")
+                                    @if (order.TrangThai == "Chờ xác nhận"
+                                        && !order.PhuongThucThanhToan.Contains("Đã thanh toán")
+                                        && (order.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
+                                            || order.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase)))
                                     {
                                         <form asp-action="ConfirmPayment" method="post" class="d-inline" onsubmit="return confirm('Xác nhận khách đã thanh toán cho đơn hàng @orderCode?');">
                                             @Html.AntiForgeryToken()

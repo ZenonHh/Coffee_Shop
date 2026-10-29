@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:CoffeeShop.Mobile.Models"
+             x:Class="CoffeeShop.Mobile.Views.FeedbackPage"
+             Title="Đánh giá &amp; Phản hồi"
+             Shell.NavBarIsVisible="True">
+    <ScrollView>
+        <VerticalStackLayout Padding="18" Spacing="14">
+            <Label Text="Đánh giá món" TextColor="{StaticResource CoffeeText}"
+                   FontSize="21" FontAttributes="Bold" />
+            <Picker Title="Chọn món" ItemsSource="{Binding Products}"
+                    ItemDisplayBinding="{Binding TenSP}" SelectedItem="{Binding SelectedProduct}"
+                    TextColor="{StaticResource CoffeeText}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Label Text="Số sao" TextColor="{StaticResource CoffeeText}" VerticalOptions="Center" />
+                    <Picker Grid.Column="1" Title="1-5" ItemsSource="{Binding RatingOptions}"
+                            SelectedItem="{Binding Rating}" TextColor="{StaticResource CoffeeAccent}" />
+            </Grid>
+            <Editor Text="{Binding Comment}" Placeholder="Chia sẻ trải nghiệm của bạn..."
+                    AutoSize="TextChanges" HeightRequest="110"
+                    BackgroundColor="{StaticResource CoffeeSurface}"
+                    TextColor="{StaticResource CoffeeText}" PlaceholderColor="{StaticResource CoffeeMuted}" />
+            <Button Text="Gửi đánh giá" Command="{Binding SubmitReviewCommand}"
+                    BackgroundColor="{StaticResource CoffeeAccent}" TextColor="{StaticResource CoffeeBackground}" />
+            <Label Text="Khảo sát khách hàng" TextColor="{StaticResource CoffeeText}"
+                   FontSize="21" FontAttributes="Bold" Margin="0,10,0,0" />
+            <CollectionView ItemsSource="{Binding Surveys}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <Label Text="Hiện chưa có khảo sát đang mở." TextColor="{StaticResource CoffeeMuted}" />
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:SurveyItem">
+                        <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                                BackgroundColor="{StaticResource CoffeeSurface}" Padding="14" Margin="0,4">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="{Binding TieuDe}" TextColor="{StaticResource CoffeeText}"
+                                           FontAttributes="Bold" />
+                                    <Label Text="{Binding MoTa}" TextColor="{StaticResource CoffeeMuted}"
+                                           FontSize="12" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1" Text="Trả lời" Clicked="OnSurveyClicked"
+                                        CommandParameter="{Binding .}" VerticalOptions="Center"
+                                        BackgroundColor="{StaticResource CoffeeAccent}"
+                                        TextColor="{StaticResource CoffeeBackground}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

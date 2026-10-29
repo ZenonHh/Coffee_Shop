@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.AuthBottomSheet"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#CC12100D">
+    <Grid RowDefinitions="*,Auto">
+        <Grid Grid.Row="0">
+            <Image Source="coffee_swirl.svg" Aspect="AspectFill" />
+            <BoxView Color="#6612100D" />
+            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Padding="20">
+                <Label Text="COFFEE SHOP" TextColor="{StaticResource CoffeeAccent}" CharacterSpacing="4"
+                       FontSize="13" HorizontalOptions="Center" />
+                <Label Text="Chào bạn!" TextColor="White" FontSize="30" FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+                <Label Text="Chào mừng bạn đến với Coffee Shop" TextColor="White" FontSize="16"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+            <Button Text="×" Clicked="OnCloseClicked" BackgroundColor="Transparent" TextColor="White"
+                    FontSize="28" Padding="8" HorizontalOptions="End" VerticalOptions="Start" Margin="8,36" />
+        </Grid>
+        <Border Grid.Row="1" Stroke="{StaticResource CoffeeAccent}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 24,24,0,0" BackgroundColor="#FF1A1613"
+                Padding="22,22,22,34" MaximumHeightRequest="620">
+            <ScrollView>
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="{Binding ContinueText}" TextColor="{StaticResource CoffeeText}"
+                           FontSize="22" FontAttributes="Bold" />
+                    <Label Text="Một tài khoản cho mọi trải nghiệm Coffee Shop"
+                           TextColor="{StaticResource CoffeeMuted}" FontSize="13" />
+                    <Border Stroke="{StaticResource CoffeeAccent}" StrokeShape="RoundRectangle 14" Padding="8,0"
+                            BackgroundColor="{StaticResource CoffeeSurface}">
+                        <Entry Placeholder="Tên đăng nhập *" Text="{Binding Username}"
+                               TextColor="{StaticResource CoffeeText}" PlaceholderColor="{StaticResource CoffeeMuted}"
+                               BackgroundColor="Transparent" ClearButtonVisibility="WhileEditing" ReturnType="Next" />
+                    </Border>
+                    <Border IsVisible="{Binding IsLoginForm}" Stroke="{StaticResource CoffeeAccent}"
+                            StrokeShape="RoundRectangle 14" Padding="8,0" BackgroundColor="{StaticResource CoffeeSurface}">
+                        <Entry Placeholder="Mật khẩu *" Text="{Binding Password}" IsPassword="True"
+                               TextColor="{StaticResource CoffeeText}" PlaceholderColor="{StaticResource CoffeeMuted}"
+                               BackgroundColor="Transparent" ReturnType="Go" />
+                    </Border>
+                    <Border IsVisible="{Binding IsRegistrationForm}" Stroke="{StaticResource CoffeeAccent}"
+                            StrokeShape="RoundRectangle 14" Padding="8,0" BackgroundColor="{StaticResource CoffeeSurface}">
+                        <Entry Placeholder="Họ và tên *" Text="{Binding FullName}" TextColor="{StaticResource CoffeeText}"
+                               PlaceholderColor="{StaticResource CoffeeMuted}" BackgroundColor="Transparent" />
+                    </Border>
+                    <Border IsVisible="{Binding IsRegistrationForm}" Stroke="{StaticResource CoffeeAccent}"
+                            StrokeShape="RoundRectangle 14" Padding="8,0" BackgroundColor="{StaticResource CoffeeSurface}">
+                        <Entry Placeholder="Mật khẩu mới *" Text="{Binding Password}" IsPassword="True"
+                               TextColor="{StaticResource CoffeeText}" PlaceholderColor="{StaticResource CoffeeMuted}"
+                               BackgroundColor="Transparent" />
+                    </Border>
+                    <Border IsVisible="{Binding IsRegistrationForm}" Stroke="{StaticResource CoffeeAccent}"
+                            StrokeShape="RoundRectangle 14" Padding="8,0" BackgroundColor="{StaticResource CoffeeSurface}">
+                        <Entry Placeholder="Xác nhận mật khẩu *" Text="{Binding ConfirmPassword}" IsPassword="True"
+                               TextColor="{StaticResource CoffeeText}" PlaceholderColor="{StaticResource CoffeeMuted}"
+                               BackgroundColor="Transparent" />
+                    </Border>
+                    <Border IsVisible="{Binding IsRegistrationForm}" Stroke="{StaticResource CoffeeAccent}"
+                            StrokeShape="RoundRectangle 14" Padding="8,0" BackgroundColor="{StaticResource CoffeeSurface}">
+                        <Entry Placeholder="Số điện thoại *" Text="{Binding Phone}" Keyboard="Telephone"
+                               TextColor="{StaticResource CoffeeText}" PlaceholderColor="{StaticResource CoffeeMuted}"
+                               BackgroundColor="Transparent" />
+                    </Border>
+                    <Label Text="Số điện thoại là thông tin bắt buộc cho hồ sơ và đơn giao hàng."
+                           IsVisible="{Binding IsRegistrationForm}" TextColor="{StaticResource CoffeeMuted}"
+                           FontSize="11" />
+                    <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"
+                           TextColor="#FF8A80" FontSize="12" />
+                    <Button Text="{Binding ContinueText}" Command="{Binding ContinueCommand}"
+                            IsEnabled="{Binding CanContinue}" HeightRequest="52">
+                        <Button.Triggers>
+                            <Trigger TargetType="Button" Property="IsEnabled" Value="False">
+                                <Setter Property="BackgroundColor" Value="{StaticResource CoffeeDisabled}" />
+                                <Setter Property="TextColor" Value="#888888" />
+                            </Trigger>
+                        </Button.Triggers>
+                    </Button>
+                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource CoffeeAccent}" />
+                    <Button Text="{Binding ModeSwitchText}" Command="{Binding ToggleModeCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+    </Grid>
+</ContentPage>

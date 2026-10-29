@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:CoffeeShop.Mobile.Models"
+             x:Class="CoffeeShop.Mobile.Views.FavoritesPage"
+             Title="Món yêu thích"
+             Shell.NavBarIsVisible="True">
+    <CollectionView x:Name="FavoriteProducts" ItemsSource="{Binding}" SelectionMode="None" Margin="12">
+        <CollectionView.EmptyView>
+            <Label Text="Bạn chưa lưu món yêu thích nào." TextColor="{StaticResource CoffeeMuted}"
+                   HorizontalOptions="Center" VerticalOptions="Center" />
+        </CollectionView.EmptyView>
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="models:ProductItem">
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="10" Margin="0,5">
+                    <Grid ColumnDefinitions="84,*,Auto" ColumnSpacing="12">
+                        <Image Source="{Binding HinhAnh, FallbackValue=coffee_swirl.svg}"
+                               Aspect="AspectFill" HeightRequest="84" WidthRequest="84" />
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="4">
+                            <Label Text="{Binding TenSP}" TextColor="{StaticResource CoffeeText}"
+                                   FontAttributes="Bold" />
+                            <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}"
+                                   TextColor="{StaticResource CoffeeAccent}" />
+                        </VerticalStackLayout>
+                        <Button Grid.Column="2" Text="Xóa" CommandParameter="{Binding .}"
+                                Clicked="OnRemoveClicked" VerticalOptions="Center"
+                                BackgroundColor="Transparent" TextColor="{StaticResource CoffeeAccent}" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnProductTapped" CommandParameter="{Binding .}" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>

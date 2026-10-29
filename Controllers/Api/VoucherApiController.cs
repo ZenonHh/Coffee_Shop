@@ -11,6 +11,7 @@ public sealed class VoucherApiController(CoffeeShopDbContext db) : ControllerBas
 {
     /// <summary>List vouchers that are active within their validity period and still have uses remaining.</summary>
     [HttpGet]
+    [HttpGet("list")]
     [ProducesResponseType(typeof(IReadOnlyList<VoucherListResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<VoucherListResponse>>> List(CancellationToken cancellationToken)
     {
@@ -21,7 +22,7 @@ public sealed class VoucherApiController(CoffeeShopDbContext db) : ControllerBas
                 && (!item.NgayKetThuc.HasValue || item.NgayKetThuc >= now))
             .OrderBy(item => item.NgayKetThuc)
             .Select(item => new VoucherListResponse(
-                item.MaVoucher, item.MaCode, item.PhanLoaiGiam, item.GiaTriGiam,
+                item.MaVoucher, item.MaCode, item.TenChuongTrinh, item.PhanLoaiGiam, item.GiaTriGiam,
                 item.DonToiThieu, item.NgayKetThuc))
             .ToListAsync(cancellationToken);
         return Ok(vouchers);
@@ -85,5 +86,5 @@ public sealed record VoucherCheckResponse(int MaVoucher, string MaCode, decimal 
 
 /// <summary>Voucher available for display in the mobile app.</summary>
 public sealed record VoucherListResponse(
-    int MaVoucher, string MaCode, string PhanLoaiGiam, decimal GiaTriGiam,
+    int MaVoucher, string MaCode, string? TenChuongTrinh, string PhanLoaiGiam, decimal GiaTriGiam,
     decimal DonToiThieu, DateTime? NgayKetThuc);

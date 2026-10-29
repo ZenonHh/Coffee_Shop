@@ -4,12 +4,17 @@
              x:Class="CoffeeShop.Mobile.Views.MenuPage"
              x:Name="Root"
              Title="Đặt hàng">
+    <Shell.BackButtonBehavior>
+        <BackButtonBehavior Command="{Binding GoBackCommand}" />
+    </Shell.BackButtonBehavior>
     <Grid RowDefinitions="Auto,Auto,*,Auto">
         <SearchBar x:Name="MenuSearch"
                    Placeholder="Tìm cà phê, trà, bánh..."
                    Text="{Binding SearchText}"
                    SearchButtonPressed="OnSearchPressed"
-                   BackgroundColor="White"
+                   BackgroundColor="{StaticResource CoffeeSurface}"
+                   TextColor="{StaticResource CoffeeText}"
+                   PlaceholderColor="{StaticResource CoffeeMuted}"
                    Margin="16,12" />
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Categories}"
@@ -19,8 +24,8 @@
                         ItemsLayout="HorizontalList">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Stroke="#E5DDD2" BackgroundColor="White" StrokeShape="RoundRectangle 22" Padding="16,8" Margin="6,4">
-                        <Label Text="{Binding TenLoaiSP}" TextColor="#2E1A11" VerticalOptions="Center" />
+                    <Border Stroke="{StaticResource CoffeeBorder}" BackgroundColor="{StaticResource CoffeeSurface}" StrokeShape="RoundRectangle 22" Padding="16,8" Margin="6,4">
+                        <Label Text="{Binding TenLoaiSP}" TextColor="{StaticResource CoffeeText}" VerticalOptions="Center" />
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
@@ -31,15 +36,20 @@
                         SelectionMode="None"
                         Margin="10,4">
             <CollectionView.EmptyView>
-                <Label Text="Chưa có món phù hợp." TextColor="#806F63" HorizontalOptions="Center" VerticalOptions="Center" />
+                <Label Text="Chưa có món phù hợp." TextColor="{StaticResource CoffeeMuted}" HorizontalOptions="Center" VerticalOptions="Center" />
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Stroke="#EFE7DC" BackgroundColor="White" StrokeShape="RoundRectangle 16" Padding="10" Margin="5">
+                    <Border Stroke="{StaticResource CoffeeBorder}" BackgroundColor="{StaticResource CoffeeSurface}" StrokeShape="RoundRectangle 16" Padding="10" Margin="5">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenProductCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
                         <Grid RowDefinitions="150,Auto,Auto,Auto">
                             <Grid>
-                                <Image Source="{Binding HinhAnh}" Aspect="AspectFill" />
-                                <Border BackgroundColor="#B32E1A11" StrokeThickness="0" StrokeShape="RoundRectangle 9"
+                                <Image Source="{Binding HinhAnh, FallbackValue=coffee_swirl.svg}" Aspect="AspectFill" />
+                                <Border BackgroundColor="#B312100D" StrokeThickness="0" StrokeShape="RoundRectangle 9"
                                         HorizontalOptions="Start" VerticalOptions="Start" Padding="8,4"
                                         IsVisible="{Binding IsOutOfStock}">
                                     <Label Text="HẾT HÀNG" TextColor="White" FontSize="10" FontAttributes="Bold" />
@@ -50,34 +60,27 @@
                                     </DataTrigger>
                                 </Image.Triggers>
                             </Grid>
-                            <Label Grid.Row="1" Text="{Binding TenSP}" TextColor="#2E1A11" FontAttributes="Bold" LineBreakMode="TailTruncation" Margin="0,8,0,2" />
-                            <Label Grid.Row="2" Text="{Binding TenLoaiSP}" TextColor="#806F63" FontSize="12" />
+                            <Label Grid.Row="1" Text="{Binding TenSP}" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" LineBreakMode="TailTruncation" Margin="0,8,0,2" />
+                            <Label Grid.Row="2" Text="{Binding TenLoaiSP}" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
                             <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
-                                <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}" TextColor="#2E1A11" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Button Grid.Column="1" Text="+" WidthRequest="42" HeightRequest="42" Padding="0"
-                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenProductCommand}"
-                                        CommandParameter="{Binding .}">
-                                    <Button.Triggers>
-                                        <DataTrigger TargetType="Button" Binding="{Binding IsOutOfStock}" Value="True">
-                                            <Setter Property="IsEnabled" Value="False" />
-                                            <Setter Property="Opacity" Value="0.45" />
-                                        </DataTrigger>
-                                    </Button.Triggers>
-                                </Button>
+                                <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Label Grid.Column="1" Text="+" TextColor="{StaticResource CoffeeAccent}"
+                                       FontSize="26" FontAttributes="Bold" VerticalOptions="Center"
+                                       HorizontalOptions="Center" WidthRequest="42" />
                             </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Border Grid.Row="3" IsVisible="{Binding IsCartVisible}" BackgroundColor="#2E1A11"
+        <Border Grid.Row="3" IsVisible="{Binding IsCartVisible}" BackgroundColor="{StaticResource CoffeeSurfaceRaised}"
                 StrokeThickness="0" StrokeShape="RoundRectangle 18" Margin="16,6,16,12" Padding="14,8">
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="1">
                     <Label Text="{Binding CartCount, StringFormat='{0} món trong giỏ'}" TextColor="White" FontSize="12" />
-                    <Label Text="{Binding CartTotal, StringFormat='{0:N0} đ'}" TextColor="#C49B63" FontAttributes="Bold" />
+                    <Label Text="{Binding CartTotal, StringFormat='{0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" />
                 </VerticalStackLayout>
-                <Button Grid.Column="1" Text="Xem giỏ" BackgroundColor="#C49B63" TextColor="#2E1A11"
+                <Button Grid.Column="1" Text="Xem giỏ" BackgroundColor="{StaticResource CoffeeAccent}" TextColor="{StaticResource CoffeeBackground}"
                         Command="{Binding OpenCartCommand}" />
             </Grid>
         </Border>

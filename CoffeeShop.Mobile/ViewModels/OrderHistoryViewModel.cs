@@ -16,6 +16,9 @@ public partial class OrderHistoryViewModel(ApiService api) : ObservableObject
     [ObservableProperty]
     private bool isBusy;
 
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private async Task GoBackAsync() => await Shell.Current.GoToAsync("..");
+
     public async Task LoadAsync()
     {
         if (IsBusy)

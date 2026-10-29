@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.AccountPage"
+             Title="Tài khoản"
+             Shell.NavBarIsVisible="False">
+    <ScrollView>
+        <VerticalStackLayout Padding="18,16,18,28" Spacing="16">
+            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                <Border WidthRequest="54" HeightRequest="54" Stroke="{StaticResource CoffeeAccent}"
+                        StrokeShape="RoundRectangle 27" BackgroundColor="{StaticResource CoffeeSurface}">
+                    <Label Text="♙" TextColor="{StaticResource CoffeeAccent}" FontSize="30"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                    <Label x:Name="CustomerName" Text="Coffee member" TextColor="{StaticResource CoffeeText}"
+                           FontSize="18" FontAttributes="Bold" />
+                    <Label x:Name="CustomerPhone" Text="—" TextColor="{StaticResource CoffeeMuted}" FontSize="13" />
+                </VerticalStackLayout>
+                <Label Grid.Column="2" Text="♧" TextColor="{StaticResource CoffeeAccent}" FontSize="26"
+                       VerticalOptions="Center" />
+            </Grid>
+            <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 18"
+                    BackgroundColor="{StaticResource CoffeeSurface}" Padding="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Hạng hội viên" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        <Label x:Name="MemberRank" Text="MEMBER" TextColor="{StaticResource CoffeeAccent}"
+                               FontSize="16" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="4" HorizontalOptions="End">
+                        <Label Text="Điểm tích lũy" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        <Label x:Name="MemberPoints" Text="0 điểm" TextColor="{StaticResource CoffeeText}"
+                               FontAttributes="Bold" HorizontalTextAlignment="End" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+            <Label Text="Tài khoản của tôi" TextColor="{StaticResource CoffeeText}" FontSize="20"
+                   FontAttributes="Bold" Margin="0,6,0,0" />
+            <VerticalStackLayout Spacing="8">
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="♙" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Hồ sơ cá nhân" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Thông tin tài khoản" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Profile" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="▤" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Lịch sử đơn hàng" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Theo dõi tiến trình đơn" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Order history" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="♧" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Kho Voucher của tôi" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Mã ưu đãi dành cho bạn" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Vouchers" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="♡" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Món yêu thích" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Danh sách món đã lưu" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Favorites" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="⌖" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Sổ địa chỉ" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Địa chỉ nhận hàng mặc định" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Address" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="★" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Đánh giá &amp; Phản hồi" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Gửi ý kiến và trả lời khảo sát" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Feedback" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+                <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 14"
+                        BackgroundColor="{StaticResource CoffeeSurface}" Padding="14,10">
+                    <Grid ColumnDefinitions="36,*,Auto" ColumnSpacing="10">
+                        <Label Text="♧" TextColor="{StaticResource CoffeeAccent}" FontSize="22" VerticalOptions="Center" />
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Đổi mật khẩu" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" />
+                            <Label Text="Bảo mật tài khoản" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                        </VerticalStackLayout>
+                        <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeAccent}" FontSize="24" VerticalOptions="Center" />
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Password" />
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                </Border>
+            </VerticalStackLayout>
+            <Button Text="Đăng xuất" Clicked="OnSignOutClicked" BackgroundColor="Transparent"
+                    BorderColor="{StaticResource CoffeeAccent}" BorderWidth="1" TextColor="{StaticResource CoffeeAccent}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

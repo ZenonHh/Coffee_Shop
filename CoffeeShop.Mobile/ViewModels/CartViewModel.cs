@@ -29,11 +29,11 @@ public partial class CartViewModel : ObservableObject
     private string phone = string.Empty;
 
     [ObservableProperty]
-    private string selectedFulfillment = "Giao tận nơi";
+    private string selectedFulfillment = "Giao hàng";
 
     public bool IsPickup => SelectedFulfillment == "Mang đi";
     public bool IsDelivery => !IsPickup;
-    public IReadOnlyList<string> FulfillmentOptions { get; } = ["Giao tận nơi", "Mang đi"];
+    public IReadOnlyList<string> FulfillmentOptions { get; } = ["Giao hàng", "Mang đi"];
 
     [ObservableProperty]
     private PaymentOption selectedPayment = new("COD", "Tiền mặt khi nhận hàng (COD)");
@@ -128,7 +128,7 @@ public partial class CartViewModel : ObservableObject
             _cart.Clear();
             await Shell.Current.DisplayAlertAsync("Đặt hàng thành công", $"Mã đơn #{result.MaHD} · {result.TongTien:N0} đ", "Đóng");
             await Shell.Current.Navigation.PopModalAsync();
-            await Shell.Current.GoToAsync("//orders");
+            await Shell.Current.GoToAsync("order-history");
         }
         catch (Exception exception)
         {

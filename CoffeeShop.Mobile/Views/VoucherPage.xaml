@@ -2,25 +2,51 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.VoucherPage"
-             x:Name="Root"
-             Title="Khuyến mãi">
-    <CollectionView x:Name="VoucherList" Margin="14" SelectionMode="None">
+             Title="Voucher"
+             Shell.NavBarIsVisible="False">
+    <CollectionView ItemsSource="{Binding Vouchers}" Margin="16,12" SelectionMode="None">
+        <CollectionView.Header>
+            <VerticalStackLayout Spacing="8" Margin="0,0,0,12">
+                <Label Text="Ưu đãi dành cho bạn" TextColor="{StaticResource CoffeeText}"
+                       FontSize="26" FontAttributes="Bold" />
+                <Label Text="Mã giảm giá và chương trình đang áp dụng"
+                       TextColor="{StaticResource CoffeeMuted}" FontSize="14" />
+            </VerticalStackLayout>
+        </CollectionView.Header>
         <CollectionView.EmptyView>
-            <Label Text="Hiện chưa có ưu đãi khả dụng." TextColor="#806F63" HorizontalOptions="Center" VerticalOptions="Center" />
+            <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
+                <Label Text="Hiện chưa có voucher khả dụng." TextColor="{StaticResource CoffeeMuted}"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
         </CollectionView.EmptyView>
         <CollectionView.ItemTemplate>
             <DataTemplate>
-                <Border BackgroundColor="White" Stroke="#E8D9C6" StrokeShape="RoundRectangle 18" Padding="16" Margin="0,6">
-                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-                        <Label Text="{Binding MaCode}" TextColor="#2E1A11" FontSize="20" FontAttributes="Bold" />
-                        <Label Grid.Row="1" Text="{Binding DisplayDiscount}"
-                               TextColor="#A4773F" FontAttributes="Bold" Margin="0,6" />
-                        <Label Grid.Row="2" Text="{Binding DonToiThieu, StringFormat='Đơn tối thiểu {0:N0} đ'}"
-                               TextColor="#806F63" FontSize="12" />
-                        <Label Grid.Row="3" Text="{Binding NgayKetThuc, StringFormat='Hạn dùng đến {0:dd/MM/yyyy}'}"
-                               TextColor="#806F63" FontSize="12" />
-                        <Button Grid.Column="1" Grid.RowSpan="3" Text="Sử dụng ngay" VerticalOptions="Center"
-                                Clicked="OnUseVoucherClicked" />
+                <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}"
+                        StrokeShape="RoundRectangle 18" Padding="0" Margin="0,5">
+                    <Grid ColumnDefinitions="104,*">
+                        <Border BackgroundColor="#30271E" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 18,0,0,18">
+                            <Grid>
+                                <Image Source="coffee_swirl.svg" Aspect="AspectFill" Opacity="0.55" />
+                                <Label Text="✦" FontSize="38" TextColor="{StaticResource CoffeeAccent}"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Padding="14" Spacing="5">
+                            <Label Text="{Binding MaCode}" TextColor="{StaticResource CoffeeAccent}"
+                                   CharacterSpacing="1.5" FontSize="12" FontAttributes="Bold" />
+                            <Label Text="{Binding DisplayTitle}" TextColor="{StaticResource CoffeeText}"
+                                   FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                            <Label Text="{Binding DisplayDiscount}" TextColor="{StaticResource CoffeeAccent}"
+                                   FontSize="18" FontAttributes="Bold" />
+                            <Label Text="{Binding DonToiThieu, StringFormat='Đơn tối thiểu {0:N0} đ'}"
+                                   TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                            <Label Text="{Binding ExpiryText}"
+                                   TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                            <Button Text="Dùng ngay"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.UseVoucherCommand}"
+                                    CommandParameter="{Binding .}" Padding="16,8" HorizontalOptions="Start" />
+                        </VerticalStackLayout>
                     </Grid>
                 </Border>
             </DataTemplate>

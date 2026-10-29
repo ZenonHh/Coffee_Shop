@@ -1,14 +1,17 @@
 namespace CoffeeShop.Mobile;
 
+using Microsoft.Extensions.DependencyInjection;
+
 public partial class App : Application
 {
-    private readonly AppShell _shell;
+    private readonly IServiceProvider _services;
 
-    public App(AppShell shell)
+    public App(IServiceProvider services)
     {
         InitializeComponent();
-        _shell = shell;
+        _services = services;
     }
 
-    protected override Window CreateWindow(IActivationState? activationState) => new(_shell);
+    protected override Window CreateWindow(IActivationState? activationState) =>
+        new(new NavigationPage(_services.GetRequiredService<Views.SplashPage>()));
 }

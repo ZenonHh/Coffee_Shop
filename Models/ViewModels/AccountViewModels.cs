@@ -38,7 +38,7 @@ namespace CoffeeShop.Models.ViewModels
         public string? Email { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
-        [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
+        [MinLength(8, ErrorMessage = "Mật khẩu tối thiểu 8 ký tự")]
         [DataType(DataType.Password)]
         [Display(Name = "Mật khẩu")]
         public string Password { get; set; } = string.Empty;
@@ -74,7 +74,16 @@ namespace CoffeeShop.Models.ViewModels
         public DateTime NgayTao { get; set; }
         public decimal TongTien { get; set; }
         public string TrangThai { get; set; } = string.Empty;
+        public string? LyDoHuy { get; set; }
         public List<ProfileOrderLineViewModel> OrderDetails { get; set; } = new();
+
+        public string TrackerText => TrangThai switch
+        {
+            "Đã xác nhận" => "✓ Chờ xác nhận → ● Đã xác nhận → ○ Đang giao → ○ Hoàn thành",
+            "Đang giao" => "✓ Chờ xác nhận → ✓ Đã xác nhận → ● Đang giao → ○ Hoàn thành",
+            "Hoàn thành" => "✓ Chờ xác nhận → ✓ Đã xác nhận → ✓ Đang giao → ✓ Hoàn thành",
+            _ => "● Chờ xác nhận → ○ Đã xác nhận → ○ Đang giao → ○ Hoàn thành"
+        };
     }
 
     public class ProfileOrderLineViewModel

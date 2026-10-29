@@ -165,7 +165,15 @@
                                             </td>
                                             <td class="text-warning font-weight-bold">@order.TongTien.ToString("N0") đ</td>
                                             <td>
-                                                <span class="badge badge-info">@order.TrangThai</span>
+                                                <span class="badge @(order.TrangThai == "Đã hủy" ? "badge-danger" : "badge-info")">@order.TrangThai</span>
+                                                @if (order.TrangThai == "Đã hủy" && !string.IsNullOrWhiteSpace(order.LyDoHuy))
+                                                {
+                                                    <div class="small text-danger mt-1">@order.LyDoHuy</div>
+                                                }
+                                                else if (order.TrangThai != "Đã hủy")
+                                                {
+                                                    <div class="small text-muted mt-1">@order.TrackerText</div>
+                                                }
                                             </td>
                                         </tr>
                                     }

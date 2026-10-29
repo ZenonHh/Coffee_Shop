@@ -1,6 +1,14 @@
 @baseUrl = http://localhost:5160
 @accessToken = replace-with-access-token-from-login
 
+### Check if the username is registered
+POST {{baseUrl}}/api/auth/check-username
+Content-Type: application/json
+
+{
+  "tenDangNhap": "mobile.customer"
+}
+
 ### Register a customer (requires an existing customer role in VaiTro)
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
@@ -26,6 +34,10 @@ Content-Type: application/json
 ### Current customer profile
 GET {{baseUrl}}/api/auth/profile
 Authorization: Bearer {{accessToken}}
+
+### Current customer's loyalty point history
+GET {{baseUrl}}/api/auth/points
+Authorization: ******
 
 ### Menu categories
 GET {{baseUrl}}/api/menu/categories

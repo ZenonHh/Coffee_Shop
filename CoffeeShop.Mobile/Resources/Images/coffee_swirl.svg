@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1600" viewBox="0 0 900 1600">
+  <defs>
+    <linearGradient id="coffee" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#76502f"/>
+      <stop offset=".42" stop-color="#c49b63"/>
+      <stop offset=".68" stop-color="#3b2417"/>
+      <stop offset="1" stop-color="#e0bf8d"/>
+    </linearGradient>
+    <radialGradient id="cream" cx=".28" cy=".2" r=".8">
+      <stop offset="0" stop-color="#f6dfb4" stop-opacity=".92"/>
+      <stop offset=".55" stop-color="#d4ae75" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#29180f" stop-opacity=".72"/>
+    </radialGradient>
+    <filter id="soft">
+      <feGaussianBlur stdDeviation="30"/>
+    </filter>
+  </defs>
+  <rect width="900" height="1600" fill="url(#coffee)"/>
+  <path d="M-120 210C130 20 330 440 530 245S870 80 1030 320 790 610 560 520 230 690 20 530-100 340-120 210Z"
+        fill="#f3ddb2" opacity=".8" filter="url(#soft)"/>
+  <path d="M-90 720C120 490 370 950 570 700s330-180 430 35-300 310-470 195S230 1060 30 920-130 800-90 720Z"
+        fill="#4a2d1b" opacity=".85" filter="url(#soft)"/>
+  <path d="M-100 1230C110 1000 300 1390 510 1190s360-160 500 75-260 310-460 190-310 190-520 45-180-170-130-270Z"
+        fill="#f0d7a8" opacity=".75" filter="url(#soft)"/>
+  <rect width="900" height="1600" fill="url(#cream)"/>
+</svg>

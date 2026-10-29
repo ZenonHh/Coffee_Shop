@@ -6,7 +6,12 @@ public sealed record CustomerProfile(
     int MaKH, string TenDangNhap, string HoTen, string Sdt, string? Email,
     string? DiaChi, int DiemTichLuy, string HangTV);
 
+public sealed record UpdateProfileRequest(string HoTen, string Sdt, string? Email, string? DiaChi);
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public sealed record AuthResponse(string AccessToken, CustomerProfile Customer);
+public sealed record UsernameCheckResponse(bool Exists);
+public sealed record PointHistoryItem(
+    int MaLSD, int? MaHD, int DiemThayDoi, string? LyDo, DateTimeOffset NgayThucHien);
 public sealed record CategoryItem(int MaLoaiSP, string TenLoaiSP);
 public sealed record ProductItem(
     int MaSP, string TenSP, string? HinhAnh, string TenLoaiSP, decimal? GiaTu, bool IsOutOfStock);
@@ -16,12 +21,16 @@ public sealed record ProductDetail(
     int MaSP, string TenSP, string? HinhAnh, string TenLoaiSP, int SoLuongTon,
     IReadOnlyList<ProductVariantItem> Variants, IReadOnlyList<ToppingItem> Toppings);
 public sealed record VoucherItem(
-    int MaVoucher, string MaCode, string PhanLoaiGiam, decimal GiaTriGiam,
+    int MaVoucher, string MaCode, string? TenChuongTrinh, string PhanLoaiGiam, decimal GiaTriGiam,
     decimal DonToiThieu, DateTime? NgayKetThuc)
 {
+    public string DisplayTitle => string.IsNullOrWhiteSpace(TenChuongTrinh) ? MaCode : TenChuongTrinh;
     public string DisplayDiscount => PhanLoaiGiam.Equals("PERCENT", StringComparison.OrdinalIgnoreCase)
         ? $"Giảm {GiaTriGiam:N0}%"
         : $"Giảm {GiaTriGiam:N0} đ";
+    public string ExpiryText => NgayKetThuc.HasValue
+        ? $"Hạn đến {NgayKetThuc.Value:dd/MM/yyyy}"
+        : "Không thời hạn";
 }
 public sealed record VoucherCheckResult(int MaVoucher, string MaCode, decimal TienGiamGia);
 public sealed record VoucherCheckRequest(string MaCode, decimal TamTinh);

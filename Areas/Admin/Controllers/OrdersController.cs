@@ -70,18 +70,26 @@ namespace CoffeeShop.Areas.Admin.Controllers
         public async Task<IActionResult> ConfirmPayment(int orderId)
         {
             var order = await _context.Orders.FindAsync(orderId);
-            if (order != null)
+            if (order == null)
             {
-                order.TrangThai = OrderStatuses.Confirmed;
-                if (!order.PhuongThucThanhToan.Contains("Đã thanh toán"))
-                {
-                    order.PhuongThucThanhToan = "Đã thanh toán (" + order.PhuongThucThanhToan + ")";
-                }
-                order.NguoiXuLy = User.Identity?.Name ?? "Quản trị viên";
-                order.NgayCapNhat = DateTime.Now;
-                await _context.SaveChangesAsync();
-                TempData["Success"] = $"Đơn hàng #HD{order.MaHD:D4} đã được xác nhận thanh toán thành công!";
+                TempData["Error"] = $"Không tìm thấy đơn hàng #{orderId}.";
+                return RedirectToAction(nameof(Index));
             }
+
+            var isTransfer = order.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
+                || order.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase);
+            if (order.TrangThai != OrderStatuses.WaitingForConfirmation || !isTransfer
+                || order.PhuongThucThanhToan.Contains("Đã thanh toán", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Chỉ có thể xác nhận khoản chuyển khoản chưa thanh toán của đơn đang chờ xác nhận.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            order.PhuongThucThanhToan = "Chuyển khoản (Đã thanh toán)";
+            order.NguoiXuLy = User.Identity?.Name ?? "Quản trị viên";
+            order.NgayCapNhat = DateTime.Now;
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"Đã xác nhận thanh toán cho đơn hàng #HD{order.MaHD:D4}. Trạng thái đơn vẫn chờ xác nhận.";
             return RedirectToAction(nameof(Index));
         }
 

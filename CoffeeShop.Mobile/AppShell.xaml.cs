@@ -9,9 +9,12 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
         HomeTab.Content = services.GetRequiredService<HomePage>();
-        MenuTab.Content = services.GetRequiredService<MenuPage>();
         VoucherTab.Content = services.GetRequiredService<VoucherPage>();
-        OrderHistoryTab.Content = services.GetRequiredService<OrderHistoryPage>();
-        ProfileTab.Content = services.GetRequiredService<ProfilePage>();
+        OrderTab.Content = services.GetRequiredService<OrderModePage>();
+        AccountTab.Content = services.GetRequiredService<AccountPage>();
+        Routing.RegisterRoute("menu", typeof(MenuPage));
+        Routing.RegisterRoute("order-history", typeof(OrderHistoryPage));
+        Routing.RegisterRoute("feedback", typeof(FeedbackPage));
+        Routing.RegisterRoute("favorites", typeof(FavoritesPage));
     }
 }

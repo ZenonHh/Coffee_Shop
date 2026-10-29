@@ -12,7 +12,7 @@ public partial class CartService : ObservableObject
     private string? voucherCode;
 
     [ObservableProperty]
-    private string selectedFulfillment = "Giao tận nơi";
+    private string selectedFulfillment = "Giao hàng";
 
     public int ItemCount => Items.Sum(item => item.Quantity);
     public decimal Subtotal => Items.Sum(item => item.LineTotal);

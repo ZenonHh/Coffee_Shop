@@ -6,21 +6,23 @@
     <Grid RowDefinitions="*,Auto">
         <ScrollView>
             <VerticalStackLayout Padding="16" Spacing="14">
-                <Label Text="Giỏ hàng của bạn" FontSize="25" FontAttributes="Bold" TextColor="#2E1A11" />
+                <Button Text="‹  Quay lại" Clicked="OnBackClicked" HorizontalOptions="Start"
+                        BackgroundColor="Transparent" TextColor="{StaticResource CoffeeAccent}" Padding="4,2" />
+                <Label Text="Giỏ hàng của bạn" FontSize="25" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                 <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
                     <CollectionView.EmptyView>
-                        <Label Text="Giỏ hàng đang trống." TextColor="#806F63" HorizontalOptions="Center" Margin="20" />
+                        <Label Text="Giỏ hàng đang trống." TextColor="{StaticResource CoffeeMuted}" HorizontalOptions="Center" Margin="20" />
                     </CollectionView.EmptyView>
                     <CollectionView.ItemTemplate>
                         <DataTemplate>
-                            <Border BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="12" Margin="0,5">
+                            <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16" Padding="12" Margin="0,5">
                                 <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
-                                    <Label Text="{Binding Product.TenSP}" FontAttributes="Bold" TextColor="#2E1A11" />
-                                    <Label Grid.Row="1" Text="{Binding SizeAndToppings}" TextColor="#806F63" FontSize="12" />
-                                    <Label Grid.Row="2" Text="{Binding LineTotal, StringFormat='{0:N0} đ'}" TextColor="#2E1A11" FontAttributes="Bold" />
+                                    <Label Text="{Binding Product.TenSP}" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
+                                    <Label Grid.Row="1" Text="{Binding SizeAndToppings}" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                                    <Label Grid.Row="2" Text="{Binding LineTotal, StringFormat='{0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" />
                                     <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="3" Spacing="8" VerticalOptions="Center">
                                         <Button Text="−" WidthRequest="38" Padding="0" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DecreaseCommand}" CommandParameter="{Binding .}" />
-                                        <Label Text="{Binding Quantity}" VerticalOptions="Center" TextColor="#2E1A11" />
+                                        <Label Text="{Binding Quantity}" VerticalOptions="Center" TextColor="{StaticResource CoffeeText}" />
                                         <Button Text="+" WidthRequest="38" Padding="0" Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.IncreaseCommand}" CommandParameter="{Binding .}" />
                                     </HorizontalStackLayout>
                                 </Grid>
@@ -28,18 +30,18 @@
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
-                <Border BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="14">
+                <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16" Padding="14">
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="Mã ưu đãi" FontAttributes="Bold" TextColor="#2E1A11" />
+                        <Label Text="Mã ưu đãi" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <Entry Placeholder="Nhập mã voucher" Text="{Binding VoucherCode}" />
                             <Button Grid.Column="1" Text="Áp dụng" Command="{Binding ApplyVoucherCommand}" />
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
-                <Border BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="14">
+                <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16" Padding="14">
                     <VerticalStackLayout Spacing="9">
-                        <Label Text="Nhận hàng &amp; thanh toán" FontAttributes="Bold" TextColor="#2E1A11" />
+                        <Label Text="Nhận hàng &amp; thanh toán" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                         <Picker Title="Hình thức nhận hàng" ItemsSource="{Binding FulfillmentOptions}" SelectedItem="{Binding SelectedFulfillment}" />
                         <Entry Placeholder="Tên người nhận" Text="{Binding RecipientName}" />
                         <Entry Placeholder="Số điện thoại" Keyboard="Telephone" Text="{Binding Phone}" />
@@ -49,16 +51,16 @@
                     </VerticalStackLayout>
                 </Border>
                 <VerticalStackLayout Spacing="6">
-                    <Grid ColumnDefinitions="*,Auto"><Label Text="Tạm tính" TextColor="#806F63" /><Label Grid.Column="1" Text="{Binding Subtotal, StringFormat='{0:N0} đ'}" TextColor="#2E1A11" /></Grid>
-                    <Grid ColumnDefinitions="*,Auto"><Label Text="Giảm giá" TextColor="#806F63" /><Label Grid.Column="1" Text="{Binding VoucherDiscount, StringFormat='−{0:N0} đ'}" TextColor="#2E1A11" /></Grid>
-                    <Grid ColumnDefinitions="*,Auto"><Label Text="Phí giao hàng" TextColor="#806F63" /><Label Grid.Column="1" Text="{Binding ShippingFee, StringFormat='{0:N0} đ'}" TextColor="#2E1A11" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="Tạm tính" TextColor="{StaticResource CoffeeMuted}" /><Label Grid.Column="1" Text="{Binding Subtotal, StringFormat='{0:N0} đ'}" TextColor="{StaticResource CoffeeText}" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="Giảm giá" TextColor="{StaticResource CoffeeMuted}" /><Label Grid.Column="1" Text="{Binding VoucherDiscount, StringFormat='−{0:N0} đ'}" TextColor="{StaticResource CoffeeText}" /></Grid>
+                    <Grid ColumnDefinitions="*,Auto"><Label Text="Phí giao hàng" TextColor="{StaticResource CoffeeMuted}" /><Label Grid.Column="1" Text="{Binding ShippingFee, StringFormat='{0:N0} đ'}" TextColor="{StaticResource CoffeeText}" /></Grid>
                 </VerticalStackLayout>
             </VerticalStackLayout>
         </ScrollView>
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" BackgroundColor="White" Padding="16">
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" BackgroundColor="{StaticResource CoffeeSurface}" Padding="16">
             <VerticalStackLayout>
-                <Label Text="Tổng thanh toán" TextColor="#806F63" FontSize="12" />
-                <Label Text="{Binding Total, StringFormat='{0:N0} đ'}" TextColor="#2E1A11" FontAttributes="Bold" FontSize="19" />
+                <Label Text="Tổng thanh toán" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
+                <Label Text="{Binding Total, StringFormat='{0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" FontSize="19" />
             </VerticalStackLayout>
             <Button Grid.Column="1" Text="ĐẶT HÀNG NGAY" Command="{Binding CheckoutCommand}" />
         </Grid>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.SplashPage"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False">
+    <Grid>
+        <Image Source="coffee_swirl.svg" Aspect="AspectFill" />
+        <BoxView Color="#8012100D" />
+        <VerticalStackLayout Padding="28" VerticalOptions="Center" HorizontalOptions="Center" Spacing="18">
+            <VerticalStackLayout Spacing="3">
+                <Label Text="COFFEE" TextColor="{StaticResource CoffeeAccent}" CharacterSpacing="5"
+                       FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
+                <Label Text="SHOP" TextColor="{StaticResource CoffeeText}" CharacterSpacing="8"
+                       FontSize="12" HorizontalOptions="Center" />
+            </VerticalStackLayout>
+            <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
+                <Border WidthRequest="124" HeightRequest="124" Stroke="{StaticResource CoffeeAccent}"
+                        StrokeThickness="1.5" BackgroundColor="#3312100D"
+                        StrokeShape="RoundRectangle 62" Padding="12">
+                    <Label Text="☕" FontSize="64" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+                <Label Text="Coffee Shop" TextColor="White" FontSize="25" FontAttributes="Bold"
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+            <Border Stroke="{StaticResource CoffeeAccent}" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 32" BackgroundColor="#AA1F1B17" Padding="8">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding StartCommand}" />
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="64,*" ColumnSpacing="16">
+                    <Border BackgroundColor="{StaticResource CoffeeAccent}" StrokeThickness="0"
+                            StrokeShape="RoundRectangle 28" WidthRequest="56" HeightRequest="56">
+                        <Label Text="☕" FontSize="27" HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <Label Grid.Column="1" Text="›   Bắt đầu ngay"
+                           TextColor="White" FontSize="18" HorizontalOptions="Start"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"
+                   TextColor="#FFFF8A80" FontSize="12" HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+        <ActivityIndicator IsRunning="{Binding IsCheckingSession}" IsVisible="{Binding IsCheckingSession}"
+                           Color="{StaticResource CoffeeAccent}" VerticalOptions="Start" HorizontalOptions="End"
+                           Margin="24,48" />
+    </Grid>
+</ContentPage>

@@ -1,14 +1,17 @@
 using System.Security.Claims;
+using System.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using CoffeeShop.Data;
 using CoffeeShop.Helpers;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
 using CoffeeShop.Controllers.Api;
+using CoffeeShop.Services;
 
 namespace CoffeeShop.Controllers
 {
@@ -16,11 +19,16 @@ namespace CoffeeShop.Controllers
     {
         private readonly CoffeeShopDbContext _context;
         private readonly PersistentCartStore _cartStore;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(CoffeeShopDbContext context, PersistentCartStore cartStore)
+        public AccountController(
+            CoffeeShopDbContext context,
+            PersistentCartStore cartStore,
+            ILogger<AccountController> logger)
         {
             _context = context;
             _cartStore = cartStore;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -54,7 +62,12 @@ namespace CoffeeShop.Controllers
             var existingAccount = await _context.Accounts
                 .AsNoTracking()
                 .Include(account => account.Role)
-                .FirstOrDefaultAsync(account => account.TenDangNhap == username && account.TrangThai);
+                .FirstOrDefaultAsync(account => account.TenDangNhap == username);
+            if (existingAccount != null && !existingAccount.TrangThai)
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản đã bị khóa. Vui lòng liên hệ cửa hàng.");
+                return View(model);
+            }
             if (existingAccount != null && !AuthApiController.IsCustomerRole(existingAccount.MaVaiTro, existingAccount.Role?.TenVaiTro))
             {
                 ModelState.AddModelError(string.Empty, "Tài khoản quản trị vui lòng đăng nhập tại trang Admin.");
@@ -62,7 +75,7 @@ namespace CoffeeShop.Controllers
             }
 
             var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.TaiKhoan == username);
+                .FirstOrDefaultAsync(c => c.TaiKhoan == username && c.TrangThai);
 
             if (customer != null && (customer.MatKhau == password || BCryptVerify(password, customer.MatKhau ?? string.Empty)))
             {
@@ -119,67 +132,92 @@ namespace CoffeeShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
         {
+            model.FullName = model.FullName?.Trim() ?? string.Empty;
+            model.Username = model.Username?.Trim() ?? string.Empty;
+            model.Phone = model.Phone?.Trim() ?? string.Empty;
+            model.Email = model.Email?.Trim();
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var existingUser = await _context.Customers
-                .AnyAsync(c => c.TaiKhoan == model.Username || c.Sdt == model.Phone)
-                || await _context.Accounts.AnyAsync(account => account.TenDangNhap == model.Username);
-
-            if (existingUser)
+            if (System.Text.Encoding.UTF8.GetByteCount(model.Password) > 72)
             {
+                ModelState.AddModelError(nameof(model.Password), "Mật khẩu không được vượt quá 72 byte UTF-8.");
+                return View(model);
+            }
+
+            Customer customer;
+            try
+            {
+                var existingUser = await _context.Customers.AsNoTracking()
+                    .Where(c => c.TaiKhoan == model.Username || c.Sdt == model.Phone)
+                    .Select(c => c.MaKH)
+                    .AnyAsync(cancellationToken)
+                    || await _context.Accounts.AsNoTracking()
+                        .Where(account => account.TenDangNhap == model.Username)
+                        .Select(account => account.MaTaiKhoan)
+                        .AnyAsync(cancellationToken);
+
+                if (existingUser)
+                {
+                    ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc số điện thoại đã được sử dụng.");
+                    return View(model);
+                }
+
+                await using var transaction = await _context.Database
+                    .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+                var customerRoleId = await CustomerRoleResolver.GetOrCreateAsync(_context, cancellationToken);
+
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                customer = new Customer
+                {
+                    TaiKhoan = model.Username,
+                    MatKhau = passwordHash,
+                    HoTen = model.FullName,
+                    Sdt = model.Phone,
+                    Email = model.Email,
+                    HangTV = "Đồng",
+                    DiemTichLuy = 0,
+                    NgayTao = DateTime.Now
+                };
+                var account = new Account
+                {
+                    MaVaiTro = customerRoleId,
+                    TenDangNhap = model.Username,
+                    MatKhau = passwordHash,
+                    HoTen = model.FullName
+                };
+
+                _context.Customers.Add(customer);
+                _context.Accounts.Add(account);
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch (DbUpdateException exception) when (AuthApiController.IsUniqueConstraintViolation(exception))
+            {
+                _logger.LogWarning(exception,
+                    "Web registration conflict. SQL detail: {SqlError}",
+                    exception.InnerException?.Message ?? exception.Message);
                 ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc số điện thoại đã được sử dụng.");
                 return View(model);
             }
-
-            var customerRoleId = await _context.Roles.AsNoTracking()
-                .Where(role => role.TenVaiTro == "Khách hàng" || role.TenVaiTro == "Customer"
-                    || role.TenVaiTro == "KhachHang"
-                    || (role.MaVaiTro == 1 && role.TenVaiTro != "Admin" && role.TenVaiTro != "Staff" && role.TenVaiTro != "NhanVien"))
-                .OrderBy(role => role.MaVaiTro == 1 ? 0 : 1)
-                .Select(role => (int?)role.MaVaiTro)
-                .FirstOrDefaultAsync();
-            if (customerRoleId == null)
+            catch (Exception exception)
             {
-                ModelState.AddModelError(string.Empty, "Hệ thống chưa cấu hình vai trò khách hàng. Vui lòng liên hệ cửa hàng.");
+                _logger.LogError(exception,
+                    "Web registration failed. SQL detail: {SqlError}",
+                    exception.InnerException?.Message ?? exception.Message);
+                ModelState.AddModelError(string.Empty,
+                    "Không thể tạo tài khoản lúc này. Vui lòng thử lại sau.");
                 return View(model);
             }
 
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
-            var customer = new Customer
-            {
-                TaiKhoan = model.Username,
-                MatKhau = passwordHash,
-                HoTen = model.FullName,
-                Sdt = model.Phone,
-                Email = model.Email,
-                HangTV = "Đồng",
-                DiemTichLuy = 0,
-                NgayTao = DateTime.Now
-            };
-
-            var account = new Account
-            {
-                MaVaiTro = customerRoleId.Value,
-                TenDangNhap = model.Username,
-                MatKhau = passwordHash,
-                HoTen = model.FullName
-            };
-
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            _context.Customers.Add(customer);
-            _context.Accounts.Add(account);
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            // Đăng nhập tự động sau khi đăng ký
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, customer.TaiKhoan),
+                new Claim(ClaimTypes.Name, customer.TaiKhoan ?? model.Username),
                 new Claim(ClaimTypes.GivenName, customer.HoTen),
                 new Claim(ClaimTypes.Role, "Customer"),
                 new Claim("CustomerId", customer.MaKH.ToString())
@@ -230,6 +268,7 @@ namespace CoffeeShop.Controllers
                         NgayTao = order.NgayTao,
                         TongTien = order.TongTien,
                         TrangThai = order.TrangThai,
+                        LyDoHuy = order.LyDoHuy,
                         OrderDetails = order.OrderDetails.Select(detail => new ProfileOrderLineViewModel
                         {
                             TenSP = detail.Product!.TenSP,
@@ -266,6 +305,9 @@ namespace CoffeeShop.Controllers
                 customer.Sdt = phone;
                 customer.Email = email;
                 customer.DiaChi = address;
+                var account = await _context.Accounts.FirstOrDefaultAsync(item => item.TenDangNhap == username);
+                if (account != null)
+                    account.HoTen = fullName;
                 await _context.SaveChangesAsync();
                 TempData["Message"] = "Cập nhật thông tin thành công!";
             }

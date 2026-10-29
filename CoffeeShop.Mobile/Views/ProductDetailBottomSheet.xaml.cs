@@ -9,10 +9,10 @@ public partial class ProductDetailBottomSheet : Popup
 {
     private readonly ProductDetailViewModel _viewModel;
 
-    public ProductDetailBottomSheet(ProductDetail product, CartService cart)
+    public ProductDetailBottomSheet(ProductDetail product, CartService cart, FavoriteService favorites)
     {
         InitializeComponent();
-        BindingContext = _viewModel = new ProductDetailViewModel(product, cart);
+        BindingContext = _viewModel = new ProductDetailViewModel(product, cart, favorites);
         var density = DeviceDisplay.MainDisplayInfo.Density;
         SheetContent.WidthRequest = DeviceDisplay.MainDisplayInfo.Width / density - 24;
         SheetContent.HeightRequest = DeviceDisplay.MainDisplayInfo.Height / density * 0.86;
@@ -20,8 +20,8 @@ public partial class ProductDetailBottomSheet : Popup
 
     private void OnSizeChecked(object? sender, CheckedChangedEventArgs e)
     {
-        if (e.Value && sender is RadioButton { Value: int variantId })
-            _viewModel.SelectVariantCommand.Execute(_viewModel.Product.Variants.First(item => item.MaBienThe == variantId));
+        if (e.Value && sender is RadioButton { BindingContext: ProductVariantSelection variant })
+            _viewModel.SelectVariantCommand.Execute(variant);
     }
 
     private void OnAddClicked(object? sender, EventArgs e)
@@ -29,4 +29,6 @@ public partial class ProductDetailBottomSheet : Popup
         _viewModel.AddToCartCommand.Execute(null);
         Close();
     }
+
+    private void OnCloseClicked(object? sender, EventArgs e) => Close();
 }

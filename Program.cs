@@ -83,27 +83,6 @@ builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<CoffeeShopDbContext>();
-    await dbContext.Database.ExecuteSqlRawAsync("""
-        IF OBJECT_ID(N'dbo.CoffeeShopBrowserCart', N'U') IS NULL
-        BEGIN
-            CREATE TABLE dbo.CoffeeShopBrowserCart
-            (
-                Id uniqueidentifier NOT NULL CONSTRAINT PK_CoffeeShopBrowserCart PRIMARY KEY,
-                CartJson nvarchar(max) NOT NULL,
-                UpdatedAtUtc datetime2 NOT NULL
-            );
-        END
-
-        IF COL_LENGTH(N'dbo.KhachHang', N'TrangThai') IS NULL
-        BEGIN
-            ALTER TABLE dbo.KhachHang ADD TrangThai BIT NOT NULL CONSTRAINT DF_KhachHang_TrangThai DEFAULT 1;
-        END
-        """);
-}
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

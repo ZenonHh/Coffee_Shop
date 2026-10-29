@@ -15,6 +15,7 @@ public partial class MenuViewModel : ObservableObject
 {
     private readonly ApiService _api;
     private readonly CartService _cart;
+    private readonly FavoriteService _favorites;
     private readonly IServiceProvider _services;
     public ObservableCollection<MenuCategory> Categories { get; } =
     [
@@ -25,10 +26,11 @@ public partial class MenuViewModel : ObservableObject
     public decimal CartTotal => _cart.Subtotal;
     public bool IsCartVisible => _cart.ItemCount > 0;
 
-    public MenuViewModel(ApiService api, CartService cart, IServiceProvider services)
+    public MenuViewModel(ApiService api, CartService cart, FavoriteService favorites, IServiceProvider services)
     {
         _api = api;
         _cart = cart;
+        _favorites = favorites;
         _services = services;
         cart.PropertyChanged += (_, _) =>
         {
@@ -46,6 +48,9 @@ public partial class MenuViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isBusy;
+
+    [RelayCommand]
+    private async Task GoBackAsync() => await Shell.Current.GoToAsync("..");
 
     [RelayCommand]
     private async Task LoadAsync()
@@ -108,7 +113,7 @@ public partial class MenuViewModel : ObservableObject
         {
             var detail = await _api.GetProductDetailAsync(product.MaSP);
             detail = detail with { HinhAnh = _api.ResolveImageUrl(detail.HinhAnh) };
-            await Shell.Current.ShowPopupAsync(new ProductDetailBottomSheet(detail, _cart));
+            await Shell.Current.ShowPopupAsync(new ProductDetailBottomSheet(detail, _cart, _favorites));
         }
         catch (Exception exception)
         {
