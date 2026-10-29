@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.VoucherPage"
+             x:Name="Root"
+             Title="Khuyến mãi">
+    <CollectionView x:Name="VoucherList" Margin="14" SelectionMode="None">
+        <CollectionView.EmptyView>
+            <Label Text="Hiện chưa có ưu đãi khả dụng." TextColor="#806F63" HorizontalOptions="Center" VerticalOptions="Center" />
+        </CollectionView.EmptyView>
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Border BackgroundColor="White" Stroke="#E8D9C6" StrokeShape="RoundRectangle 18" Padding="16" Margin="0,6">
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                        <Label Text="{Binding MaCode}" TextColor="#2E1A11" FontSize="20" FontAttributes="Bold" />
+                        <Label Grid.Row="1" Text="{Binding DisplayDiscount}"
+                               TextColor="#A4773F" FontAttributes="Bold" Margin="0,6" />
+                        <Label Grid.Row="2" Text="{Binding DonToiThieu, StringFormat='Đơn tối thiểu {0:N0} đ'}"
+                               TextColor="#806F63" FontSize="12" />
+                        <Label Grid.Row="3" Text="{Binding NgayKetThuc, StringFormat='Hạn dùng đến {0:dd/MM/yyyy}'}"
+                               TextColor="#806F63" FontSize="12" />
+                        <Button Grid.Column="1" Grid.RowSpan="3" Text="Sử dụng ngay" VerticalOptions="Center"
+                                Clicked="OnUseVoucherClicked" />
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+    </CollectionView>
+</ContentPage>

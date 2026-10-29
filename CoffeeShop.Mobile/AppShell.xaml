@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+       xmlns:views="clr-namespace:CoffeeShop.Mobile.Views"
+       x:Class="CoffeeShop.Mobile.AppShell"
+       FlyoutBehavior="Disabled"
+       Shell.NavBarIsVisible="False"
+       Shell.TabBarBackgroundColor="#FFFFFF"
+       Shell.TabBarForegroundColor="#2E1A11"
+       Shell.TabBarTitleColor="#2E1A11"
+       Shell.TabBarUnselectedColor="#806F63">
+    <TabBar>
+        <ShellContent x:Name="HomeTab" Title="Trang chủ" Route="home" />
+        <ShellContent x:Name="MenuTab" Title="Đặt hàng" Route="menu" />
+        <ShellContent x:Name="VoucherTab" Title="Khuyến mãi" Route="vouchers" />
+        <ShellContent x:Name="OrderHistoryTab" Title="Đơn hàng" Route="orders" />
+        <ShellContent x:Name="ProfileTab" Title="Tài khoản" Route="profile" />
+    </TabBar>
+</Shell>

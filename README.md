@@ -108,3 +108,13 @@ Mở trình duyệt truy cập:
 4. **Chương trình Ưu đãi & Đổi điểm (`/Promotions`)**: Hiển thị ưu đãi hiện tại/sắp tới, giảm giá theo giá trị đơn, quyền lợi 4 hạng thành viên (Đồng, Bạc, Vàng, Kim Cương), cơ chế đổi điểm nhận voucher.
 5. **Khảo sát ý kiến tích điểm (`/Survey`)**: Khách hàng hoàn thành khảo sát được tích ngay **+50 điểm** vào tài khoản.
 6. **Chăm sóc khách hàng Admin (`/Admin/CustomerCare`)**: 2 tab điều hướng quản lý khảo sát và tiếp nhận hộp thư góp ý từ khách hàng.
+
+## 5. Mobile App và REST API
+
+Mã nguồn .NET MAUI nằm trong `CoffeeShop.Mobile/` (Android và iOS); ứng dụng sử dụng `CommunityToolkit.Mvvm` và gọi BFF REST API trong `Controllers/Api/`. Các request mẫu cho mọi endpoint nằm trong `CoffeeShop.Api.http`.
+
+Chạy backend bằng profile HTTP (`dotnet run --launch-profile http`). Android Emulator kết nối tới `http://10.0.2.2:5160/`, được đặt mặc định trong `CoffeeShop.Mobile/MauiProgram.cs`; thiết bị thật cần thay bằng địa chỉ HTTPS mà thiết bị truy cập được. HTTP chỉ dành cho phát triển cục bộ; không dùng cấu hình `usesCleartextTraffic` trong bản phát hành.
+
+Project mobile target .NET 10 để tương thích workload MAUI hiện có và tránh target .NET 8 đã hết hỗ trợ trong SDK cài đặt. Build Android bằng `dotnet build CoffeeShop.Mobile/CoffeeShop.Mobile.csproj --framework net10.0-android`.
+
+API đăng nhập cấp access token ngẫu nhiên có hiệu lực tối đa 7 ngày trong cache của tiến trình backend; token sẽ hết hiệu lực khi backend khởi động lại. Đăng ký ghi BCrypt hash giống nhau vào `TaiKhoan` và `KhachHang`; để không cấp nhầm quyền Admin, môi trường phải có vai trò `Khách hàng`, `Customer` hoặc `KhachHang` (hoặc role ID 1 nếu role này không mang tên Admin/Staff). API không tạo hoặc chạy migration.

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.MenuPage"
+             x:Name="Root"
+             Title="Đặt hàng">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+        <SearchBar x:Name="MenuSearch"
+                   Placeholder="Tìm cà phê, trà, bánh..."
+                   Text="{Binding SearchText}"
+                   SearchButtonPressed="OnSearchPressed"
+                   BackgroundColor="White"
+                   Margin="16,12" />
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
+                        SelectionMode="Single"
+                        HeightRequest="52"
+                        ItemsLayout="HorizontalList">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="#E5DDD2" BackgroundColor="White" StrokeShape="RoundRectangle 22" Padding="16,8" Margin="6,4">
+                        <Label Text="{Binding TenLoaiSP}" TextColor="#2E1A11" VerticalOptions="Center" />
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <CollectionView Grid.Row="2"
+                        ItemsSource="{Binding Products}"
+                        ItemsLayout="VerticalGrid, 2"
+                        SelectionMode="None"
+                        Margin="10,4">
+            <CollectionView.EmptyView>
+                <Label Text="Chưa có món phù hợp." TextColor="#806F63" HorizontalOptions="Center" VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Stroke="#EFE7DC" BackgroundColor="White" StrokeShape="RoundRectangle 16" Padding="10" Margin="5">
+                        <Grid RowDefinitions="150,Auto,Auto,Auto">
+                            <Grid>
+                                <Image Source="{Binding HinhAnh}" Aspect="AspectFill" />
+                                <Border BackgroundColor="#B32E1A11" StrokeThickness="0" StrokeShape="RoundRectangle 9"
+                                        HorizontalOptions="Start" VerticalOptions="Start" Padding="8,4"
+                                        IsVisible="{Binding IsOutOfStock}">
+                                    <Label Text="HẾT HÀNG" TextColor="White" FontSize="10" FontAttributes="Bold" />
+                                </Border>
+                                <Image.Triggers>
+                                    <DataTrigger TargetType="Image" Binding="{Binding IsOutOfStock}" Value="True">
+                                        <Setter Property="Opacity" Value="0.45" />
+                                    </DataTrigger>
+                                </Image.Triggers>
+                            </Grid>
+                            <Label Grid.Row="1" Text="{Binding TenSP}" TextColor="#2E1A11" FontAttributes="Bold" LineBreakMode="TailTruncation" Margin="0,8,0,2" />
+                            <Label Grid.Row="2" Text="{Binding TenLoaiSP}" TextColor="#806F63" FontSize="12" />
+                            <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                                <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}" TextColor="#2E1A11" FontAttributes="Bold" VerticalOptions="Center" />
+                                <Button Grid.Column="1" Text="+" WidthRequest="42" HeightRequest="42" Padding="0"
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenProductCommand}"
+                                        CommandParameter="{Binding .}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding IsOutOfStock}" Value="True">
+                                            <Setter Property="IsEnabled" Value="False" />
+                                            <Setter Property="Opacity" Value="0.45" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <Border Grid.Row="3" IsVisible="{Binding IsCartVisible}" BackgroundColor="#2E1A11"
+                StrokeThickness="0" StrokeShape="RoundRectangle 18" Margin="16,6,16,12" Padding="14,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout Spacing="1">
+                    <Label Text="{Binding CartCount, StringFormat='{0} món trong giỏ'}" TextColor="White" FontSize="12" />
+                    <Label Text="{Binding CartTotal, StringFormat='{0:N0} đ'}" TextColor="#C49B63" FontAttributes="Bold" />
+                </VerticalStackLayout>
+                <Button Grid.Column="1" Text="Xem giỏ" BackgroundColor="#C49B63" TextColor="#2E1A11"
+                        Command="{Binding OpenCartCommand}" />
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

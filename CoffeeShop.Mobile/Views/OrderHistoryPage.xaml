@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.OrderHistoryPage"
+             Title="Đơn hàng">
+    <Grid RowDefinitions="Auto,*">
+        <Grid ColumnDefinitions="*,*" Margin="16,12">
+            <Button Text="Đang thực hiện" Clicked="OnActiveOrdersClicked" />
+            <Button Grid.Column="1" Text="Lịch sử đơn" BackgroundColor="#C49B63" TextColor="#2E1A11"
+                    Clicked="OnPastOrdersClicked" />
+        </Grid>
+        <CollectionView x:Name="ActiveList" Grid.Row="1" ItemsSource="{Binding ActiveOrders}" Margin="14">
+            <CollectionView.EmptyView>
+                <Label Text="Không có đơn hàng đang thực hiện." TextColor="#806F63" HorizontalOptions="Center" VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="16" Margin="0,6">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="{Binding MaHD, StringFormat='Đơn hàng #{0}'}" TextColor="#2E1A11" FontAttributes="Bold" FontSize="17" />
+                                <Label Grid.Column="1" Text="{Binding TongTien, StringFormat='{0:N0} đ'}" TextColor="#A4773F" FontAttributes="Bold" />
+                            </Grid>
+                            <Label Text="{Binding NgayTao, StringFormat='{0:dd/MM/yyyy HH:mm}'}" TextColor="#806F63" FontSize="12" />
+                            <Label Text="{Binding TrackerText}"
+                                   TextColor="#C49B63" FontSize="12" LineBreakMode="WordWrap" />
+                            <Label Text="{Binding TrangThai, StringFormat='Trạng thái: {0}'}" TextColor="#2E1A11" FontAttributes="Bold" />
+                            <Label Text="{Binding Items.Count, StringFormat='{0} món'}" TextColor="#806F63" />
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+        <CollectionView x:Name="PastList" Grid.Row="1" ItemsSource="{Binding PastOrders}" Margin="14" IsVisible="False">
+            <CollectionView.EmptyView>
+                <Label Text="Chưa có đơn hàng trong lịch sử." TextColor="#806F63" HorizontalOptions="Center" VerticalOptions="Center" />
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="16" Margin="0,6">
+                        <VerticalStackLayout Spacing="7">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Text="{Binding MaHD, StringFormat='Đơn hàng #{0}'}" TextColor="#2E1A11" FontAttributes="Bold" />
+                                <Label Grid.Column="1" Text="{Binding TrangThai}" TextColor="#2E1A11" FontAttributes="Bold">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding TrangThai}" Value="Đã hủy">
+                                            <Setter Property="TextColor" Value="#B3261E" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid>
+                            <Label Text="{Binding NgayTao, StringFormat='{0:dd/MM/yyyy HH:mm}'}" TextColor="#806F63" FontSize="12" />
+                            <Label Text="{Binding TongTien, StringFormat='Tổng cộng {0:N0} đ'}" TextColor="#2E1A11" />
+                            <VerticalStackLayout IsVisible="{Binding HasCancelReason}">
+                                <Label Text="Lý do hủy đơn" TextColor="#B3261E" FontAttributes="Bold" />
+                                <Label Text="{Binding LyDoHuy}" TextColor="#B3261E" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

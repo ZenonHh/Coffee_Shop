@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="CoffeeShop.Mobile.Views.ProductDetailBottomSheet">
+    <Border x:Name="SheetContent" BackgroundColor="#F9F6F0" StrokeThickness="0" StrokeShape="RoundRectangle 24"
+            VerticalOptions="End" Padding="18" WidthRequest="380" HeightRequest="720">
+        <Grid RowDefinitions="*,Auto">
+            <ScrollView>
+                <VerticalStackLayout Spacing="14">
+                    <Image Source="{Binding Product.HinhAnh}" HeightRequest="210" Aspect="AspectFill" />
+                    <Label Text="{Binding Product.TenSP}" FontSize="23" FontAttributes="Bold" TextColor="#2E1A11" />
+                    <Label Text="{Binding Product.TenLoaiSP}" TextColor="#806F63" />
+                    <Label Text="Chọn kích cỡ" FontAttributes="Bold" TextColor="#2E1A11" />
+                    <HorizontalStackLayout BindableLayout.ItemsSource="{Binding Product.Variants}" Spacing="8">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Content="{Binding KichCo}" Value="{Binding MaBienThe}"
+                                             GroupName="sizes" CheckedChanged="OnSizeChecked"
+                                             BackgroundColor="White" TextColor="#2E1A11" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+                        <VerticalStackLayout>
+                            <Label Text="Mức đường" FontAttributes="Bold" TextColor="#2E1A11" />
+                            <Picker ItemsSource="{Binding SugarOptions}" SelectedItem="{Binding SugarLevel}" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1">
+                            <Label Text="Mức đá" FontAttributes="Bold" TextColor="#2E1A11" />
+                            <Picker ItemsSource="{Binding IceOptions}" SelectedItem="{Binding IceLevel}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                    <Label Text="Topping" FontAttributes="Bold" TextColor="#2E1A11" />
+                    <CollectionView ItemsSource="{Binding Toppings}" SelectionMode="None" HeightRequest="180">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="Auto,*,Auto" Padding="4,7">
+                                    <CheckBox IsChecked="{Binding IsSelected}" Color="#C49B63" />
+                                    <Label Grid.Column="1" Text="{Binding Item.TenSP}" TextColor="#2E1A11" VerticalOptions="Center" />
+                                    <Label Grid.Column="2" Text="{Binding Item.GiaBan, StringFormat='+{0:N0} đ'}"
+                                           TextColor="#806F63" VerticalOptions="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Label Text="Ghi chú cho Barista" FontAttributes="Bold" TextColor="#2E1A11" />
+                    <Editor Text="{Binding Note}" Placeholder="Ít ngọt, đá để riêng..." AutoSize="TextChanges"
+                            BackgroundColor="White" HeightRequest="75" />
+                </VerticalStackLayout>
+            </ScrollView>
+            <Button Grid.Row="1" Text="{Binding TotalPrice, StringFormat='Thêm vào giỏ hàng · {0:N0} đ'}"
+                    Clicked="OnAddClicked" Margin="0,12,0,0" />
+        </Grid>
+    </Border>
+</toolkit:Popup>

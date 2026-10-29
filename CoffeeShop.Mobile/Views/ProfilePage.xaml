@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.ProfilePage"
+             Title="Tài khoản">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+            <Label Text="Tài khoản của bạn" FontSize="25" FontAttributes="Bold" TextColor="#2E1A11" />
+            <Border x:Name="ProfileCard" BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="18" IsVisible="False">
+                <VerticalStackLayout Spacing="9">
+                    <Label x:Name="FullNameLabel" FontSize="20" FontAttributes="Bold" TextColor="#2E1A11" />
+                    <Label x:Name="UsernameLabel" TextColor="#806F63" />
+                    <Label x:Name="PhoneLabel" TextColor="#806F63" />
+                    <Label x:Name="AddressLabel" TextColor="#806F63" />
+                    <Label x:Name="MemberLabel" TextColor="#A4773F" FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </Border>
+            <Label x:Name="SignInPrompt" Text="Đăng nhập để xem thông tin hội viên và lịch sử đặt hàng."
+                   TextColor="#806F63" IsVisible="False" />
+            <Button x:Name="SignInButton" Text="Đăng nhập" Clicked="OnSignInClicked" />
+            <Button x:Name="SignOutButton" Text="Đăng xuất" BackgroundColor="#FFFFFF" TextColor="#2E1A11"
+                    BorderColor="#E5DDD2" BorderWidth="1" IsVisible="False" Clicked="OnSignOutClicked" />
+            <Label Text="Hỗ trợ khách hàng" FontSize="18" FontAttributes="Bold" TextColor="#2E1A11" Margin="0,12,0,0" />
+            <Label Text="Hotline: 1900 0000" TextColor="#806F63" />
+            <Label Text="Chính sách bảo mật  ·  Điều khoản sử dụng" TextColor="#806F63" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

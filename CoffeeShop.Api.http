@@ -1,0 +1,76 @@
+@baseUrl = http://localhost:5160
+@accessToken = replace-with-access-token-from-login
+
+### Register a customer (requires an existing customer role in VaiTro)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "tenDangNhap": "mobile.customer",
+  "matKhau": "CoffeeShop123!",
+  "hoTen": "Nguyen Van A",
+  "sdt": "0901234567",
+  "email": "customer@example.com",
+  "diaChi": "12 Nguyen Hue, Quan 1"
+}
+
+### Sign in
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "tenDangNhap": "mobile.customer",
+  "matKhau": "CoffeeShop123!"
+}
+
+### Current customer profile
+GET {{baseUrl}}/api/auth/profile
+Authorization: Bearer {{accessToken}}
+
+### Menu categories
+GET {{baseUrl}}/api/menu/categories
+
+### Search menu
+GET {{baseUrl}}/api/menu/products?categoryId=1&keyword=latte
+
+### Product customization options
+GET {{baseUrl}}/api/menu/product-detail/1
+
+### Active vouchers
+GET {{baseUrl}}/api/voucher
+
+### Validate a voucher
+POST {{baseUrl}}/api/voucher/check
+Content-Type: application/json
+
+{
+  "maCode": "WELCOME",
+  "tamTinh": 120000
+}
+
+### Checkout (IDs must exist and have sufficient inventory)
+POST {{baseUrl}}/api/order/checkout
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "loaiDonHang": "Giao hàng",
+  "hoTenNguoiNhan": "Nguyen Van A",
+  "sdtNguoiNhan": "0901234567",
+  "diaChiGiao": "12 Nguyen Hue, Quan 1",
+  "ghiChu": "Đường 50%, đá riêng",
+  "maCode": null,
+  "phuongThucThanhToan": "COD",
+  "items": [
+    {
+      "maSP": 1,
+      "maBienThe": 1,
+      "soLuong": 1,
+      "toppingIds": []
+    }
+  ]
+}
+
+### Current customer's order history
+GET {{baseUrl}}/api/order/history
+Authorization: Bearer {{accessToken}}

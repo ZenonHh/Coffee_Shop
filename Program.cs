@@ -74,8 +74,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<PersistentCartStore>();
 builder.Services.AddScoped<OrderManagementService>();
+builder.Services.AddSingleton<CoffeeShop.Controllers.Api.ApiSessionStore>();
+builder.Services.AddScoped<CoffeeShop.Controllers.Api.ApiSessionAuthorizationFilter>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();

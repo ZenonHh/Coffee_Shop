@@ -55,7 +55,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaVaiTro");
 
-                    b.ToTable("TaiKhoan");
+                    b.ToTable("TaiKhoan", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.CartSnapshot", b =>
@@ -73,7 +73,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CoffeeShopBrowserCart");
+                    b.ToTable("CoffeeShopBrowserCart", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Category", b =>
@@ -94,7 +94,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaLoaiSP");
 
-                    b.ToTable("LoaiSanPham");
+                    b.ToTable("LoaiSanPham", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.ContactMessage", b =>
@@ -137,7 +137,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaLienHe");
 
-                    b.ToTable("LienHe");
+                    b.ToTable("LienHe", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Customer", b =>
@@ -190,7 +190,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaKH");
 
-                    b.ToTable("KhachHang");
+                    b.ToTable("KhachHang", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Feedback", b =>
@@ -235,7 +235,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("PhanHoi");
+                    b.ToTable("PhanHoi", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Ingredient", b =>
@@ -260,7 +260,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaNL");
 
-                    b.ToTable("NguyenLieu");
+                    b.ToTable("NguyenLieu", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Order", b =>
@@ -342,7 +342,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaVoucher");
 
-                    b.ToTable("HoaDon");
+                    b.ToTable("HoaDon", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.OrderDetail", b =>
@@ -382,7 +382,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("ChiTietHoaDon");
+                    b.ToTable("ChiTietHoaDon", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.OrderDetailTopping", b =>
@@ -400,7 +400,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("ChiTietHoaDon_Topping");
+                    b.ToTable("ChiTietHoaDon_Topping", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.PointHistory", b =>
@@ -431,7 +431,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaKH");
 
-                    b.ToTable("LichSuDiem");
+                    b.ToTable("LichSuDiem", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Product", b =>
@@ -464,7 +464,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaLoaiSP");
 
-                    b.ToTable("SanPham");
+                    b.ToTable("SanPham", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.ProductVariant", b =>
@@ -493,7 +493,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("BienTheSanPham");
+                    b.ToTable("BienTheSanPham", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Purchase", b =>
@@ -548,7 +548,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("NguoiDuyetId");
 
-                    b.ToTable("PhieuNhap");
+                    b.ToTable("PhieuNhap", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.PurchaseDetail", b =>
@@ -585,7 +585,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("ChiTietPhieuNhap");
+                    b.ToTable("ChiTietPhieuNhap", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Role", b =>
@@ -607,7 +607,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaVaiTro");
 
-                    b.ToTable("VaiTro");
+                    b.ToTable("VaiTro", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.StaffMember", b =>
@@ -638,7 +638,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaNV");
 
-                    b.ToTable("NhanVien");
+                    b.ToTable("NhanVien", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Supplier", b =>
@@ -667,7 +667,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaNCC");
 
-                    b.ToTable("NhaCungCap");
+                    b.ToTable("NhaCungCap", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Survey", b =>
@@ -699,7 +699,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaTaiKhoan");
 
-                    b.ToTable("KhaoSat");
+                    b.ToTable("KhaoSat", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyAnswer", b =>
@@ -723,7 +723,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaCauHoi");
 
-                    b.ToTable("CauTraLoi");
+                    b.ToTable("CauTraLoi", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyQuestion", b =>
@@ -751,7 +751,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaKhaoSat");
 
-                    b.ToTable("CauHoiKhaoSat");
+                    b.ToTable("CauHoiKhaoSat", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Voucher", b =>
@@ -802,7 +802,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaVoucher");
 
-                    b.ToTable("Voucher");
+                    b.ToTable("Voucher", (string)null);
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Account", b =>

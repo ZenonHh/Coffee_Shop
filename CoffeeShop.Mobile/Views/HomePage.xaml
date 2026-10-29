@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.HomePage"
+             Title="Trang chủ">
+    <ScrollView>
+        <VerticalStackLayout Padding="18" Spacing="20">
+            <Grid ColumnDefinitions="*,Auto">
+                <VerticalStackLayout>
+                    <Label Text="{Binding Greeting}" TextColor="#806F63" />
+                    <Label Text="{Binding CustomerName}" FontSize="26" FontAttributes="Bold" TextColor="#2E1A11" />
+                </VerticalStackLayout>
+                <Label Grid.Column="1" Text="☕" FontSize="34" VerticalOptions="Center" />
+            </Grid>
+            <Border BackgroundColor="#2E1A11" StrokeThickness="0" StrokeShape="RoundRectangle 18" Padding="18">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout>
+                        <Label Text="COFFEE CLUB" TextColor="#C49B63" FontSize="12" CharacterSpacing="2" />
+                        <Label Text="{Binding MemberSummary}" TextColor="White" FontSize="20" FontAttributes="Bold" />
+                        <Label Text="Tích điểm cho mỗi ly cà phê bạn yêu thích" TextColor="#F9F6F0" FontSize="12" />
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1" Text="✦" FontSize="32" TextColor="#C49B63" VerticalOptions="Center" />
+                </Grid>
+            </Border>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                <Button Text="🛵  Giao tận nơi" Command="{Binding SelectDeliveryCommand}" />
+                <Button Grid.Column="1" Text="☕  Đến lấy tại quầy" BackgroundColor="#C49B63"
+                        TextColor="#2E1A11" Command="{Binding SelectPickupCommand}" />
+            </Grid>
+            <CarouselView x:Name="BannerCarousel" ItemsSource="{Binding Banners}" HeightRequest="165" IsSwipeEnabled="True">
+                <CarouselView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BackgroundColor="#C49B63" StrokeThickness="0" StrokeShape="RoundRectangle 18" Margin="2">
+                            <Grid>
+                                <Image Source="{Binding .}" Aspect="AspectFill" Opacity="0.8" />
+                                <VerticalStackLayout VerticalOptions="End" Padding="16">
+                                    <Label Text="ƯU ĐÃI MỖI NGÀY" TextColor="White" FontSize="11" CharacterSpacing="2" />
+                                    <Label Text="Thưởng thức vị cà phê thân quen" TextColor="White" FontSize="19" FontAttributes="Bold" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CarouselView.ItemTemplate>
+            </CarouselView>
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="Món bán chạy nhất" TextColor="#2E1A11" FontSize="20" FontAttributes="Bold" />
+                <Label Grid.Column="1" Text="Xem thực đơn  ›" TextColor="#806F63" VerticalOptions="Center" />
+            </Grid>
+            <CollectionView ItemsSource="{Binding BestSellers}" ItemsLayout="HorizontalList" HeightRequest="190">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border BackgroundColor="White" Stroke="#EFE7DC" StrokeShape="RoundRectangle 16" Padding="8" Margin="4">
+                            <VerticalStackLayout WidthRequest="142" Spacing="4">
+                                <Image Source="{Binding HinhAnh}" HeightRequest="112" Aspect="AspectFill" />
+                                <Label Text="{Binding TenSP}" TextColor="#2E1A11" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding GiaTu, StringFormat='{0:N0} đ'}" TextColor="#806F63" FontSize="12" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

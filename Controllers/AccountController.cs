@@ -8,6 +8,7 @@ using CoffeeShop.Data;
 using CoffeeShop.Helpers;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
+using CoffeeShop.Controllers.Api;
 
 namespace CoffeeShop.Controllers
 {
@@ -50,10 +51,11 @@ namespace CoffeeShop.Controllers
             var password = model.Password ?? string.Empty;
 
             // Tài khoản nhân viên phải đăng nhập tại khu vực Admin riêng.
-            var staffAccount = await _context.Accounts
+            var existingAccount = await _context.Accounts
                 .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.TenDangNhap == username && a.TrangThai);
-            if (staffAccount != null)
+                .Include(account => account.Role)
+                .FirstOrDefaultAsync(account => account.TenDangNhap == username && account.TrangThai);
+            if (existingAccount != null && !AuthApiController.IsCustomerRole(existingAccount.MaVaiTro, existingAccount.Role?.TenVaiTro))
             {
                 ModelState.AddModelError(string.Empty, "Tài khoản quản trị vui lòng đăng nhập tại trang Admin.");
                 return View(model);
@@ -64,6 +66,16 @@ namespace CoffeeShop.Controllers
 
             if (customer != null && (customer.MatKhau == password || BCryptVerify(password, customer.MatKhau ?? string.Empty)))
             {
+                if (!customer.MatKhau!.StartsWith("$2", StringComparison.Ordinal))
+                {
+                    var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+                    customer.MatKhau = passwordHash;
+                    var account = await _context.Accounts.FirstOrDefaultAsync(a => a.TenDangNhap == username);
+                    if (account != null)
+                        account.MatKhau = passwordHash;
+                    await _context.SaveChangesAsync();
+                }
+
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                 var claims = new List<Claim>
@@ -115,7 +127,8 @@ namespace CoffeeShop.Controllers
             }
 
             var existingUser = await _context.Customers
-                .AnyAsync(c => c.TaiKhoan == model.Username || c.Sdt == model.Phone);
+                .AnyAsync(c => c.TaiKhoan == model.Username || c.Sdt == model.Phone)
+                || await _context.Accounts.AnyAsync(account => account.TenDangNhap == model.Username);
 
             if (existingUser)
             {
@@ -123,10 +136,24 @@ namespace CoffeeShop.Controllers
                 return View(model);
             }
 
+            var customerRoleId = await _context.Roles.AsNoTracking()
+                .Where(role => role.TenVaiTro == "Khách hàng" || role.TenVaiTro == "Customer"
+                    || role.TenVaiTro == "KhachHang"
+                    || (role.MaVaiTro == 1 && role.TenVaiTro != "Admin" && role.TenVaiTro != "Staff" && role.TenVaiTro != "NhanVien"))
+                .OrderBy(role => role.MaVaiTro == 1 ? 0 : 1)
+                .Select(role => (int?)role.MaVaiTro)
+                .FirstOrDefaultAsync();
+            if (customerRoleId == null)
+            {
+                ModelState.AddModelError(string.Empty, "Hệ thống chưa cấu hình vai trò khách hàng. Vui lòng liên hệ cửa hàng.");
+                return View(model);
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
             var customer = new Customer
             {
                 TaiKhoan = model.Username,
-                MatKhau = model.Password, // Có thể băm mật khẩu
+                MatKhau = passwordHash,
                 HoTen = model.FullName,
                 Sdt = model.Phone,
                 Email = model.Email,
@@ -135,8 +162,19 @@ namespace CoffeeShop.Controllers
                 NgayTao = DateTime.Now
             };
 
+            var account = new Account
+            {
+                MaVaiTro = customerRoleId.Value,
+                TenDangNhap = model.Username,
+                MatKhau = passwordHash,
+                HoTen = model.FullName
+            };
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
             _context.Customers.Add(customer);
+            _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             // Đăng nhập tự động sau khi đăng ký
             var claims = new List<Claim>
