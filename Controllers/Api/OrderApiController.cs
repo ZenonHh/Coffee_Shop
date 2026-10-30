@@ -28,7 +28,8 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
         var customer = await db.Customers.AsNoTracking()
             .Where(item => item.MaKH == customerId && item.TrangThai)
             .Select(item => new CustomerOrderInfo(
-                item.MaKH, item.HoTen, item.Sdt, item.DiaChi, item.DiemTichLuy, item.HangTV))
+                item.MaKH, item.TaiKhoan, item.HoTen, item.Sdt, item.Email, item.DiaChi,
+                item.DiemTichLuy, item.HangTV))
             .FirstOrDefaultAsync(cancellationToken);
         if (customer is null)
             return Unauthorized();
@@ -39,7 +40,23 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
         var isPickup = string.Equals(request.LoaiDonHang, "Mang đi", StringComparison.OrdinalIgnoreCase);
         if (!isDelivery && !isPickup)
             return BadRequest(new ProblemDetails { Status = 400, Title = "Hình thức nhận hàng không hợp lệ" });
-        if (isDelivery && string.IsNullOrWhiteSpace(request.DiaChiGiao ?? customer.DiaChi))
+        var recipientName = string.IsNullOrWhiteSpace(request.HoTenNguoiNhan)
+            ? customer.HoTen
+            : request.HoTenNguoiNhan.Trim();
+        var recipientPhone = string.IsNullOrWhiteSpace(request.SdtNguoiNhan)
+            ? customer.Sdt
+            : request.SdtNguoiNhan.Trim();
+        var recipientAddress = string.IsNullOrWhiteSpace(request.DiaChiGiao)
+            ? customer.DiaChi
+            : request.DiaChiGiao.Trim();
+        var recipientEmail = string.IsNullOrWhiteSpace(request.EmailNguoiNhan)
+            ? null
+            : request.EmailNguoiNhan.Trim();
+        if (string.IsNullOrWhiteSpace(recipientName))
+            return BadRequest(new ProblemDetails { Status = 400, Title = "Vui lòng cung cấp họ tên người nhận" });
+        if (recipientPhone.Length != 10 || recipientPhone.Any(character => !char.IsAsciiDigit(character)))
+            return BadRequest(new ProblemDetails { Status = 400, Title = "Số điện thoại phải gồm đúng 10 chữ số" });
+        if (isDelivery && string.IsNullOrWhiteSpace(recipientAddress))
             return BadRequest(new ProblemDetails { Status = 400, Title = "Vui lòng cung cấp địa chỉ giao hàng" });
         if (request.PhuongThucThanhToan is not ("COD" or "Transfer"))
             return BadRequest(new ProblemDetails { Status = 400, Title = "Phương thức thanh toán không hợp lệ" });
@@ -154,9 +171,9 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
             TongTien = Math.Max(0, subtotal - discount + shippingFee),
             TrangThai = OrderStatuses.WaitingForConfirmation,
             PhuongThucThanhToan = request.PhuongThucThanhToan,
-            HoTenNguoiNhan = string.IsNullOrWhiteSpace(request.HoTenNguoiNhan) ? customer.HoTen : request.HoTenNguoiNhan.Trim(),
-            SdtNguoiNhan = string.IsNullOrWhiteSpace(request.SdtNguoiNhan) ? customer.Sdt : request.SdtNguoiNhan.Trim(),
-            DiaChiGiao = isDelivery ? (request.DiaChiGiao ?? customer.DiaChi)?.Trim() : null,
+            HoTenNguoiNhan = recipientName,
+            SdtNguoiNhan = recipientPhone,
+            DiaChiGiao = isDelivery ? recipientAddress : null,
             GhiChu = request.GhiChu?.Trim(),
             NgayTao = DateTime.Now
         };
@@ -210,6 +227,24 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
             });
         }
 
+        if (request.LuuThongTinMacDinh)
+        {
+            await db.Customers.Where(item => item.MaKH == customerId && item.TrangThai)
+                .ExecuteUpdateAsync(update => update
+                    .SetProperty(item => item.HoTen, recipientName)
+                    .SetProperty(item => item.Sdt, recipientPhone)
+                    .SetProperty(item => item.Email, recipientEmail)
+                    .SetProperty(item => item.DiaChi, recipientAddress), cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(customer.TaiKhoan))
+            {
+                var account = await db.Accounts.FirstOrDefaultAsync(
+                    item => item.TenDangNhap == customer.TaiKhoan, cancellationToken);
+                if (account is not null)
+                    account.HoTen = recipientName;
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return StatusCode(StatusCodes.Status201Created, new CheckoutResponse(
@@ -257,7 +292,8 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
     private sealed record PreparedOrderItem(CheckoutItemRequest Request, decimal UnitPrice, List<PreparedTopping> Toppings);
     private sealed record PreparedTopping(int Id, string Name, decimal Price);
     private sealed record CustomerOrderInfo(
-        int MaKH, string HoTen, string Sdt, string? DiaChi, int DiemTichLuy, string HangTV);
+        int MaKH, string? TaiKhoan, string HoTen, string Sdt, string? Email,
+        string? DiaChi, int DiemTichLuy, string HangTV);
 }
 
 /// <summary>Order line selection and quantity for checkout.</summary>
@@ -284,8 +320,13 @@ public sealed record CheckoutRequest
     [StringLength(100)]
     public string? HoTenNguoiNhan { get; init; }
 
-    [StringLength(15)]
+    [StringLength(20)]
     public string? SdtNguoiNhan { get; init; }
+
+    [EmailAddress, StringLength(100)]
+    public string? EmailNguoiNhan { get; init; }
+
+    public bool LuuThongTinMacDinh { get; init; }
 
     [StringLength(255)]
     public string? DiaChiGiao { get; init; }

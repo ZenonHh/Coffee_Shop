@@ -79,29 +79,66 @@
 
             <!-- Cập nhật thông tin & Lịch sử đơn hàng -->
             <div class="col-lg-8 ftco-animate">
-                <div class="p-4 bg-dark border border-secondary rounded mb-4">
+                <div id="profileReadView" class="p-4 bg-dark border border-secondary rounded mb-4 @(ViewBag.ShowProfileEdit == true ? "d-none" : string.Empty)">
                     <h4 class="text-white mb-4">Thông Tin Cá Nhân</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <span class="text-muted d-block small">Họ và tên</span>
+                            <strong class="text-white">@Model.Customer.HoTen</strong>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <span class="text-muted d-block small">Tên đăng nhập</span>
+                            <strong class="text-white">@Model.Customer.TaiKhoan</strong>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <span class="text-muted d-block small">Số điện thoại</span>
+                            <strong class="text-white">@Model.Customer.Sdt</strong>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <span class="text-muted d-block small">Email</span>
+                            <strong class="text-white">@(string.IsNullOrWhiteSpace(Model.Customer.Email) ? "Chưa cập nhật" : Model.Customer.Email)</strong>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <span class="text-muted d-block small">Địa chỉ mặc định</span>
+                            <strong class="text-white">@(string.IsNullOrWhiteSpace(Model.Customer.DiaChi) ? "Chưa cập nhật" : Model.Customer.DiaChi)</strong>
+                        </div>
+                    </div>
+                    <button id="showProfileEdit" type="button" class="btn btn-primary py-2 px-4">Chỉnh sửa thông tin</button>
+                </div>
+
+                <div id="profileEditView" class="p-4 bg-dark border border-secondary rounded mb-4 @(ViewBag.ShowProfileEdit == true ? string.Empty : "d-none")">
+                    <h4 class="text-white mb-4">Chỉnh Sửa Thông Tin</h4>
                     <form asp-action="UpdateProfile" method="post">
                         @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                         <div class="row">
                             <div class="col-md-6 form-group">
                                 <label class="text-white">Họ và tên</label>
-                                <input type="text" name="fullName" value="@Model.Customer.HoTen" class="form-control" required />
+                                <input asp-for="EditProfile.FullName" class="form-control" autocomplete="name" required />
+                                <span asp-validation-for="EditProfile.FullName" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 form-group">
                                 <label class="text-white">Số điện thoại</label>
-                                <input type="tel" name="phone" value="@Model.Customer.Sdt" class="form-control" required />
+                                <input asp-for="EditProfile.Phone" class="form-control" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" required />
+                                <span asp-validation-for="EditProfile.Phone" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 form-group">
                                 <label class="text-white">Email</label>
-                                <input type="email" name="email" value="@Model.Customer.Email" class="form-control" />
+                                <input asp-for="EditProfile.Email" class="form-control" type="email" autocomplete="email" />
+                                <span asp-validation-for="EditProfile.Email" class="text-danger"></span>
                             </div>
                             <div class="col-md-6 form-group">
-                                <label class="text-white">Địa chỉ giao mặc định</label>
-                                <input type="text" name="address" value="@Model.Customer.DiaChi" class="form-control" />
+                                <label class="text-white">Địa chỉ mặc định</label>
+                                <input asp-for="EditProfile.Address" class="form-control" autocomplete="street-address" />
+                                <span asp-validation-for="EditProfile.Address" class="text-danger"></span>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary py-2 px-4 mt-2">Lưu Thay Đổi</button>
+                        <div class="form-group">
+                            <label class="text-white">Tên đăng nhập</label>
+                            <input class="form-control" value="@Model.Customer.TaiKhoan" readonly aria-readonly="true" />
+                        </div>
+                        <button type="submit" class="btn btn-primary py-2 px-4 mt-2">Lưu thay đổi</button>
+                        <button id="cancelProfileEdit" type="button" class="btn btn-outline-primary py-2 px-4 mt-2 ml-2">Hủy bỏ</button>
                     </form>
                 </div>
 
@@ -191,3 +228,18 @@
         </div>
     </div>
 </section>
+
+<script>
+    (() => {
+        const readView = document.getElementById("profileReadView");
+        const editView = document.getElementById("profileEditView");
+        document.getElementById("showProfileEdit")?.addEventListener("click", () => {
+            readView?.classList.add("d-none");
+            editView?.classList.remove("d-none");
+        });
+        document.getElementById("cancelProfileEdit")?.addEventListener("click", () => {
+            editView?.classList.add("d-none");
+            readView?.classList.remove("d-none");
+        });
+    })();
+</script>

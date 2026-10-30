@@ -45,6 +45,5 @@ public partial class VoucherViewModel(ApiService api, CartService cart) : Observ
 
         cart.VoucherCode = voucher.MaCode;
         await Shell.Current.GoToAsync("//order");
-        await Shell.Current.GoToAsync("menu");
     }
 }

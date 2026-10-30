@@ -37,27 +37,42 @@
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="text-white">Họ và tên người nhận *</label>
-                                <input type="text" asp-for="FullName" class="form-control" placeholder="Nhập họ tên đầy đủ..." required>
+                                <input type="text" asp-for="FullName" class="form-control" autocomplete="name" placeholder="Nhập họ tên người nhận..." required>
+                                <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-white">Số điện thoại *</label>
-                                <input type="tel" asp-for="Phone" class="form-control" placeholder="Số điện thoại nhận hàng..." required>
+                                <input type="tel" asp-for="Phone" class="form-control" inputmode="numeric" autocomplete="tel" maxlength="10" placeholder="Nhập số điện thoại nhận hàng..." required>
+                                <span asp-validation-for="Phone" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="text-white">Địa chỉ Email</label>
-                                <input type="email" asp-for="Email" class="form-control" placeholder="Nhận hóa đơn điện tử...">
+                                <input type="email" asp-for="Email" class="form-control" autocomplete="email" placeholder="Nhập email nhận hóa đơn...">
+                                <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="text-white">Địa chỉ giao hàng chi tiết *</label>
-                                <input type="text" asp-for="DeliveryAddress" class="form-control" placeholder="Số nhà, ngõ/ngách, tên đường, phường/xã, quận/huyện..." required>
+                                <input type="text" asp-for="DeliveryAddress" class="form-control" autocomplete="street-address" placeholder="Nhập địa chỉ nhận hàng của bạn..." required>
+                                <span asp-validation-for="DeliveryAddress" class="text-danger"></span>
                             </div>
                         </div>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="col-md-12">
+                                <div class="custom-control custom-checkbox mb-3">
+                                    <input type="checkbox" asp-for="SaveCustomerInfo" class="custom-control-input">
+                                    <label asp-for="SaveCustomerInfo" class="custom-control-label text-white">
+                                        Lưu thông tin này làm địa chỉ nhận hàng mặc định cho lần sau
+                                    </label>
+                                </div>
+                            </div>
+                        }
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label class="text-white">Ghi chú cho quán (Tùy chọn)</label>

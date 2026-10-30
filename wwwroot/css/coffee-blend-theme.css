@@ -683,3 +683,119 @@ body.ftco-motion-ready .home-slider .ftco-animate:not(.ftco-animated) {
         transform: none;
     }
 }
+
+:root {
+    --dark-base: #12100d;
+    --dark-surface: #1f1a16;
+    --dark-border: rgba(196, 155, 99, 0.25);
+    --coffee-cream: #12100d;
+    --coffee-beige: #1f1a16;
+    --coffee-ink: #ffffff;
+    --coffee-border: rgba(196, 155, 99, 0.25);
+    --text-light: #ffffff;
+    --text-muted: #a89f91;
+}
+
+html,
+body,
+.site-wrap,
+main {
+    background-color: #12100d !important;
+    color: #ffffff;
+}
+
+.ftco-section,
+.shop-page,
+.product-detail-page,
+.cart-page,
+.checkout-page {
+    background-color: #12100d !important;
+    color: #ffffff !important;
+}
+
+.card,
+.card-coffee,
+.product-card,
+.cart-page .cart-list,
+.cart-list,
+.cart-detail,
+.cart-page .cart-total,
+.cart-page .cart-wrap .cart-total,
+.checkout-page .checkout-form,
+.checkout-page .checkout-summary-column .cart-detail,
+.product-detail-page .product-image-card,
+.product-detail-page .product-review-form,
+.product-detail-page .product-review-card,
+.profile-page .profile-card {
+    background-color: #1f1a16 !important;
+    border-color: rgba(196, 155, 99, 0.25) !important;
+    color: #ffffff !important;
+}
+
+.shop-page .shop-category-filter,
+.shop-page .shop-search,
+.shop-page .shop-search-input,
+.shop-page .shop-search-input:focus,
+.cart-page .cart-voucher .form-control,
+.checkout-page .billing-form .form-control,
+.product-detail-page .product-review-form .form-control,
+.product-detail-page .product-detail-info .form-control {
+    border-color: rgba(196, 155, 99, 0.35) !important;
+    background-color: #1e1915 !important;
+    color: #ffffff !important;
+}
+
+.product-card-title a,
+.product-detail-page .product-detail-info h2,
+.product-detail-page .product-reviews-heading h3,
+.product-detail-page .product-review-list > h4,
+.product-detail-page .product-review-card h5,
+.cart-page .cart-table h5,
+.cart-page h3,
+.cart-page h4,
+.checkout-page .billing-heading,
+.text-white {
+    color: #ffffff !important;
+}
+
+.product-card-category,
+.text-muted,
+.checkout-page .billing-form label,
+.cart-page .cart-total p,
+.cart-page .cart-table tbody td {
+    color: #a89f91 !important;
+}
+
+.product-card-price,
+.product-detail-page .product-detail-info .price span,
+.cart-page .text-primary,
+.checkout-page .text-primary,
+.product-detail-page .product-reviews-eyebrow,
+.product-detail-page .product-review-form h4 {
+    color: #c49b63 !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+textarea,
+select,
+.form-control,
+.custom-select {
+    border-color: rgba(196, 155, 99, 0.55) !important;
+    background-color: #1e1915 !important;
+    color: #ffffff !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.form-control::placeholder {
+    color: #a89f91 !important;
+}
+
+select option {
+    background-color: #1e1915;
+    color: #ffffff;
+}
+
+.shop-page .product-card-image {
+    background-color: #1e1915;
+}

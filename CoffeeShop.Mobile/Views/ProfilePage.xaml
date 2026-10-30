@@ -2,17 +2,39 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.ProfilePage"
+             BackgroundColor="{StaticResource AppBackground}"
              Title="Tài khoản">
-    <ScrollView>
+    <ScrollView BackgroundColor="{StaticResource AppBackground}">
         <VerticalStackLayout Padding="20" Spacing="14">
             <Label Text="Tài khoản của bạn" FontSize="25" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
             <Border x:Name="ProfileCard" BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16" Padding="18" IsVisible="False">
                 <VerticalStackLayout Spacing="9">
+                    <Label Text="♙" TextColor="{StaticResource CoffeeAccent}" FontSize="38" HorizontalOptions="Center" />
                     <Label x:Name="FullNameLabel" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                     <Label x:Name="UsernameLabel" TextColor="{StaticResource CoffeeMuted}" />
                     <Label x:Name="PhoneLabel" TextColor="{StaticResource CoffeeMuted}" />
+                    <Label x:Name="EmailLabel" TextColor="{StaticResource CoffeeMuted}" />
                     <Label x:Name="AddressLabel" TextColor="{StaticResource CoffeeMuted}" />
                     <Label x:Name="MemberLabel" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" />
+                    <Button Text="Chỉnh sửa thông tin" Clicked="OnEditProfileClicked" Margin="0,8,0,0" />
+                </VerticalStackLayout>
+            </Border>
+            <Border x:Name="ProfileEditForm" BackgroundColor="{StaticResource CoffeeSurface}"
+                    Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16"
+                    Padding="18" IsVisible="False">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Chỉnh sửa thông tin" FontSize="20" FontAttributes="Bold"
+                           TextColor="{StaticResource CoffeeText}" />
+                    <Entry x:Name="EditFullName" Placeholder="Họ và tên" />
+                    <Entry x:Name="EditUsername" Placeholder="Tên đăng nhập" IsReadOnly="True" />
+                    <Entry x:Name="EditPhone" Placeholder="Số điện thoại (10 chữ số)"
+                           Keyboard="Telephone" MaxLength="10" />
+                    <Entry x:Name="EditEmail" Placeholder="Email" Keyboard="Email" />
+                    <Entry x:Name="EditAddress" Placeholder="Địa chỉ mặc định" />
+                    <Button Text="Lưu thay đổi" Clicked="OnSaveProfileClicked" />
+                    <Button Text="Hủy bỏ" Clicked="OnCancelProfileEditClicked"
+                            BackgroundColor="Transparent" BorderColor="{StaticResource CoffeeAccent}"
+                            BorderWidth="1" TextColor="{StaticResource CoffeeAccent}" />
                 </VerticalStackLayout>
             </Border>
             <Label x:Name="SignInPrompt" Text="Đăng nhập để xem thông tin hội viên và lịch sử đặt hàng."

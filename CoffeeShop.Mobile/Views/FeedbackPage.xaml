@@ -4,9 +4,10 @@
              xmlns:models="clr-namespace:CoffeeShop.Mobile.Models"
              x:Class="CoffeeShop.Mobile.Views.FeedbackPage"
              Title="Đánh giá &amp; Phản hồi"
-             Shell.NavBarIsVisible="True">
-    <ScrollView>
-        <VerticalStackLayout Padding="18" Spacing="14">
+             Shell.NavBarIsVisible="True"
+             BackgroundColor="{StaticResource AppBackground}">
+    <ScrollView BackgroundColor="{StaticResource AppBackground}">
+        <VerticalStackLayout Padding="18" Spacing="14" BackgroundColor="{StaticResource AppBackground}">
             <Label Text="Đánh giá món" TextColor="{StaticResource CoffeeText}"
                    FontSize="21" FontAttributes="Bold" />
             <Picker Title="Chọn món" ItemsSource="{Binding Products}"

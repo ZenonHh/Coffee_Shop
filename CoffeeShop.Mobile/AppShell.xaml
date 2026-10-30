@@ -4,10 +4,10 @@
        x:Class="CoffeeShop.Mobile.AppShell"
        FlyoutBehavior="Disabled"
        Shell.NavBarIsVisible="True"
-       Shell.BackgroundColor="#12100D"
+       Shell.BackgroundColor="{StaticResource AppBackground}"
        Shell.TitleColor="#FFFFFF"
        Shell.ForegroundColor="#C49B63"
-       Shell.TabBarBackgroundColor="#181512"
+       Shell.TabBarBackgroundColor="{StaticResource AppBackground}"
        Shell.TabBarForegroundColor="#C49B63"
        Shell.TabBarTitleColor="#C49B63"
        Shell.TabBarUnselectedColor="#8A7D75">

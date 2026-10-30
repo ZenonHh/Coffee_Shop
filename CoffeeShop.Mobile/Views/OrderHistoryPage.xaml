@@ -2,11 +2,12 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.OrderHistoryPage"
-             Title="Đơn hàng">
+Title="Đơn hàng"
+BackgroundColor="{StaticResource AppBackground}">
     <Shell.BackButtonBehavior>
         <BackButtonBehavior Command="{Binding GoBackCommand}" />
     </Shell.BackButtonBehavior>
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*" BackgroundColor="{StaticResource AppBackground}">
         <Grid ColumnDefinitions="*,*" Margin="16,12">
             <Button x:Name="ActiveOrdersTab" Text="Đang thực hiện" Clicked="OnActiveOrdersClicked"
                     BackgroundColor="{StaticResource CoffeeAccent}" TextColor="#000000" />

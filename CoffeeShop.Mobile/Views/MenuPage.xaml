@@ -3,12 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.MenuPage"
              x:Name="Root"
-             Title="Đặt hàng">
-    <Shell.BackButtonBehavior>
-        <BackButtonBehavior Command="{Binding GoBackCommand}" />
-    </Shell.BackButtonBehavior>
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+             Title="Đặt hàng"
+             BackgroundColor="{StaticResource AppBackground}">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto"
+          BackgroundColor="{StaticResource AppBackground}">
+        <Grid ColumnDefinitions="*,Auto" Padding="16,8,16,0">
+            <Label Text="Thực đơn" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
+            <Button Grid.Column="1" Text="{Binding CartItemCount, StringFormat='🛒  {0}'}" Command="{Binding OpenCartCommand}"
+                    IsEnabled="{Binding HasItemsInCart}" BackgroundColor="Transparent"
+                    TextColor="{StaticResource CoffeeAccent}" Padding="8,4" />
+        </Grid>
         <SearchBar x:Name="MenuSearch"
+                   Grid.Row="1"
                    Placeholder="Tìm cà phê, trà, bánh..."
                    Text="{Binding SearchText}"
                    SearchButtonPressed="OnSearchPressed"
@@ -16,7 +22,7 @@
                    TextColor="{StaticResource CoffeeText}"
                    PlaceholderColor="{StaticResource CoffeeMuted}"
                    Margin="16,12" />
-        <CollectionView Grid.Row="1"
+        <CollectionView Grid.Row="2"
                         ItemsSource="{Binding Categories}"
                         SelectedItem="{Binding SelectedCategory}"
                         SelectionMode="Single"
@@ -30,7 +36,7 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <CollectionView Grid.Row="2"
+        <CollectionView Grid.Row="3"
                         ItemsSource="{Binding Products}"
                         ItemsLayout="VerticalGrid, 2"
                         SelectionMode="None"
@@ -48,6 +54,8 @@
                         </Border.GestureRecognizers>
                         <Grid RowDefinitions="150,Auto,Auto,Auto">
                             <Grid>
+                                <Label Text="☕" TextColor="{StaticResource CoffeeAccent}" FontSize="38"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
                                 <Image Source="{Binding HinhAnh, FallbackValue=coffee_swirl.svg}" Aspect="AspectFill" />
                                 <Border BackgroundColor="#B312100D" StrokeThickness="0" StrokeShape="RoundRectangle 9"
                                         HorizontalOptions="Start" VerticalOptions="Start" Padding="8,4"
@@ -60,7 +68,7 @@
                                     </DataTrigger>
                                 </Image.Triggers>
                             </Grid>
-                            <Label Grid.Row="1" Text="{Binding TenSP}" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" LineBreakMode="TailTruncation" Margin="0,8,0,2" />
+            <Label Grid.Row="1" Text="{Binding TenSP}" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" LineBreakMode="WordWrap" MaxLines="2" Margin="0,8,0,2" />
                             <Label Grid.Row="2" Text="{Binding TenLoaiSP}" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
                             <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
                                 <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" VerticalOptions="Center" />
@@ -73,12 +81,12 @@
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Border Grid.Row="3" IsVisible="{Binding IsCartVisible}" BackgroundColor="{StaticResource CoffeeSurfaceRaised}"
+        <Border Grid.Row="4" IsVisible="{Binding HasItemsInCart}" BackgroundColor="{StaticResource CoffeeSurfaceRaised}"
                 StrokeThickness="0" StrokeShape="RoundRectangle 18" Margin="16,6,16,12" Padding="14,8">
             <Grid ColumnDefinitions="*,Auto">
                 <VerticalStackLayout Spacing="1">
-                    <Label Text="{Binding CartCount, StringFormat='{0} món trong giỏ'}" TextColor="White" FontSize="12" />
-                    <Label Text="{Binding CartTotal, StringFormat='{0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" />
+                    <Label Text="{Binding CartItemCount, StringFormat='{0} món trong giỏ'}" TextColor="White" FontSize="12" />
+                    <Label Text="{Binding TotalPriceFormatted}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" />
                 </VerticalStackLayout>
                 <Button Grid.Column="1" Text="Xem giỏ" BackgroundColor="{StaticResource CoffeeAccent}" TextColor="{StaticResource CoffeeBackground}"
                         Command="{Binding OpenCartCommand}" />

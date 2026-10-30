@@ -2,29 +2,31 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.OrderModePage"
-             Title="Order"
+              Title="Đặt hàng"
+             BackgroundColor="{StaticResource AppBackground}"
              Shell.NavBarIsVisible="False">
-    <ScrollView>
-        <VerticalStackLayout Padding="20,28,20,20" Spacing="18">
-            <Label Text="Have a good day!" TextColor="{StaticResource CoffeeText}"
+    <ScrollView BackgroundColor="{StaticResource AppBackground}">
+        <VerticalStackLayout Padding="20,28,20,20" Spacing="18"
+                             BackgroundColor="{StaticResource AppBackground}">
+            <Label Text="Chọn hình thức nhận hàng" TextColor="{StaticResource CoffeeText}"
                    FontSize="26" FontAttributes="Bold" Margin="0,0,0,6" />
             <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}"
                     StrokeShape="RoundRectangle 22" Padding="20">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="▣  Pick Up" TextColor="{StaticResource CoffeeText}"
+                    <Label Text="▣  Mang đi" TextColor="{StaticResource CoffeeText}"
                            FontSize="22" FontAttributes="Bold" />
-                    <Label Text="Skip the line and grab your brew" TextColor="{StaticResource CoffeeMuted}" FontSize="16" />
-                    <Button Text="Order Now" Clicked="OnPickupClicked" HorizontalOptions="Start"
+                    <Label Text="Đặt trước và nhận tại quầy" TextColor="{StaticResource CoffeeMuted}" FontSize="16" />
+                    <Button Text="Chọn món" Clicked="OnPickupClicked" HorizontalOptions="Start"
                             Padding="28,12" />
                 </VerticalStackLayout>
             </Border>
             <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}"
                     StrokeShape="RoundRectangle 22" Padding="20">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="♧  Delivery" TextColor="{StaticResource CoffeeText}"
+                    <Label Text="♧  Giao hàng" TextColor="{StaticResource CoffeeText}"
                            FontSize="22" FontAttributes="Bold" />
-                    <Label Text="Delivered right to your doorstep" TextColor="{StaticResource CoffeeMuted}" FontSize="16" />
-                    <Button Text="Order Now" Clicked="OnDeliveryClicked" HorizontalOptions="Start"
+                    <Label Text="Giao cà phê đến tận nơi" TextColor="{StaticResource CoffeeMuted}" FontSize="16" />
+                    <Button Text="Chọn món" Clicked="OnDeliveryClicked" HorizontalOptions="Start"
                             Padding="28,12" />
                 </VerticalStackLayout>
             </Border>

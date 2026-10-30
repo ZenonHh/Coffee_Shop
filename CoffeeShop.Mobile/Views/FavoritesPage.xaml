@@ -4,8 +4,10 @@
              xmlns:models="clr-namespace:CoffeeShop.Mobile.Models"
              x:Class="CoffeeShop.Mobile.Views.FavoritesPage"
              Title="Món yêu thích"
-             Shell.NavBarIsVisible="True">
-    <CollectionView x:Name="FavoriteProducts" ItemsSource="{Binding}" SelectionMode="None" Margin="12">
+             Shell.NavBarIsVisible="True"
+             BackgroundColor="{StaticResource AppBackground}">
+    <CollectionView x:Name="FavoriteProducts" ItemsSource="{Binding}" SelectionMode="None" Margin="12"
+                    BackgroundColor="{StaticResource AppBackground}">
         <CollectionView.EmptyView>
             <Label Text="Bạn chưa lưu món yêu thích nào." TextColor="{StaticResource CoffeeMuted}"
                    HorizontalOptions="Center" VerticalOptions="Center" />

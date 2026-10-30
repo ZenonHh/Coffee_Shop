@@ -3,17 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.HomePage"
              Title="Home"
+             BackgroundColor="{StaticResource AppBackground}"
              Shell.NavBarIsVisible="False">
-    <ScrollView>
-        <VerticalStackLayout Padding="18,16,18,24" Spacing="18">
-            <Grid ColumnDefinitions="*,Auto">
+    <ScrollView BackgroundColor="{StaticResource AppBackground}">
+        <VerticalStackLayout Padding="18,16,18,24" Spacing="18"
+                             BackgroundColor="{StaticResource AppBackground}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                 <VerticalStackLayout Spacing="2">
-                    <Label Text="{Binding Greeting}" TextColor="{StaticResource CoffeeMuted}" FontSize="13" />
+                    <Label Text="{Binding Greeting}" TextColor="{StaticResource TextWhite}"
+                           FontSize="18" FontAttributes="Bold" />
                     <Label Text="{Binding CustomerName}" FontSize="23" FontAttributes="Bold"
                            TextColor="{StaticResource CoffeeText}" />
                 </VerticalStackLayout>
-                <Label Grid.Column="1" Text="Coffee Shop" TextColor="{StaticResource CoffeeAccent}"
-                       FontSize="13" FontAttributes="Bold" VerticalOptions="Center" />
+                <Grid Grid.Column="1" WidthRequest="52" HeightRequest="48">
+                    <Button Text="🛒" Command="{Binding OpenCartCommand}"
+                            BackgroundColor="Transparent" TextColor="{StaticResource PrimaryGold}"
+                            FontSize="22" Padding="6" />
+                    <Border BackgroundColor="{StaticResource PrimaryGold}" StrokeThickness="0"
+                            StrokeShape="RoundRectangle 10" Padding="5,1"
+                            HorizontalOptions="End" VerticalOptions="Start"
+                            IsVisible="{Binding HasItemsInCart}">
+                        <Label Text="{Binding CartItemCount}" TextColor="{StaticResource AppBackground}"
+                               FontSize="10" FontAttributes="Bold" />
+                    </Border>
+                </Grid>
             </Grid>
 
             <Grid RowDefinitions="190,Auto">
@@ -28,7 +41,7 @@
                             <Border Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 20"
                                     BackgroundColor="{StaticResource CoffeeSurface}" Padding="0" Margin="1">
                                 <Grid>
-                                    <Image Source="{Binding ., FallbackValue=coffee_swirl.svg}"
+                            <Image Source="{Binding ., TargetNullValue=coffee_swirl.svg, FallbackValue=coffee_swirl.svg}"
                                            Aspect="AspectFill" />
                                     <BoxView Color="#5512100D" />
                                     <VerticalStackLayout VerticalOptions="End" Padding="18" Spacing="3">
@@ -72,8 +85,8 @@
             <Grid ColumnDefinitions="*,Auto">
                 <Label Text="Xu hướng quanh bạn" TextColor="{StaticResource CoffeeText}"
                        FontSize="20" FontAttributes="Bold" />
-                <Label Grid.Column="1" Text="Xem thực đơn ›" TextColor="{StaticResource CoffeeAccent}"
-                       VerticalOptions="Center">
+                <Label Grid.Column="1" Text="Xem thực đơn ›" TextColor="{StaticResource PrimaryGold}"
+                       FontAttributes="Bold" VerticalOptions="Center">
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding OpenMenuCommand}" />
                     </Label.GestureRecognizers>

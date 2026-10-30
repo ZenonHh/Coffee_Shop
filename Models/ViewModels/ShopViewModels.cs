@@ -123,6 +123,7 @@ namespace CoffeeShop.Models.ViewModels
         public string Phone { get; set; } = string.Empty;
         public string? Email { get; set; }
         public string DeliveryAddress { get; set; } = string.Empty;
+        public bool SaveCustomerInfo { get; set; }
         public string? Note { get; set; }
         public string PaymentMethod { get; set; } = "COD";
         public string? VoucherCode { get; set; }

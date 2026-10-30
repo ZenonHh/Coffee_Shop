@@ -231,33 +231,98 @@ namespace CoffeeShop.Controllers
         }
 
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> Profile()
+        public async Task<IActionResult> Profile(CancellationToken cancellationToken)
         {
-            var username = User.Identity?.Name;
-            var customer = await _context.Customers
-                .AsNoTracking()
-                .Where(c => c.TaiKhoan == username)
-                .Select(c => new ProfileCustomerViewModel
-                {
-                    MaKH = c.MaKH,
-                    TaiKhoan = c.TaiKhoan,
-                    HoTen = c.HoTen,
-                    Sdt = c.Sdt,
-                    Email = c.Email,
-                    DiemTichLuy = c.DiemTichLuy,
-                    HangTV = c.HangTV,
-                    DiaChi = c.DiaChi
-                })
-                .FirstOrDefaultAsync();
-
+            var customer = await FindCurrentCustomerAsync(tracking: false, cancellationToken);
             if (customer == null)
-            {
                 return RedirectToAction(nameof(Logout));
+
+            return View(await BuildProfileViewModelAsync(customer, cancellationToken));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Customer")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(
+            ProfileViewModel model, CancellationToken cancellationToken)
+        {
+            var customer = await FindCurrentCustomerAsync(tracking: true, cancellationToken);
+            if (customer is null)
+                return RedirectToAction(nameof(Logout));
+
+            var editProfile = model.EditProfile;
+            editProfile.FullName = editProfile.FullName?.Trim() ?? string.Empty;
+            editProfile.Phone = editProfile.Phone?.Trim() ?? string.Empty;
+            editProfile.Email = string.IsNullOrWhiteSpace(editProfile.Email) ? null : editProfile.Email.Trim();
+            editProfile.Address = string.IsNullOrWhiteSpace(editProfile.Address) ? null : editProfile.Address.Trim();
+
+            if (ModelState.IsValid
+                && await _context.Customers.AsNoTracking()
+                    .AnyAsync(item => item.MaKH != customer.MaKH && item.Sdt == editProfile.Phone, cancellationToken))
+            {
+                ModelState.AddModelError("EditProfile.Phone", "Số điện thoại đã được sử dụng.");
             }
 
-            var viewModel = new ProfileViewModel
+            if (!ModelState.IsValid)
             {
-                Customer = customer,
+                var invalidViewModel = await BuildProfileViewModelAsync(customer, cancellationToken);
+                invalidViewModel.EditProfile = editProfile;
+                ViewBag.ShowProfileEdit = true;
+                return View("Profile", invalidViewModel);
+            }
+
+            customer.HoTen = editProfile.FullName;
+            customer.Sdt = editProfile.Phone;
+            customer.Email = editProfile.Email;
+            customer.DiaChi = editProfile.Address;
+            var account = await _context.Accounts
+                .FirstOrDefaultAsync(item => item.TenDangNhap == customer.TaiKhoan, cancellationToken);
+            if (account is not null)
+                account.HoTen = customer.HoTen;
+
+            await _context.SaveChangesAsync(cancellationToken);
+            TempData["Message"] = "Cập nhật thông tin thành công!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        private async Task<Customer?> FindCurrentCustomerAsync(bool tracking, CancellationToken cancellationToken)
+        {
+            IQueryable<Customer> query = _context.Customers;
+            if (!tracking)
+                query = query.AsNoTracking();
+
+            if (int.TryParse(User.FindFirstValue("CustomerId"), out var customerId) && customerId > 0)
+                return await query.FirstOrDefaultAsync(item => item.MaKH == customerId, cancellationToken);
+
+            var username = User.Identity?.Name;
+            return string.IsNullOrWhiteSpace(username)
+                ? null
+                : await query.FirstOrDefaultAsync(item => item.TaiKhoan == username, cancellationToken);
+        }
+
+        private async Task<ProfileViewModel> BuildProfileViewModelAsync(
+            Customer customer, CancellationToken cancellationToken)
+        {
+            return new ProfileViewModel
+            {
+                Customer = new ProfileCustomerViewModel
+                {
+                    MaKH = customer.MaKH,
+                    TaiKhoan = customer.TaiKhoan,
+                    HoTen = customer.HoTen,
+                    Sdt = customer.Sdt,
+                    Email = customer.Email,
+                    DiemTichLuy = customer.DiemTichLuy,
+                    HangTV = customer.HangTV,
+                    DiaChi = customer.DiaChi
+                },
+                EditProfile = new ProfileEditViewModel
+                {
+                    FullName = customer.HoTen,
+                    Phone = customer.Sdt,
+                    Email = customer.Email,
+                    Address = customer.DiaChi
+                },
                 RecentOrders = await _context.Orders.AsNoTracking()
                     .Where(order => order.MaKH == customer.MaKH)
                     .OrderByDescending(order => order.NgayTao)
@@ -275,7 +340,7 @@ namespace CoffeeShop.Controllers
                             SoLuong = detail.SoLuong
                         }).ToList()
                     })
-                    .ToListAsync(),
+                    .ToListAsync(cancellationToken),
                 PointHistories = await _context.PointHistories.AsNoTracking()
                     .Where(history => history.MaKH == customer.MaKH)
                     .OrderByDescending(history => history.NgayThucHien)
@@ -286,32 +351,8 @@ namespace CoffeeShop.Controllers
                         NgayThucHien = history.NgayThucHien,
                         DiemThayDoi = history.DiemThayDoi
                     })
-                    .ToListAsync()
+                    .ToListAsync(cancellationToken)
             };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Customer")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(string fullName, string phone, string? email, string? address)
-        {
-            var username = User.Identity?.Name;
-            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == username);
-            if (customer != null)
-            {
-                customer.HoTen = fullName;
-                customer.Sdt = phone;
-                customer.Email = email;
-                customer.DiaChi = address;
-                var account = await _context.Accounts.FirstOrDefaultAsync(item => item.TenDangNhap == username);
-                if (account != null)
-                    account.HoTen = fullName;
-                await _context.SaveChangesAsync();
-                TempData["Message"] = "Cập nhật thông tin thành công!";
-            }
-            return RedirectToAction(nameof(Profile));
         }
 
         public async Task<IActionResult> Logout()

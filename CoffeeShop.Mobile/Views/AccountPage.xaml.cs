@@ -1,5 +1,6 @@
 using CoffeeShop.Mobile.Services;
 using CoffeeShop.Mobile.Models;
+using CoffeeShop.Mobile.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CoffeeShop.Mobile.Views;
@@ -10,11 +11,12 @@ public partial class AccountPage : ContentPage
     private readonly IServiceProvider _services;
     private CustomerProfile? _profile;
 
-    public AccountPage(ApiService api, IServiceProvider services)
+    public AccountPage(ApiService api, IServiceProvider services, AccountViewModel viewModel)
     {
         InitializeComponent();
         _api = api;
         _services = services;
+        BindingContext = viewModel;
     }
 
     protected override async void OnAppearing()

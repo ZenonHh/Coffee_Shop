@@ -108,7 +108,7 @@ public sealed record UpdateMobileProfileRequest
     [Required, StringLength(100)]
     public required string HoTen { get; init; }
 
-    [Required, Phone, StringLength(20)]
+    [Required, RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Số điện thoại phải gồm đúng 10 chữ số"), StringLength(20)]
     public required string Sdt { get; init; }
 
     [EmailAddress, StringLength(100)]

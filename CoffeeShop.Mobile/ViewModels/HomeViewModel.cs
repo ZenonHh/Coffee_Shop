@@ -8,17 +8,40 @@ using CoffeeShop.Mobile.Views;
 
 namespace CoffeeShop.Mobile.ViewModels;
 
-public partial class HomeViewModel(ApiService api, CartService cart, FavoriteService favorites) : ObservableObject
+public partial class HomeViewModel : ObservableObject
 {
+    private readonly ApiService _api;
+    private readonly CartService _cart;
+    private readonly FavoriteService _favorites;
+    private readonly IServiceProvider _services;
     private CancellationTokenSource? _bannerRotation;
 
+    public HomeViewModel(ApiService api, CartService cart, FavoriteService favorites, IServiceProvider services)
+    {
+        _api = api;
+        _cart = cart;
+        _favorites = favorites;
+        _services = services;
+        Banners =
+        [
+            api.ResolveImageUrl("images/bg_1.jpg")!,
+            api.ResolveImageUrl("images/bg_2.jpg")!,
+            api.ResolveImageUrl("images/bg_3.jpg")!
+        ];
+        cart.PropertyChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(CartItemCount));
+            OnPropertyChanged(nameof(HasItemsInCart));
+            OnPropertyChanged(nameof(TotalPriceFormatted));
+        };
+    }
+
     public ObservableCollection<ProductItem> BestSellers { get; } = [];
-    public IReadOnlyList<string> Banners { get; } =
-    [
-        api.ResolveImageUrl("images/bg_1.jpg")!,
-        api.ResolveImageUrl("images/bg_2.jpg")!,
-        api.ResolveImageUrl("images/bg_3.jpg")!
-    ];
+    public IReadOnlyList<string> Banners { get; }
+
+    public int CartItemCount => _cart.ItemCount;
+    public bool HasItemsInCart => _cart.ItemCount > 0;
+    public string TotalPriceFormatted => $"{_cart.Subtotal:N0} đ";
 
     [ObservableProperty]
     private string greeting = GreetingText();
@@ -32,22 +55,30 @@ public partial class HomeViewModel(ApiService api, CartService cart, FavoriteSer
     [RelayCommand]
     private async Task SelectDeliveryAsync()
     {
-        cart.SelectedFulfillment = "Giao hàng";
+        _cart.SelectedFulfillment = "Giao hàng";
         await OpenMenuAsync();
     }
 
     [RelayCommand]
     private async Task SelectPickupAsync()
     {
-        cart.SelectedFulfillment = "Mang đi";
+        _cart.SelectedFulfillment = "Mang đi";
         await OpenMenuAsync();
     }
 
     [RelayCommand]
     private async Task OpenMenuAsync()
     {
-        await Shell.Current.GoToAsync("//order");
-        await Shell.Current.GoToAsync("menu");
+        try
+        {
+            await Shell.Current.GoToAsync("//order");
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine($"[NAVIGATION ERROR]: {exception}");
+            await Shell.Current.DisplayAlertAsync(
+                "Không thể mở thực đơn", "Vui lòng thử lại.", "Đóng");
+        }
     }
 
     [RelayCommand]
@@ -66,9 +97,9 @@ public partial class HomeViewModel(ApiService api, CartService cart, FavoriteSer
 
         try
         {
-            var detail = await api.GetProductDetailAsync(product.MaSP);
-            detail = detail with { HinhAnh = api.ResolveImageUrl(detail.HinhAnh) };
-            await Shell.Current.ShowPopupAsync(new ProductDetailBottomSheet(detail, cart, favorites));
+            var detail = await _api.GetProductDetailAsync(product.MaSP);
+            detail = detail with { HinhAnh = _api.ResolveImageUrl(detail.HinhAnh) };
+            await Shell.Current.ShowPopupAsync(new ProductDetailBottomSheet(detail, _cart, _favorites));
         }
         catch (Exception exception)
         {
@@ -80,20 +111,24 @@ public partial class HomeViewModel(ApiService api, CartService cart, FavoriteSer
     {
         try
         {
-            var profile = await api.GetProfileAsync();
+            var profile = await _api.GetProfileAsync();
             if (profile is not null)
                 CustomerName = profile.HoTen;
 
-            var products = await api.GetProductsAsync(null, null);
+            var products = await _api.GetProductsAsync(null, null);
             BestSellers.Clear();
             foreach (var item in products.Take(8))
-                BestSellers.Add(item with { HinhAnh = api.ResolveImageUrl(item.HinhAnh) });
+                BestSellers.Add(item with { HinhAnh = _api.ResolveImageUrl(item.HinhAnh) });
         }
         catch (Exception exception)
         {
             await Shell.Current.DisplayAlertAsync("Không thể tải trang chủ", exception.Message, "Đóng");
         }
     }
+
+    [RelayCommand]
+    private async Task OpenCartAsync() =>
+        await Shell.Current.Navigation.PushModalAsync(_services.GetRequiredService<CartPage>());
 
     public void StartBannerRotation()
     {

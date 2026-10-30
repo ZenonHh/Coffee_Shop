@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    <Color x:Key="AppBackground">#12100D</Color>
+    <Color x:Key="CardSurface">#1E1915</Color>
+    <Color x:Key="PrimaryGold">#C49B63</Color>
+    <Color x:Key="TextWhite">#FFFFFF</Color>
+    <Color x:Key="TextMuted">#A89F91</Color>
     <Color x:Key="CoffeeAccent">#C49B63</Color>
     <Color x:Key="CoffeeBackground">#12100D</Color>
-    <Color x:Key="CoffeeSurface">#1F1B17</Color>
+    <Color x:Key="CoffeeSurface">#1E1915</Color>
     <Color x:Key="CoffeeSurfaceRaised">#26211C</Color>
     <Color x:Key="CoffeeBorder">#40C49B63</Color>
     <Color x:Key="CoffeeText">#FFFFFF</Color>

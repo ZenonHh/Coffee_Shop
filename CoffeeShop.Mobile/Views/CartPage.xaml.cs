@@ -5,10 +5,26 @@ namespace CoffeeShop.Mobile.Views;
 
 public partial class CartPage : ContentPage
 {
-    public CartPage(ApiService api, CartService cart)
+    private readonly CartViewModel _viewModel;
+
+    public CartPage(CartViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = new CartViewModel(api, cart);
+        _viewModel = viewModel;
+        BindingContext = viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        try
+        {
+            await _viewModel.LoadCustomerDefaultsAsync();
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlertAsync("Không thể tải thông tin nhận hàng", exception.Message, "Đóng");
+        }
     }
 
     private async void OnBackClicked(object? sender, EventArgs e)

@@ -52,8 +52,27 @@ namespace CoffeeShop.Models.ViewModels
     public class ProfileViewModel
     {
         public ProfileCustomerViewModel Customer { get; set; } = new();
+        public ProfileEditViewModel EditProfile { get; set; } = new();
         public List<ProfileOrderViewModel> RecentOrders { get; set; } = new();
         public List<ProfilePointHistoryViewModel> PointHistories { get; set; } = new();
+    }
+
+    public class ProfileEditViewModel
+    {
+        [Required(ErrorMessage = "Vui lòng nhập họ và tên")]
+        [StringLength(100)]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+        [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Số điện thoại phải gồm đúng 10 chữ số")]
+        public string Phone { get; set; } = string.Empty;
+
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+        [StringLength(100)]
+        public string? Email { get; set; }
+
+        [StringLength(255)]
+        public string? Address { get; set; }
     }
 
     public class ProfileCustomerViewModel

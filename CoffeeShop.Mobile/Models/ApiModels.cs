@@ -38,7 +38,8 @@ public sealed record VoucherCheckResponse(int MaVoucher, string MaCode, decimal 
 public sealed record CheckoutItemRequest(int MaSP, int MaBienThe, int SoLuong, List<int> ToppingIds);
 public sealed record CheckoutRequest(
     string LoaiDonHang, string? HoTenNguoiNhan, string? SdtNguoiNhan, string? DiaChiGiao,
-    string? GhiChu, string? MaCode, string PhuongThucThanhToan, List<CheckoutItemRequest> Items);
+    string? GhiChu, string? MaCode, string PhuongThucThanhToan, List<CheckoutItemRequest> Items,
+    string? EmailNguoiNhan = null, bool LuuThongTinMacDinh = false);
 public sealed record CheckoutResponse(
     int MaHD, string TrangThai, decimal TamTinh, decimal TienGiamGia, int PhiGiao, decimal TongTien);
 public sealed record OrderHistoryLine(

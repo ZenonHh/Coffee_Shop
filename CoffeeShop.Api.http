@@ -35,6 +35,18 @@ Content-Type: application/json
 GET {{baseUrl}}/api/auth/profile
 Authorization: Bearer {{accessToken}}
 
+### Update current customer profile
+PUT {{baseUrl}}/api/mobile-user/profile
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "hoTen": "Nguyen Van A",
+  "sdt": "0901234567",
+  "email": "customer@example.com",
+  "diaChi": "12 Nguyen Hue, Quan 1"
+}
+
 ### Current customer's loyalty point history
 GET {{baseUrl}}/api/auth/points
 Authorization: ******
@@ -69,7 +81,9 @@ Content-Type: application/json
   "loaiDonHang": "Giao hàng",
   "hoTenNguoiNhan": "Nguyen Van A",
   "sdtNguoiNhan": "0901234567",
+  "emailNguoiNhan": "customer@example.com",
   "diaChiGiao": "12 Nguyen Hue, Quan 1",
+  "luuThongTinMacDinh": true,
   "ghiChu": "Đường 50%, đá riêng",
   "maCode": null,
   "phuongThucThanhToan": "COD",

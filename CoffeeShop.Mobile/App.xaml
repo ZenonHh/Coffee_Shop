@@ -8,7 +8,7 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <Style TargetType="ContentPage">
-                <Setter Property="BackgroundColor" Value="{StaticResource CoffeeBackground}" />
+                <Setter Property="BackgroundColor" Value="{StaticResource AppBackground}" />
             </Style>
             <Style TargetType="Label">
                 <Setter Property="TextColor" Value="{StaticResource CoffeeText}" />

@@ -3,8 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.VoucherPage"
              Title="Voucher"
-             Shell.NavBarIsVisible="False">
-    <CollectionView ItemsSource="{Binding Vouchers}" Margin="16,12" SelectionMode="None">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource AppBackground}">
+    <CollectionView ItemsSource="{Binding Vouchers}" Margin="16,12" SelectionMode="None"
+                    BackgroundColor="{StaticResource AppBackground}">
         <CollectionView.Header>
             <VerticalStackLayout Spacing="8" Margin="0,0,0,12">
                 <Label Text="Ưu đãi dành cho bạn" TextColor="{StaticResource CoffeeText}"

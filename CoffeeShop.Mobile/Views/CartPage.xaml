@@ -2,10 +2,11 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CoffeeShop.Mobile.Views.CartPage"
-             Title="Giỏ hàng">
-    <Grid RowDefinitions="*,Auto">
-        <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="14">
+             Title="Giỏ hàng"
+             BackgroundColor="{StaticResource AppBackground}">
+    <Grid RowDefinitions="*,Auto" BackgroundColor="{StaticResource AppBackground}">
+        <ScrollView BackgroundColor="{StaticResource AppBackground}">
+            <VerticalStackLayout Padding="16" Spacing="14" BackgroundColor="{StaticResource AppBackground}">
                 <Button Text="‹  Quay lại" Clicked="OnBackClicked" HorizontalOptions="Start"
                         BackgroundColor="Transparent" TextColor="{StaticResource CoffeeAccent}" Padding="4,2" />
                 <Label Text="Giỏ hàng của bạn" FontSize="25" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
@@ -43,9 +44,15 @@
                     <VerticalStackLayout Spacing="9">
                         <Label Text="Nhận hàng &amp; thanh toán" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
                         <Picker Title="Hình thức nhận hàng" ItemsSource="{Binding FulfillmentOptions}" SelectedItem="{Binding SelectedFulfillment}" />
-                        <Entry Placeholder="Tên người nhận" Text="{Binding RecipientName}" />
-                        <Entry Placeholder="Số điện thoại" Keyboard="Telephone" Text="{Binding Phone}" />
-                        <Entry Placeholder="Địa chỉ giao hàng" Text="{Binding Address}" IsVisible="{Binding IsDelivery}" />
+                        <Entry Placeholder="Nhập họ tên người nhận..." Text="{Binding RecipientName}" />
+                        <Entry Placeholder="Nhập số điện thoại nhận hàng..." Keyboard="Telephone" Text="{Binding Phone}" />
+                        <Entry Placeholder="Nhập email nhận hóa đơn..." Keyboard="Email" Text="{Binding Email}" />
+                        <Entry Placeholder="Nhập địa chỉ nhận hàng của bạn..." Text="{Binding Address}" IsVisible="{Binding IsDelivery}" />
+                        <HorizontalStackLayout Spacing="8">
+                            <CheckBox IsChecked="{Binding SaveCustomerInfo}" Color="{StaticResource CoffeeAccent}" />
+                            <Label Text="Lưu thông tin này làm địa chỉ nhận hàng mặc định cho lần sau"
+                                   TextColor="{StaticResource CoffeeMuted}" VerticalOptions="Center" FontSize="12" />
+                        </HorizontalStackLayout>
                         <Picker Title="Phương thức thanh toán" ItemsSource="{Binding PaymentMethods}"
                                 ItemDisplayBinding="{Binding Label}" SelectedItem="{Binding SelectedPayment}" />
                     </VerticalStackLayout>

@@ -27,7 +27,18 @@ public partial class CartService : ObservableObject
 
     public void Add(CartLine line)
     {
-        Items.Add(line);
+        var existing = Items.FirstOrDefault(item =>
+            item.Product.MaSP == line.Product.MaSP
+            && item.Variant.MaBienThe == line.Variant.MaBienThe
+            && item.Note == line.Note
+            && item.Toppings.Select(topping => topping.MaSP).OrderBy(id => id)
+                .SequenceEqual(line.Toppings.Select(topping => topping.MaSP).OrderBy(id => id)));
+
+        if (existing is null)
+            Items.Add(line);
+        else
+            existing.Quantity += line.Quantity;
+
         OnPropertyChanged(nameof(ItemCount));
         OnPropertyChanged(nameof(Subtotal));
         OnPropertyChanged(nameof(ShippingFee));

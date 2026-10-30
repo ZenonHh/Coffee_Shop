@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
@@ -20,7 +21,7 @@ namespace CoffeeShop.Controllers
             _cartStore = cartStore;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var cart = await _cartStore.GetCartAsync();
             if (!cart.Items.Any())
@@ -34,11 +35,9 @@ namespace CoffeeShop.Controllers
                 VoucherCode = cart.VoucherCode
             };
 
-            // Nếu user đã đăng nhập, tự động điền thông tin
             if (User.Identity?.IsAuthenticated == true)
             {
-                var username = User.Identity.Name;
-                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == username);
+                var customer = await FindCurrentCustomerAsync(tracking: false, cancellationToken);
                 if (customer != null)
                 {
                     viewModel.FullName = customer.HoTen;
@@ -53,7 +52,8 @@ namespace CoffeeShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PlaceOrder(CheckoutViewModel model)
+        public async Task<IActionResult> PlaceOrder(
+            CheckoutViewModel model, CancellationToken cancellationToken)
         {
             var cart = await _cartStore.GetCartAsync();
             if (!cart.Items.Any())
@@ -63,9 +63,22 @@ namespace CoffeeShop.Controllers
                 return View("Index", model);
             }
 
-            if (string.IsNullOrWhiteSpace(model.FullName) || string.IsNullOrWhiteSpace(model.Phone) || string.IsNullOrWhiteSpace(model.DeliveryAddress))
+            model.FullName = model.FullName?.Trim() ?? string.Empty;
+            model.Phone = model.Phone?.Trim() ?? string.Empty;
+            model.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
+            model.DeliveryAddress = model.DeliveryAddress?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(model.FullName))
+                ModelState.AddModelError(nameof(model.FullName), "Vui lòng nhập họ tên người nhận.");
+            if (!Regex.IsMatch(model.Phone, @"^[0-9]{10}$"))
+                ModelState.AddModelError(nameof(model.Phone), "Số điện thoại phải gồm đúng 10 chữ số.");
+            if (!string.IsNullOrWhiteSpace(model.Email)
+                && !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(model.Email))
+                ModelState.AddModelError(nameof(model.Email), "Email không hợp lệ.");
+            if (string.IsNullOrWhiteSpace(model.DeliveryAddress))
+                ModelState.AddModelError(nameof(model.DeliveryAddress), "Vui lòng nhập địa chỉ nhận hàng.");
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(string.Empty, "Vui lòng nhập đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng.");
                 model.Cart = cart;
                 return View("Index", model);
             }
@@ -107,14 +120,12 @@ namespace CoffeeShop.Controllers
                 cart.VoucherDiscountAmount = 0;
             }
 
-            int? customerId = null;
+            Customer? customerForOrder = null;
             if (User.Identity?.IsAuthenticated == true)
-            {
-                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == User.Identity.Name);
-                customerId = customer?.MaKH;
-            }
+                customerForOrder = await FindCurrentCustomerAsync(tracking: true, cancellationToken);
+            var customerId = customerForOrder?.MaKH;
 
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+            await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             foreach (var item in cart.Items)
             {
                 var validItem = await _context.Products.AnyAsync(product => product.MaSP == item.ProductId
@@ -229,31 +240,58 @@ namespace CoffeeShop.Controllers
                 }
             }
 
-            if (customerId.HasValue)
+            if (customerForOrder is not null)
             {
-                var customer = await _context.Customers.FindAsync(customerId.Value);
-                if (customer != null)
+                var pointsEarned = (int)(cart.GrandTotal / 10000m);
+                customerForOrder.DiemTichLuy += pointsEarned;
+                if (customerForOrder.DiemTichLuy >= 500) customerForOrder.HangTV = "Kim Cương";
+                else if (customerForOrder.DiemTichLuy >= 200) customerForOrder.HangTV = "Vàng";
+                else if (customerForOrder.DiemTichLuy >= 50) customerForOrder.HangTV = "Bạc";
+
+                if (pointsEarned > 0)
                 {
-                    var pointsEarned = (int)(cart.GrandTotal / 10000m);
-                    customer.DiemTichLuy += pointsEarned;
-                    if (customer.DiemTichLuy >= 500) customer.HangTV = "Kim Cương";
-                    else if (customer.DiemTichLuy >= 200) customer.HangTV = "Vàng";
-                    else if (customer.DiemTichLuy >= 50) customer.HangTV = "Bạc";
                     _context.PointHistories.Add(new PointHistory
                     {
-                        MaKH = customer.MaKH,
+                        MaKH = customerForOrder.MaKH,
                         MaHD = order.MaHD,
                         DiemThayDoi = pointsEarned,
                         LyDo = $"Tích điểm đơn hàng #{order.MaHD}",
                         NgayThucHien = DateTime.Now
                     });
                 }
+
+                if (model.SaveCustomerInfo)
+                {
+                    customerForOrder.HoTen = model.FullName;
+                    customerForOrder.Sdt = model.Phone;
+                    customerForOrder.Email = model.Email;
+                    customerForOrder.DiaChi = model.DeliveryAddress;
+                    var account = await _context.Accounts.FirstOrDefaultAsync(
+                        item => item.TenDangNhap == customerForOrder.TaiKhoan, cancellationToken);
+                    if (account is not null)
+                        account.HoTen = model.FullName;
+                }
             }
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+            await _context.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
             await _cartStore.ClearCartAsync();
             return RedirectToAction(nameof(Success), new { id = order.MaHD });
+        }
+
+        private async Task<Customer?> FindCurrentCustomerAsync(bool tracking, CancellationToken cancellationToken)
+        {
+            IQueryable<Customer> query = _context.Customers;
+            if (!tracking)
+                query = query.AsNoTracking();
+
+            if (int.TryParse(User.FindFirstValue("CustomerId"), out var customerId) && customerId > 0)
+                return await query.FirstOrDefaultAsync(item => item.MaKH == customerId, cancellationToken);
+
+            var username = User.Identity?.Name;
+            return string.IsNullOrWhiteSpace(username)
+                ? null
+                : await query.FirstOrDefaultAsync(item => item.TaiKhoan == username, cancellationToken);
         }
 
         private static decimal CalculateAutomaticDiscount(decimal subtotal) => subtotal switch

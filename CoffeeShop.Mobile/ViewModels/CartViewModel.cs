@@ -29,6 +29,12 @@ public partial class CartViewModel : ObservableObject
     private string phone = string.Empty;
 
     [ObservableProperty]
+    private string email = string.Empty;
+
+    [ObservableProperty]
+    private bool saveCustomerInfo;
+
+    [ObservableProperty]
     private string selectedFulfillment = "Giao hàng";
 
     public bool IsPickup => SelectedFulfillment == "Mang đi";
@@ -56,6 +62,22 @@ public partial class CartViewModel : ObservableObject
         VoucherCode = cart.VoucherCode;
         SelectedFulfillment = cart.SelectedFulfillment;
         cart.PropertyChanged += (_, _) => RefreshTotals();
+    }
+
+    public async Task LoadCustomerDefaultsAsync()
+    {
+        var profile = await _api.RestoreProfileAsync();
+        if (profile is null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(RecipientName))
+            RecipientName = profile.HoTen;
+        if (string.IsNullOrWhiteSpace(Phone))
+            Phone = profile.Sdt;
+        if (string.IsNullOrWhiteSpace(Address))
+            Address = profile.DiaChi ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(Email))
+            Email = profile.Email ?? string.Empty;
     }
 
     partial void OnSelectedFulfillmentChanged(string value)
@@ -113,17 +135,37 @@ public partial class CartViewModel : ObservableObject
                 return;
             }
 
+            var recipientName = RecipientName.Trim();
+            var recipientPhone = Phone.Trim();
+            if (string.IsNullOrWhiteSpace(recipientName))
+            {
+                await Shell.Current.DisplayAlertAsync("Thiếu họ tên", "Vui lòng nhập họ tên người nhận.", "Đóng");
+                return;
+            }
+            if (recipientPhone.Length != 10 || recipientPhone.Any(character => !char.IsAsciiDigit(character)))
+            {
+                await Shell.Current.DisplayAlertAsync("Số điện thoại không hợp lệ", "Vui lòng nhập đúng 10 chữ số.", "Đóng");
+                return;
+            }
+            if (IsDelivery && string.IsNullOrWhiteSpace(Address))
+            {
+                await Shell.Current.DisplayAlertAsync("Thiếu địa chỉ", "Vui lòng nhập địa chỉ giao hàng.", "Đóng");
+                return;
+            }
+
             var request = new CheckoutRequest(
                 IsPickup ? "Mang đi" : "Giao hàng",
-                string.IsNullOrWhiteSpace(RecipientName) ? profile.HoTen : RecipientName.Trim(),
-                string.IsNullOrWhiteSpace(Phone) ? profile.Sdt : Phone.Trim(),
-                IsPickup ? null : (string.IsNullOrWhiteSpace(Address) ? profile.DiaChi : Address.Trim()),
+                recipientName,
+                recipientPhone,
+                IsPickup ? null : Address.Trim(),
                 string.Join(" | ", Items.Where(item => !string.IsNullOrWhiteSpace(item.Note)).Select(item => $"{item.Product.TenSP}: {item.Note}")),
                 VoucherCode,
                 PaymentMethod,
                 Items.Select(item => new CheckoutItemRequest(
                     item.Product.MaSP, item.Variant.MaBienThe, item.Quantity,
-                    item.Toppings.Select(topping => topping.MaSP).ToList())).ToList());
+                    item.Toppings.Select(topping => topping.MaSP).ToList())).ToList(),
+                string.IsNullOrWhiteSpace(Email) ? null : Email.Trim(),
+                SaveCustomerInfo);
             var result = await _api.CheckoutAsync(request);
             _cart.Clear();
             await Shell.Current.DisplayAlertAsync("Đặt hàng thành công", $"Mã đơn #{result.MaHD} · {result.TongTien:N0} đ", "Đóng");

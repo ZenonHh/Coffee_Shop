@@ -25,6 +25,9 @@ public partial class MenuViewModel : ObservableObject
     public int CartCount => _cart.ItemCount;
     public decimal CartTotal => _cart.Subtotal;
     public bool IsCartVisible => _cart.ItemCount > 0;
+    public int CartItemCount => _cart.ItemCount;
+    public bool HasItemsInCart => _cart.ItemCount > 0;
+    public string TotalPriceFormatted => $"{_cart.Subtotal:N0} đ";
 
     public MenuViewModel(ApiService api, CartService cart, FavoriteService favorites, IServiceProvider services)
     {
@@ -37,6 +40,9 @@ public partial class MenuViewModel : ObservableObject
             OnPropertyChanged(nameof(CartCount));
             OnPropertyChanged(nameof(CartTotal));
             OnPropertyChanged(nameof(IsCartVisible));
+            OnPropertyChanged(nameof(CartItemCount));
+            OnPropertyChanged(nameof(HasItemsInCart));
+            OnPropertyChanged(nameof(TotalPriceFormatted));
         };
     }
 
@@ -50,9 +56,6 @@ public partial class MenuViewModel : ObservableObject
     private bool isBusy;
 
     [RelayCommand]
-    private async Task GoBackAsync() => await Shell.Current.GoToAsync("..");
-
-    [RelayCommand]
     private async Task LoadAsync()
     {
         if (IsBusy)
@@ -61,16 +64,26 @@ public partial class MenuViewModel : ObservableObject
         {
             IsBusy = true;
             var categories = await _api.GetCategoriesAsync();
-            Categories.Clear();
-            Categories.Add(new MenuCategory(0, "Tất cả"));
-            foreach (var category in categories)
-                Categories.Add(new MenuCategory(category.MaLoaiSP, category.TenLoaiSP));
-            SelectedCategory ??= Categories[0];
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                Categories.Clear();
+                Categories.Add(new MenuCategory(0, "Tất cả"));
+                foreach (var category in categories.Where(category => category is not null))
+                    Categories.Add(new MenuCategory(category.MaLoaiSP, category.TenLoaiSP ?? string.Empty));
+
+                _isLoadingCategories = true;
+                SelectedCategory ??= Categories[0];
+                _isLoadingCategories = false;
+            });
             await RefreshProductsAsync();
         }
         catch (Exception exception)
         {
-            await Shell.Current.DisplayAlertAsync("Không thể tải thực đơn", exception.Message, "Đóng");
+            System.Diagnostics.Debug.WriteLine($"[MENU ERROR]: {exception}");
+            await Shell.Current.DisplayAlertAsync(
+                "Không thể tải thực đơn",
+                "Không thể tải thực đơn. Vui lòng kiểm tra kết nối và thử lại.",
+                "Đóng");
         }
         finally
         {
@@ -85,13 +98,27 @@ public partial class MenuViewModel : ObservableObject
         {
             var products = await _api.GetProductsAsync(
                 SelectedCategory?.MaLoaiSP, SearchText, CancellationToken.None);
-            Products.Clear();
-            foreach (var product in products)
-                Products.Add(product with { HinhAnh = _api.ResolveImageUrl(product.HinhAnh) });
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                Products.Clear();
+                foreach (var product in products.Where(product => product is not null))
+                {
+                    Products.Add(product with
+                    {
+                        TenSP = product.TenSP ?? string.Empty,
+                        HinhAnh = _api.ResolveImageUrl(product.HinhAnh),
+                        TenLoaiSP = product.TenLoaiSP ?? string.Empty
+                    });
+                }
+            });
         }
         catch (Exception exception)
         {
-            await Shell.Current.DisplayAlertAsync("Không thể tải thực đơn", exception.Message, "Đóng");
+            System.Diagnostics.Debug.WriteLine($"[MENU ERROR]: {exception}");
+            await Shell.Current.DisplayAlertAsync(
+                "Không thể tải thực đơn",
+                "Không thể tải thực đơn. Vui lòng kiểm tra kết nối và thử lại.",
+                "Đóng");
         }
     }
 
@@ -129,7 +156,9 @@ public partial class MenuViewModel : ObservableObject
 
     partial void OnSelectedCategoryChanged(MenuCategory? value)
     {
-        if (value is not null)
+        if (value is not null && !_isLoadingCategories)
             _ = RefreshProductsAsync();
     }
+
+    private bool _isLoadingCategories;
 }
