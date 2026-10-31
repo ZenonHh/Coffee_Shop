@@ -252,6 +252,16 @@ namespace CoffeeShop.Controllers
             return View(await BuildProfileViewModelAsync(customer, cancellationToken));
         }
 
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> OrderHistory(CancellationToken cancellationToken)
+        {
+            var customer = await FindCurrentCustomerAsync(tracking: false, cancellationToken);
+            if (customer == null)
+                return RedirectToAction(nameof(Logout));
+
+            return View(await BuildOrderHistoryAsync(customer.MaKH, cancellationToken));
+        }
+
         [HttpPost]
         [Authorize(Roles = "Customer")]
         [ValidateAntiForgeryToken]
@@ -388,24 +398,6 @@ namespace CoffeeShop.Controllers
                     Email = customer.Email,
                     Address = customer.DiaChi
                 },
-                RecentOrders = await _context.Orders.AsNoTracking()
-                    .Where(order => order.MaKH == customer.MaKH)
-                    .OrderByDescending(order => order.NgayTao)
-                    .Take(10)
-                    .Select(order => new ProfileOrderViewModel
-                    {
-                        MaHD = order.MaHD,
-                        NgayTao = order.NgayTao,
-                        TongTien = order.TongTien,
-                        TrangThai = order.TrangThai,
-                        LyDoHuy = order.LyDoHuy,
-                        OrderDetails = order.OrderDetails.Select(detail => new ProfileOrderLineViewModel
-                        {
-                            TenSP = detail.Product!.TenSP,
-                            SoLuong = detail.SoLuong
-                        }).ToList()
-                    })
-                    .ToListAsync(cancellationToken),
                 PointHistories = await _context.PointHistories.AsNoTracking()
                     .Where(history => history.MaKH == customer.MaKH)
                     .OrderByDescending(history => history.NgayThucHien)
@@ -418,6 +410,28 @@ namespace CoffeeShop.Controllers
                     })
                     .ToListAsync(cancellationToken)
             };
+        }
+
+        private Task<List<ProfileOrderViewModel>> BuildOrderHistoryAsync(
+            int customerId, CancellationToken cancellationToken)
+        {
+            return _context.Orders.AsNoTracking()
+                .Where(order => order.MaKH == customerId)
+                .OrderByDescending(order => order.NgayTao)
+                .Select(order => new ProfileOrderViewModel
+                {
+                    MaHD = order.MaHD,
+                    NgayTao = order.NgayTao,
+                    TongTien = order.TongTien,
+                    TrangThai = order.TrangThai,
+                    LyDoHuy = order.LyDoHuy,
+                    OrderDetails = order.OrderDetails.Select(detail => new ProfileOrderLineViewModel
+                    {
+                        TenSP = detail.Product!.TenSP,
+                        SoLuong = detail.SoLuong
+                    }).ToList()
+                })
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<IActionResult> Logout()

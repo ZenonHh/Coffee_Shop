@@ -67,7 +67,8 @@
                                     </a>
                                     <div class="dropdown-divider"></div>
                                 }
-                                <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Thông tin cá nhân & Đơn hàng</a>
+                                <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Thông tin cá nhân</a>
+                                <a class="dropdown-item" asp-controller="Account" asp-action="OrderHistory">Lịch sử đơn hàng</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
                             </div>
@@ -106,6 +107,7 @@
                             <li><a asp-controller="Cart" asp-action="Index" class="py-2 d-block">Giỏ hàng</a></li>
                             <li><a asp-controller="Promotions" asp-action="Index" class="py-2 d-block">Ưu đãi & Điểm thưởng</a></li>
                             <li><a asp-controller="Account" asp-action="Profile" class="py-2 d-block">Tài khoản & Điểm tích lũy</a></li>
+                            <li><a asp-controller="Account" asp-action="OrderHistory" class="py-2 d-block">Lịch sử đơn hàng</a></li>
                             <li><a asp-area="Admin" asp-controller="@(User.IsInRole("Admin") ? "Dashboard" : "Orders")" asp-action="Index" class="py-2 d-block text-warning"><i class="icon-cog"></i> Cổng Quản Trị (Admin)</a></li>
                         </ul>
                     </div>

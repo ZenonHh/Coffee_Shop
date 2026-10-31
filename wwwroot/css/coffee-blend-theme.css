@@ -525,7 +525,7 @@ html, body {
 .order-hover-card {
     display: none;
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
     width: 320px;
@@ -554,6 +554,86 @@ html, body {
 
 .order-hover-container:hover .order-hover-card {
     display: block;
+}
+
+.order-hover-container:focus-within .order-hover-card {
+    display: block;
+}
+
+.order-history-table .order-hover-card {
+    left: 0;
+    transform: none;
+}
+
+.order-history-table .order-hover-card::after {
+    left: 20px;
+}
+
+.password-change-card {
+    max-width: 620px;
+    padding: 1.25rem !important;
+}
+
+.password-change-card .form-group {
+    margin-bottom: 0.85rem;
+}
+
+.password-change-card .form-control {
+    width: 100%;
+    max-width: 420px;
+    height: 44px;
+}
+
+.profile-edit-card {
+    max-width: 680px;
+}
+
+.profile-edit-card .form-group {
+    margin-bottom: 0.75rem;
+}
+
+.profile-edit-card .form-control {
+    height: 44px;
+    padding: 0.4rem 0.65rem;
+    font-size: 15px;
+}
+
+@media (min-width: 768px) {
+    .order-history-table {
+        overflow: visible;
+    }
+}
+
+.cart-page .cart-table .product-remove .btn {
+    padding: 0.25rem 0.4rem;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #c49b63 !important;
+}
+
+.cart-page .cart-table .product-remove .btn:hover {
+    color: #f0c987 !important;
+}
+
+.cart-page .cart-table .quantity button {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #f5f2ed !important;
+}
+
+.cart-page .cart-table .quantity .form-control {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #f5f2ed !important;
+}
+
+.cart-page .cart-voucher .input-group-append .btn-primary {
+    min-width: 84px;
+    color: #171311 !important;
+    font-size: 13px;
 }
 
 /* Fix text and character overlapping in heading sections */

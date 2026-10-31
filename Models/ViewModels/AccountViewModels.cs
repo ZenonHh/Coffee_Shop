@@ -54,7 +54,6 @@ namespace CoffeeShop.Models.ViewModels
         public ProfileCustomerViewModel Customer { get; set; } = new();
         public ProfileEditViewModel EditProfile { get; set; } = new();
         public ChangePasswordViewModel ChangePassword { get; set; } = new();
-        public List<ProfileOrderViewModel> RecentOrders { get; set; } = new();
         public List<ProfilePointHistoryViewModel> PointHistories { get; set; } = new();
     }
 
