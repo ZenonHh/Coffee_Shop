@@ -3,11 +3,12 @@
     ViewData["Title"] = "Đăng Ký Thành Viên - Katinat Coffee";
 }
 
+<div class="register-page">
 <section class="home-slider owl-carousel">
-    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 670px; min-height: 670px;">
+    <div class="slider-item register-banner" style="background-image: url(/images/bg_3.jpg);">
         <div class="overlay"></div>
         <div class="container">
-            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
+            <div class="row slider-text justify-content-center align-items-center">
                 <div class="col-md-8 col-sm-12 text-center ftco-animate">
                     <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
                     <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Đăng Ký Thành Viên</h1>
@@ -18,11 +19,11 @@
     </div>
 </section>
 
-<section class="ftco-section">
+<section class="ftco-section register-section">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6 ftco-animate">
-                <div class="p-4 p-md-5 rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.35); box-shadow: 0 4px 25px rgba(0,0,0,0.45);">
+            <div class="col-12 col-md-8 col-lg-6 ftco-animate">
+                <div class="register-card rounded" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.35); box-shadow: 0 4px 25px rgba(0,0,0,0.45);">
                     <div class="text-center mb-4">
                         <span class="subheading" style="color: #c49b63; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">Gia Nhập Katinat Coffee</span>
                         <h3 class="text-white mt-1" style="font-family: 'Josefin Sans', sans-serif;">Tạo Tài Khoản Thành Viên</h3>
@@ -46,11 +47,13 @@
                         <div class="form-group mb-3">
                             <label class="text-white">Tên đăng nhập *</label>
                             <input type="text" asp-for="Username" class="form-control" placeholder="username123..." required />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
                         </div>
 
                         <div class="form-group mb-3">
                             <label class="text-white">Số điện thoại *</label>
                             <input type="tel" asp-for="Phone" class="form-control" placeholder="0909xxxxxx..." required />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
                         </div>
 
                         <div class="form-group mb-3">
@@ -79,3 +82,4 @@
         </div>
     </div>
 </section>
+</div>

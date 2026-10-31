@@ -110,11 +110,6 @@ select.form-control option {
     color: #ffffff !important;
 }
 
-.shop-search-form {
-    max-width: 640px;
-    margin: 0 auto;
-}
-
 .shop-search-control {
     display: flex;
     align-items: center;
@@ -643,6 +638,81 @@ html, body {
 
 .home-slider .slider-item .slider-text .breadcrumbs span {
     color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.register-page .home-slider .register-banner {
+    height: 260px !important;
+    min-height: 260px !important;
+    background-position: center 45% !important;
+}
+
+.register-page .home-slider .slider-text {
+    height: 260px !important;
+    padding: 0 15px !important;
+}
+
+.register-page .home-slider .slider-text h1.bread {
+    font-size: 30px !important;
+}
+
+.register-page .home-slider .slider-text .subheading {
+    font-size: 30px !important;
+}
+
+.register-page .register-section {
+    padding: 36px 0 !important;
+}
+
+.register-page .register-card {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 22px;
+}
+
+.register-page .register-card h3 {
+    margin-bottom: 0.75rem;
+    font-size: 21px;
+}
+
+.register-page .register-card .form-group {
+    margin-bottom: 0.7rem !important;
+}
+
+.register-page .register-card label {
+    margin-bottom: 0.3rem;
+    font-size: 13px;
+}
+
+.register-page .register-card .form-control {
+    height: 42px !important;
+    padding: 0.45rem 0.7rem;
+    font-size: 13px;
+}
+
+.register-page .register-card .btn {
+    padding: 0.6rem 1rem !important;
+}
+
+.register-page .register-card .alert {
+    margin-bottom: 0.85rem;
+    padding: 0.7rem 0.9rem;
+}
+
+@media (max-width: 767.98px) {
+    .register-page .home-slider .register-banner,
+    .register-page .home-slider .slider-text {
+        height: 220px !important;
+        min-height: 220px !important;
+    }
+
+    .register-page .register-section {
+        padding: 26px 0 !important;
+    }
+
+    .register-page .register-card {
+        padding: 18px;
+    }
 }
 
 .ftco-animate {

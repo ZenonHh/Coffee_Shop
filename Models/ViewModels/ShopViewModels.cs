@@ -25,6 +25,12 @@ namespace CoffeeShop.Models.ViewModels
         public List<ShopProductCardViewModel> Products { get; set; } = new();
         public int? SelectedCategoryId { get; set; }
         public string? Keyword { get; set; }
+        public string SortOrder { get; set; } = "name-asc";
+        public string? PriceRange { get; set; }
+        public List<string> Sizes { get; set; } = new();
+        public bool HasTopping { get; set; }
+        public int? MinimumRating { get; set; }
+        public string? SearchError { get; set; }
     }
 
     public class ShopCategoryViewModel
@@ -41,6 +47,8 @@ namespace CoffeeShop.Models.ViewModels
         public string TenLoaiSP { get; set; } = string.Empty;
         public decimal? GiaBan { get; set; }
         public int SoLuongTon { get; set; }
+        public int SoLuongDaBan { get; set; }
+        public double? DiemDanhGia { get; set; }
     }
 
     public class ProductDetailViewModel
@@ -57,6 +65,7 @@ namespace CoffeeShop.Models.ViewModels
     public class ProductDetailProductViewModel
     {
         public int MaSP { get; set; }
+        public int MaLoaiSP { get; set; }
         public string TenSP { get; set; } = string.Empty;
         public string? HinhAnh { get; set; }
         public string TenLoaiSP { get; set; } = string.Empty;

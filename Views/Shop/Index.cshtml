@@ -20,33 +20,130 @@
 
 <section class="ftco-section">
     <div class="container">
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-7 col-md-9">
-                <form asp-action="Index" method="get" class="search-form shop-search-form">
-                    <input type="hidden" id="shopSelectedCategoryId" name="categoryId" value="@Model.SelectedCategoryId" />
-                    <div class="shop-search-control">
-                        <span class="icon-search shop-search-icon" aria-hidden="true"></span>
-                        <input type="search" name="keyword" value="@Model.Keyword" class="form-control shop-search-input" placeholder="Tìm món uống yêu thích..." aria-label="Tìm kiếm món uống" />
-                        <button type="submit" class="btn btn-primary shop-search-submit">
-                            <span class="d-none d-sm-inline">Tìm kiếm</span>
-                            <span class="icon-search d-inline d-sm-none" aria-hidden="true"></span>
-                        </button>
-                    </div>
-                </form>
+        <form asp-action="Index" method="get" class="shop-catalog-form" id="shopSearchForm">
+            <input type="hidden" id="shopSelectedCategoryId" name="categoryId" value="@Model.SelectedCategoryId" />
+            <div class="shop-search-wrap">
+                <div class="shop-search-control">
+                    <span class="icon-search shop-search-icon" aria-hidden="true"></span>
+                    <input type="search" name="keyword" value="@Model.Keyword" class="form-control shop-search-input" placeholder="Tìm món uống yêu thích..." aria-label="Tìm kiếm món uống" />
+                    <button type="submit" class="btn btn-primary shop-search-submit">
+                        <span class="d-none d-sm-inline">Tìm kiếm</span>
+                        <span class="icon-search d-inline d-sm-none" aria-hidden="true"></span>
+                    </button>
+                </div>
             </div>
-        </div>
 
-        <div class="row justify-content-center mb-5">
-            <div class="col-12 text-center">
-                <p class="mb-2">
-                 <!--   <a asp-action="Index" asp-route-keyword="@Model.Keyword" class="btn btn-sm @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary") m-1">Tất cả</a> -->
-                    @foreach (var category in Model.Categories)
-                    {
-                        <a asp-action="Index" asp-route-categoryId="@category.MaLoaiSP" asp-route-keyword="@Model.Keyword" class="btn btn-sm shop-category-link @(Model.SelectedCategoryId == category.MaLoaiSP ? "btn-primary" : "btn-outline-primary") m-1" aria-current="@(Model.SelectedCategoryId == category.MaLoaiSP ? "true" : null)">@category.TenLoaiSP</a>
-                    }
-                </p>
+            <nav class="shop-category-row" aria-label="Loại sản phẩm">
+                <a asp-action="Index" asp-route-sortOrder="@Model.SortOrder" asp-route-keyword="@Model.Keyword" class="btn btn-sm shop-category-link @(Model.SelectedCategoryId == null ? "btn-primary" : "btn-outline-primary")" aria-current="@(Model.SelectedCategoryId == null ? "true" : null)">Tất cả</a>
+                @foreach (var category in Model.Categories)
+                {
+                    <a asp-action="Index" asp-route-categoryId="@category.MaLoaiSP" asp-route-keyword="@Model.Keyword" asp-route-sortOrder="@Model.SortOrder" class="btn btn-sm shop-category-link @(Model.SelectedCategoryId == category.MaLoaiSP ? "btn-primary" : "btn-outline-primary")" aria-current="@(Model.SelectedCategoryId == category.MaLoaiSP ? "true" : null)">@category.TenLoaiSP</a>
+                }
+            </nav>
+
+            <div class="shop-results-toolbar">
+                <div class="shop-results-summary">
+                    <div class="shop-results-count"><strong id="shopProductCount">@Model.Products.Count</strong> món</div>
+                    <div class="shop-active-filters" id="shopActiveFilters" aria-live="polite"></div>
+                    <button type="button" class="shop-clear-filters d-none" id="clearShopFilters">Xóa bộ lọc</button>
+                </div>
+                <div class="shop-results-controls">
+                    <label class="shop-sort-control" for="shopSortOrder">
+                        <span>Sắp xếp:</span>
+                        <select id="shopSortOrder" name="sortOrder" class="form-control">
+                            <option value="name-asc" selected="@(Model.SortOrder == "name-asc")">Tên A → Z</option>
+                            <option value="name-desc" selected="@(Model.SortOrder == "name-desc")">Tên Z → A</option>
+                            <option value="price-asc" selected="@(Model.SortOrder == "price-asc")">Giá thấp → cao</option>
+                            <option value="price-desc" selected="@(Model.SortOrder == "price-desc")">Giá cao → thấp</option>
+                            <option value="best-selling" selected="@(Model.SortOrder == "best-selling")">Bán chạy nhất</option>
+                            <option value="rating-desc" selected="@(Model.SortOrder == "rating-desc")">Đánh giá cao nhất</option>
+                        </select>
+                    </label>
+                    <button type="button" class="shop-filter-trigger" id="openShopFilters" aria-haspopup="dialog" aria-expanded="false" aria-controls="shopFilterDialog">
+                        <span class="icon ion-ios-options" aria-hidden="true"></span>
+                        Bộ lọc
+                        <span class="shop-filter-count d-none" id="shopFilterCount">0</span>
+                    </button>
+                </div>
             </div>
-        </div>
+
+            <div class="shop-filter-overlay d-none" id="shopFilterDialog" role="dialog" aria-modal="true" aria-labelledby="shopFilterTitle">
+                <div class="shop-filter-panel">
+                    <div class="shop-filter-header">
+                        <div>
+                            <span class="shop-filter-eyebrow">TÙY CHỈNH KẾT QUẢ</span>
+                            <h3 id="shopFilterTitle">Bộ lọc sản phẩm</h3>
+                            <p>Chọn một hoặc nhiều tiêu chí để tìm món phù hợp.</p>
+                        </div>
+                        <button type="button" class="shop-filter-close" id="closeShopFilters" aria-label="Đóng bộ lọc">&times;</button>
+                    </div>
+
+                    <div class="shop-filter-body">
+                        <section class="shop-filter-group" aria-labelledby="shopPriceFilterTitle">
+                            <div class="shop-filter-group-heading">
+                                <span class="icon ion-ios-pricetag-outline" aria-hidden="true"></span>
+                                <div>
+                                    <h4 id="shopPriceFilterTitle">Khoảng giá</h4>
+                                    <p>Giá tính theo size đang bán có mức thấp nhất.</p>
+                                </div>
+                            </div>
+                            <div class="shop-filter-price-options">
+                                <label><input type="radio" name="priceRange" value="" checked="@(Model.PriceRange == null)" /><span>Không giới hạn</span></label>
+                                <label><input type="radio" name="priceRange" value="under-30" checked="@(Model.PriceRange == "under-30")" /><span>Dưới 30.000đ</span></label>
+                                <label><input type="radio" name="priceRange" value="30-40" checked="@(Model.PriceRange == "30-40")" /><span>30.000–40.000đ</span></label>
+                                <label><input type="radio" name="priceRange" value="40-50" checked="@(Model.PriceRange == "40-50")" /><span>40.000–50.000đ</span></label>
+                                <label><input type="radio" name="priceRange" value="over-50" checked="@(Model.PriceRange == "over-50")" /><span>Trên 50.000đ</span></label>
+                            </div>
+                        </section>
+
+                        <section class="shop-filter-group" aria-labelledby="shopSizeFilterTitle">
+                            <div class="shop-filter-group-heading">
+                                <span class="icon ion-ios-wine" aria-hidden="true"></span>
+                                <div>
+                                    <h4 id="shopSizeFilterTitle">Kích cỡ</h4>
+                                    <p>Hiển thị món có size bạn chọn.</p>
+                                </div>
+                            </div>
+                            <div class="shop-filter-choice-row">
+                                <label><input type="checkbox" name="sizes" value="M" checked="@(Model.Sizes.Contains("M"))" /><span>Size M</span></label>
+                                <label><input type="checkbox" name="sizes" value="L" checked="@(Model.Sizes.Contains("L"))" /><span>Size L</span></label>
+                            </div>
+                        </section>
+
+                        <section class="shop-filter-group" aria-labelledby="shopOtherFilterTitle">
+                            <div class="shop-filter-group-heading">
+                                <span class="icon ion-ios-options" aria-hidden="true"></span>
+                                <div>
+                                    <h4 id="shopOtherFilterTitle">Tiêu chí khác</h4>
+                                    <p>Tinh chỉnh thêm theo topping và đánh giá.</p>
+                                </div>
+                            </div>
+                            <div class="shop-filter-extra-options">
+                                <label class="shop-filter-checkbox">
+                                    <input type="checkbox" name="hasTopping" value="true" checked="@Model.HasTopping" />
+                                    <span>Có thể thêm topping</span>
+                                </label>
+                                <div class="shop-filter-rating">
+                                    <label for="shopMinimumRating">Đánh giá</label>
+                                    <select id="shopMinimumRating" name="minimumRating" class="form-control">
+                                        <option value="">Mọi mức đánh giá</option>
+                                        <option value="4" selected="@(Model.MinimumRating == 4)">Từ 4 sao trở lên</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="shop-filter-footer">
+                        <button type="button" class="shop-filter-reset" id="resetShopFilters">Xóa bộ lọc</button>
+                        <div>
+                            <button type="button" class="shop-filter-cancel" id="cancelShopFilters">Đóng</button>
+                            <button type="submit" class="shop-filter-apply">Xem kết quả</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
 
         <div id="shopFilterError" class="alert alert-danger d-none" role="alert">
             Không thể tải danh sách món. Vui lòng thử lại.
@@ -121,11 +218,112 @@
             var categoryLinks = document.querySelectorAll('.shop-category-link');
             var categoryInput = document.getElementById('shopSelectedCategoryId');
             var filterError = document.getElementById('shopFilterError');
+            var searchForm = document.getElementById('shopSearchForm');
+            var searchInput = searchForm.querySelector('input[name="keyword"]');
+            var filterDialog = document.getElementById('shopFilterDialog');
+            var openFiltersButton = document.getElementById('openShopFilters');
+            var filterCount = document.getElementById('shopFilterCount');
+            var activeFiltersContainer = document.getElementById('shopActiveFilters');
+            var clearFiltersButton = document.getElementById('clearShopFilters');
+            var productCount = document.getElementById('shopProductCount');
             var activeRequest = null;
+            var searchTimer = null;
+            var lastFocusedElement = null;
 
-            function setActiveCategory(selectedLink) {
+            function getActiveFilters() {
+                var priceRange = searchForm.querySelector('[name="priceRange"]:checked').value;
+                var priceLabels = {
+                    'under-30': 'Dưới 30.000đ',
+                    '30-40': '30.000–40.000đ',
+                    '40-50': '40.000–50.000đ',
+                    'over-50': 'Trên 50.000đ'
+                };
+                var filters = [];
+
+                if (priceRange) filters.push({ name: 'priceRange', value: priceRange, label: priceLabels[priceRange] });
+                searchForm.querySelectorAll('[name="sizes"]:checked').forEach(function(control) {
+                    filters.push({ name: 'sizes', value: control.value, label: 'Size ' + control.value });
+                });
+                if (searchForm.querySelector('[name="hasTopping"]').checked) {
+                    filters.push({ name: 'hasTopping', value: 'true', label: 'Có thể thêm topping' });
+                }
+                if (searchForm.querySelector('[name="minimumRating"]').value) {
+                    filters.push({ name: 'minimumRating', value: '4', label: 'Từ 4 sao' });
+                }
+                return filters;
+            }
+
+            function updateActiveFilters() {
+                var activeFilters = getActiveFilters();
+                activeFiltersContainer.replaceChildren();
+                activeFilters.forEach(function(filter) {
+                    var chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'shop-active-filter';
+                    chip.setAttribute('aria-label', 'Bỏ bộ lọc ' + filter.label);
+                    chip.appendChild(document.createTextNode(filter.label));
+                    var closeIcon = document.createElement('span');
+                    closeIcon.setAttribute('aria-hidden', 'true');
+                    closeIcon.textContent = '×';
+                    chip.appendChild(closeIcon);
+                    chip.addEventListener('click', function() {
+                        removeFilter(filter.name, filter.value);
+                    });
+                    activeFiltersContainer.appendChild(chip);
+                });
+
+                filterCount.textContent = activeFilters.length;
+                filterCount.classList.toggle('d-none', activeFilters.length === 0);
+                clearFiltersButton.classList.toggle('d-none', activeFilters.length === 0);
+                openFiltersButton.classList.toggle('has-active-filters', activeFilters.length > 0);
+            }
+
+            function removeFilter(name, value) {
+                if (name === 'priceRange') {
+                    searchForm.querySelector('[name="priceRange"][value=""]').checked = true;
+                } else if (name === 'sizes') {
+                    searchForm.querySelectorAll('[name="sizes"]').forEach(function(control) {
+                        if (control.value === value) control.checked = false;
+                    });
+                } else if (name === 'hasTopping') {
+                    searchForm.querySelector('[name="hasTopping"]').checked = false;
+                } else if (name === 'minimumRating') {
+                    searchForm.querySelector('[name="minimumRating"]').value = '';
+                }
+                searchForm.requestSubmit();
+            }
+
+            function resetFilters() {
+                searchForm.querySelector('[name="priceRange"][value=""]').checked = true;
+                searchForm.querySelectorAll('[name="sizes"]').forEach(function(control) {
+                    control.checked = false;
+                });
+                searchForm.querySelector('[name="hasTopping"]').checked = false;
+                searchForm.querySelector('[name="minimumRating"]').value = '';
+                searchForm.requestSubmit();
+            }
+
+            function openFilterDialog() {
+                lastFocusedElement = document.activeElement;
+                filterDialog.classList.remove('d-none');
+                document.body.classList.add('shop-filter-open');
+                openFiltersButton.setAttribute('aria-expanded', 'true');
+                searchForm.querySelector('[name="priceRange"]:checked').focus();
+            }
+
+            function closeFilterDialog() {
+                filterDialog.classList.add('d-none');
+                document.body.classList.remove('shop-filter-open');
+                openFiltersButton.setAttribute('aria-expanded', 'false');
+                if (lastFocusedElement) lastFocusedElement.focus();
+            }
+
+            function setActiveCategory(selectedLink, categoryId) {
                 categoryLinks.forEach(function(link) {
-                    var isActive = link === selectedLink;
+                    var linkCategoryId = new URL(link.href).searchParams.get('categoryId') || '';
+                    var isActive = selectedLink
+                        ? link === selectedLink
+                        : linkCategoryId === (categoryId || '');
                     link.classList.toggle('btn-primary', isActive);
                     link.classList.toggle('btn-outline-primary', !isActive);
                     if (isActive) {
@@ -136,11 +334,13 @@
                 });
                 if (categoryInput) {
                     var selectedUrl = selectedLink ? new URL(selectedLink.href) : null;
-                    categoryInput.value = selectedUrl ? selectedUrl.searchParams.get('categoryId') || '' : '';
+                    categoryInput.value = selectedUrl
+                        ? selectedUrl.searchParams.get('categoryId') || ''
+                        : categoryId || '';
                 }
             }
 
-            async function loadProducts(url, selectedLink, updateHistory) {
+            async function loadProducts(url, selectedLink, historyMode, categoryId) {
                 if (activeRequest) activeRequest.abort();
                 var request = new AbortController();
                 activeRequest = request;
@@ -159,13 +359,19 @@
                     if (request.signal.aborted) return;
 
                     grid.innerHTML = html;
+                    productCount.textContent = grid.querySelectorAll('.shop-product-card').length;
                     grid.querySelectorAll('.ftco-animate').forEach(function(element) {
                         element.classList.add('ftco-animated');
                     });
                     var productGrid = grid.querySelector('.shop-product-grid');
                     if (productGrid) productGrid.classList.add('is-entering');
-                    setActiveCategory(selectedLink);
-                    if (updateHistory) window.history.pushState({ shop: true }, '', url);
+                    setActiveCategory(selectedLink, categoryId);
+                    if (historyMode === 'push') {
+                        window.history.pushState({ shop: true }, '', url);
+                    } else if (historyMode === 'replace') {
+                        window.history.replaceState({ shop: true }, '', url);
+                    }
+                    updateActiveFilters();
                 } catch (error) {
                     if (error.name !== 'AbortError') {
                         console.error(error);
@@ -180,11 +386,91 @@
                 }
             }
 
+            function getSelectedCategoryId() {
+                return categoryInput ? categoryInput.value : '';
+            }
+
+            function getSearchUrl(keyword) {
+                var url = new URL(searchForm.action, window.location.origin);
+                var parameters = new URLSearchParams(new FormData(searchForm));
+                parameters.set('keyword', keyword.trim());
+                if (!keyword.trim()) parameters.delete('keyword');
+                if (!getSelectedCategoryId()) parameters.delete('categoryId');
+                Array.from(parameters.keys()).forEach(function(name) {
+                    if (parameters.getAll(name).every(function(value) { return value === ''; })) {
+                        parameters.delete(name);
+                    }
+                });
+                url.search = parameters.toString();
+                return url;
+            }
+
+            searchForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                window.clearTimeout(searchTimer);
+                if (searchInput.value.trim()) {
+                    categoryInput.value = '';
+                }
+                var url = getSearchUrl(searchInput.value);
+                var categoryId = getSelectedCategoryId();
+                var selectedLink = Array.prototype.find.call(categoryLinks, function(link) {
+                    return (new URL(link.href).searchParams.get('categoryId') || '') === categoryId;
+                });
+                loadProducts(url.href, selectedLink, 'push', categoryId);
+                if (!filterDialog.classList.contains('d-none')) {
+                    closeFilterDialog();
+                }
+            });
+
+            function queueSearch(historyMode) {
+                window.clearTimeout(searchTimer);
+                searchTimer = window.setTimeout(function() {
+                    var categoryId = getSelectedCategoryId();
+                    var url = getSearchUrl(searchInput.value);
+                    var selectedLink = Array.prototype.find.call(categoryLinks, function(link) {
+                        return (new URL(link.href).searchParams.get('categoryId') || '') === categoryId;
+                    });
+                    loadProducts(url.href, selectedLink, historyMode, categoryId);
+                }, 350);
+            }
+
+            searchInput.addEventListener('input', function() {
+                if (searchInput.value.trim()) {
+                    categoryInput.value = '';
+                }
+                queueSearch('replace');
+            });
+
+            searchForm.querySelector('#shopSortOrder').addEventListener('change', function() {
+                queueSearch('push');
+            });
+
+            openFiltersButton.addEventListener('click', openFilterDialog);
+            document.getElementById('closeShopFilters').addEventListener('click', closeFilterDialog);
+            document.getElementById('cancelShopFilters').addEventListener('click', closeFilterDialog);
+            document.getElementById('resetShopFilters').addEventListener('click', function() {
+                resetFilters();
+            });
+            clearFiltersButton.addEventListener('click', resetFilters);
+            filterDialog.addEventListener('click', function(event) {
+                if (event.target === filterDialog) closeFilterDialog();
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !filterDialog.classList.contains('d-none')) {
+                    closeFilterDialog();
+                }
+            });
+            updateActiveFilters();
+
             categoryLinks.forEach(function(link) {
                 link.addEventListener('click', function(event) {
                     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
-                    loadProducts(link.href, link, true);
+                    var url = getSearchUrl(searchInput.value);
+                    var categoryId = new URL(link.href).searchParams.get('categoryId');
+                    if (categoryId) url.searchParams.set('categoryId', categoryId);
+                    else url.searchParams.delete('categoryId');
+                    loadProducts(url.href, link, 'push', categoryId);
                 });
             });
 
@@ -198,16 +484,27 @@
             window.addEventListener('popstate', function() {
                 var currentUrl = new URL(window.location.href);
                 var categoryId = currentUrl.searchParams.get('categoryId');
+                searchInput.value = currentUrl.searchParams.get('keyword') || '';
+                searchForm.querySelector('[name="sortOrder"]').value =
+                    currentUrl.searchParams.get('sortOrder') || 'name-asc';
+                var selectedPriceRange = currentUrl.searchParams.get('priceRange') || '';
+                searchForm.querySelectorAll('[name="priceRange"]').forEach(function(control) {
+                    control.checked = control.value === selectedPriceRange;
+                });
+                var selectedSizes = currentUrl.searchParams.getAll('sizes');
+                searchForm.querySelectorAll('[name="sizes"]').forEach(function(control) {
+                    control.checked = selectedSizes.includes(control.value);
+                });
+                searchForm.querySelector('[name="hasTopping"]').checked =
+                    currentUrl.searchParams.get('hasTopping') === 'true';
+                searchForm.querySelector('[name="minimumRating"]').value =
+                    currentUrl.searchParams.get('minimumRating') || '';
+                updateActiveFilters();
                 var selectedLink = Array.prototype.find.call(categoryLinks, function(link) {
                     var linkUrl = new URL(link.href);
-                    return linkUrl.searchParams.get('categoryId') === categoryId;
+                    return (linkUrl.searchParams.get('categoryId') || '') === (categoryId || '');
                 });
-                if (!categoryId) {
-                    selectedLink = Array.prototype.find.call(categoryLinks, function(link) {
-                        return link.textContent.trim().toLowerCase().includes('espresso');
-                    });
-                }
-                loadProducts(window.location.href, selectedLink, false);
+                loadProducts(window.location.href, selectedLink, null, categoryId);
             });
         })();
     </script>

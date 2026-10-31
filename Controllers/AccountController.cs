@@ -153,18 +153,29 @@ namespace CoffeeShop.Controllers
             Customer customer;
             try
             {
-                var existingUser = await _context.Customers.AsNoTracking()
+                var matchingCustomers = await _context.Customers.AsNoTracking()
                     .Where(c => c.TaiKhoan == model.Username || c.Sdt == model.Phone)
-                    .Select(c => c.MaKH)
-                    .AnyAsync(cancellationToken)
-                    || await _context.Accounts.AsNoTracking()
-                        .Where(account => account.TenDangNhap == model.Username)
-                        .Select(account => account.MaTaiKhoan)
-                        .AnyAsync(cancellationToken);
+                    .Select(c => new
+                    {
+                        UsernameMatches = c.TaiKhoan == model.Username,
+                        PhoneMatches = c.Sdt == model.Phone
+                    })
+                    .ToListAsync(cancellationToken);
+                var usernameExistsInStaffAccounts = await _context.Accounts.AsNoTracking()
+                    .AnyAsync(account => account.TenDangNhap == model.Username, cancellationToken);
 
-                if (existingUser)
+                if (matchingCustomers.Any(c => c.UsernameMatches) || usernameExistsInStaffAccounts)
                 {
-                    ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc số điện thoại đã được sử dụng.");
+                    ModelState.AddModelError(nameof(model.Username), "Tên đăng nhập này đã được sử dụng.");
+                }
+
+                if (matchingCustomers.Any(c => c.PhoneMatches))
+                {
+                    ModelState.AddModelError(nameof(model.Phone), "Số điện thoại này đã được đăng ký cho tài khoản khác.");
+                }
+
+                if (!ModelState.IsValid)
+                {
                     return View(model);
                 }
 
@@ -202,7 +213,8 @@ namespace CoffeeShop.Controllers
                 _logger.LogWarning(exception,
                     "Web registration conflict. SQL detail: {SqlError}",
                     exception.InnerException?.Message ?? exception.Message);
-                ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc số điện thoại đã được sử dụng.");
+                ModelState.AddModelError(string.Empty,
+                    "Tên đăng nhập hoặc số điện thoại vừa được một tài khoản khác đăng ký. Vui lòng kiểm tra lại.");
                 return View(model);
             }
             catch (Exception exception)
@@ -282,6 +294,59 @@ namespace CoffeeShop.Controllers
 
             await _context.SaveChangesAsync(cancellationToken);
             TempData["Message"] = "Cập nhật thông tin thành công!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Customer")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(
+            [Bind(Prefix = "ChangePassword")] ChangePasswordViewModel model,
+            CancellationToken cancellationToken)
+        {
+            var customer = await FindCurrentCustomerAsync(tracking: true, cancellationToken);
+            if (customer is null)
+                return RedirectToAction(nameof(Logout));
+
+            if (ModelState.IsValid
+                && System.Text.Encoding.UTF8.GetByteCount(model.NewPassword) > 72)
+            {
+                ModelState.AddModelError(
+                    "ChangePassword.NewPassword",
+                    "Mật khẩu mới không được vượt quá 72 byte UTF-8.");
+            }
+
+            if (ModelState.IsValid
+                && customer.MatKhau != model.CurrentPassword
+                && !BCryptVerify(model.CurrentPassword, customer.MatKhau ?? string.Empty))
+            {
+                ModelState.AddModelError(
+                    "ChangePassword.CurrentPassword",
+                    "Mật khẩu hiện tại không chính xác.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var viewModel = await BuildProfileViewModelAsync(customer, cancellationToken);
+                viewModel.ChangePassword = model;
+                return View("Profile", viewModel);
+            }
+
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            customer.MatKhau = passwordHash;
+
+            if (!string.IsNullOrWhiteSpace(customer.TaiKhoan))
+            {
+                var account = await _context.Accounts
+                    .FirstOrDefaultAsync(
+                        item => item.TenDangNhap == customer.TaiKhoan,
+                        cancellationToken);
+                if (account is not null)
+                    account.MatKhau = passwordHash;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            TempData["Message"] = "Đổi mật khẩu thành công.";
             return RedirectToAction(nameof(Profile));
         }
 
