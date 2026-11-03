@@ -2379,8 +2379,8 @@ h1 > span {
 
 /* Admin design system */
 :root {
-  --admin-accent: #c49b63;
-  --admin-accent-hover: #a37a44;
+  --admin-accent: #6f4e37;
+  --admin-accent-hover: #4d3528;
   --admin-border: #e9e3dc;
   --admin-header: #f5f1ec;
   --admin-danger-bg: #fbeceb;
@@ -3048,8 +3048,8 @@ body {
   align-items: center !important;
   justify-content: center !important;
   padding: 0 16px !important;
-  border-color: #c49b63 !important;
-  background-color: #c49b63 !important;
+  border-color: #6f4e37 !important;
+  background-color: #6f4e37 !important;
   color: #fff !important;
   font-weight: 600 !important;
   white-space: nowrap !important;
@@ -3057,8 +3057,8 @@ body {
 
 .table-toolbar .btn-add:hover,
 .table-toolbar .btn-add:focus {
-  border-color: #a37a44 !important;
-  background-color: #a37a44 !important;
+  border-color: #4d3528 !important;
+  background-color: #4d3528 !important;
   color: #fff !important;
 }
 

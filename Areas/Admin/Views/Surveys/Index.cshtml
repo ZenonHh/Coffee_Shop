@@ -24,7 +24,7 @@
         </div>
     </div>
     <div class="table-scroll">
-        <table class="data-table admin-data-table admin-table--surveys custom-admin-table">
+        <table class="table table-hover mb-0">
             <thead>
                 <tr>
                     <th>TIÊU ĐỀ</th>
@@ -142,7 +142,7 @@
 
 <div class="modal fade" id="createSurveyModal" tabindex="-1" role="dialog" aria-labelledby="createSurveyTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-        <div class="modal-content" style="background:#171412;color:#f5eee7;border:1px solid rgba(196,155,99,.4)">
+        <div class="modal-content survey-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createSurveyTitle">@(Model.EditingSurvey ? "Chỉnh sửa khảo sát" : "Tạo khảo sát")</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
@@ -244,12 +244,12 @@
 
 <div class="modal fade" id="editSurveyModal" tabindex="-1" role="dialog" aria-labelledby="editSurveyTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
+        <div class="modal-content survey-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editSurveyTitle">Cập nhật thông tin khảo sát</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
             </div>
-            <form asp-action="EditSurvey" method="post" id="editSurveyForm">
+            <form asp-action="EditSurvey" method="post" id="editSurveyForm" class="survey-modal-form">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                     <input type="hidden" name="MaKhaoSat" id="editSurveyId" />
