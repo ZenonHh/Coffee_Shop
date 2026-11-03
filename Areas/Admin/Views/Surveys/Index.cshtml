@@ -11,7 +11,7 @@
         <h1>Quản lý khảo sát</h1>
         <p>Thiết lập đối tượng nhận, câu hỏi và theo dõi kết quả khảo sát.</p>
     </div>
-    <button type="button" class="button button-primary btn-add" data-toggle="modal" data-target="#createSurveyModal">
+    <button type="button" class="button button-primary survey-primary-action" data-toggle="modal" data-target="#createSurveyModal">
         + Tạo khảo sát
     </button>
 </div>
@@ -142,12 +142,12 @@
 
 <div class="modal fade" id="createSurveyModal" tabindex="-1" role="dialog" aria-labelledby="createSurveyTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-        <div class="modal-content">
+        <div class="modal-content" style="background:#171412;color:#f5eee7;border:1px solid rgba(196,155,99,.4)">
             <div class="modal-header">
                 <h5 class="modal-title" id="createSurveyTitle">@(Model.EditingSurvey ? "Chỉnh sửa khảo sát" : "Tạo khảo sát")</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
             </div>
-            <form asp-action="@(Model.EditingSurvey ? "EditSurvey" : "CreateSurvey")" method="post" id="createSurveyForm">
+            <form asp-action="@(Model.EditingSurvey ? "EditSurvey" : "CreateSurvey")" method="post" id="createSurveyForm" class="survey-modal-form">
                 @Html.AntiForgeryToken()
                 @if (Model.EditingSurvey)
                 {
@@ -235,7 +235,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
-                    <button type="submit" class="button button-primary">@(Model.EditingSurvey ? "Lưu thay đổi" : "Tạo khảo sát")</button>
+                    <button type="submit" class="button button-primary survey-primary-action">@(Model.EditingSurvey ? "Lưu thay đổi" : "Tạo khảo sát")</button>
                 </div>
             </form>
         </div>
