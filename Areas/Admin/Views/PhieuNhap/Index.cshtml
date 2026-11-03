@@ -3,7 +3,7 @@
     ViewData["Title"] = "Quản lý phiếu nhập kho";
 }
 <div class="welcome-row page-title-row"><div><div class="eyebrow">KHO HÀNG</div><h1>Phiếu nhập</h1><p class="page-subtitle">Theo dõi tiếp nhận hàng và trạng thái duyệt.</p></div><a asp-action="Create" class="button button-primary">Tạo phiếu nhập</a></div>
-<section class="panel table-panel"><div class="panel-heading"><div><h2>Danh sách phiếu</h2><p>@Model.Count phiếu nhập.</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>MÃ PHIẾU</th><th>NHÀ CUNG CẤP</th><th>NHÂN VIÊN</th><th>NGÀY TẠO</th><th>TỔNG TIỀN</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>
+<section class="panel table-panel"><div class="panel-heading"><div><h2>Danh sách phiếu</h2><p>@Model.Count phiếu nhập.</p></div></div><div class="table-scroll"><table class="data-table admin-data-table admin-table--purchases"><thead><tr><th>MÃ PHIẾU</th><th>NHÀ CUNG CẤP</th><th>NHÂN VIÊN</th><th>NGÀY TẠO</th><th>TỔNG TIỀN</th><th>TRẠNG THÁI</th><th>THAO TÁC</th></tr></thead><tbody>
 @foreach (var purchase in Model)
 {
     var statusClass = purchase.TrangThai == "Đã duyệt" ? "status-success" : purchase.TrangThai == "Đã hủy" ? "status-muted" : "status-warning";

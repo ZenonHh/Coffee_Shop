@@ -3,7 +3,7 @@
     ViewData["Title"] = $"Phiếu nhập #{Model.MaPN}";
 }
 <div class="welcome-row page-title-row"><div><div class="eyebrow">KHO HÀNG</div><h1>Phiếu nhập #@Model.MaPN</h1><p class="page-subtitle">@Model.TenNCC · @Model.NgayNhap?.ToString("dd/MM/yyyy HH:mm") · @Model.TrangThai</p></div><a asp-action="Index" class="button button-outline">Quay lại</a></div>
-<section class="panel table-panel"><div class="panel-heading"><div><h2>Hàng hóa</h2><p>Lập bởi @Model.NguoiLap</p></div></div><div class="table-scroll"><table class="data-table"><thead><tr><th>SẢN PHẨM</th><th>SỐ LƯỢNG</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead><tbody>
+<section class="panel table-panel"><div class="panel-heading"><div><h2>Hàng hóa</h2><p>Lập bởi @Model.NguoiLap</p></div></div><div class="table-scroll"><table class="data-table admin-data-table admin-table--purchase-details"><thead><tr><th>SẢN PHẨM</th><th>SỐ LƯỢNG</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead><tbody>
 @foreach (var detail in Model.Details)
 {
     <tr><td>@detail.TenSanPham</td><td>@detail.SoLuong.ToString("N0")</td><td>@detail.DonGia.ToString("N0") đ</td><td class="money-cell">@detail.ThanhTien.ToString("N0") đ</td></tr>

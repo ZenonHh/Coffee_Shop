@@ -11,20 +11,20 @@
         <h1>Quản lý khảo sát</h1>
         <p>Thiết lập đối tượng nhận, câu hỏi và theo dõi kết quả khảo sát.</p>
     </div>
-    <button type="button" class="button button-primary" data-toggle="modal" data-target="#createSurveyModal">
+    <button type="button" class="button button-primary btn-add" data-toggle="modal" data-target="#createSurveyModal">
         + Tạo khảo sát
     </button>
 </div>
 
 <section class="panel table-panel">
-    <div class="panel-heading table-heading">
+    <div class="panel-heading table-heading table-card-header">
         <div>
             <h2>Danh sách khảo sát</h2>
             <p>Khảo sát đã có câu trả lời sẽ khóa cấu trúc câu hỏi và đối tượng nhận.</p>
         </div>
     </div>
     <div class="table-scroll">
-        <table class="data-table">
+        <table class="data-table admin-data-table admin-table--surveys custom-admin-table">
             <thead>
                 <tr>
                     <th>TIÊU ĐỀ</th>
@@ -55,7 +55,7 @@
                         <td>@survey.QuestionCount</td>
                         <td>@survey.AnswerCount</td>
                         <td>
-                            <div class="d-flex flex-wrap" style="gap:6px">
+                            <div class="table-actions">
                                 <a class="button button-small button-outline" asp-action="Index" asp-route-resultId="@survey.MaKhaoSat">Kết quả</a>
                                 <a asp-action="Statistics" asp-route-id="@survey.MaKhaoSat" class="btn btn-sm btn-outline-info">Thống kê</a>
                                 @if (survey.HasResponses)
@@ -67,7 +67,7 @@
                                             data-start="@survey.NgayBatDau.ToString("yyyy-MM-ddTHH:mm")"
                                             data-end="@survey.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")"
                                             data-toggle="modal" data-target="#editSurveyModal">Sửa thông tin</button>
-                                    <span class="muted-cell small">Đã khóa câu hỏi</span>
+                                    <span class="action-note">Đã khóa câu hỏi</span>
                                 }
                                 else
                                 {
@@ -142,10 +142,10 @@
 
 <div class="modal fade" id="createSurveyModal" tabindex="-1" role="dialog" aria-labelledby="createSurveyTitle" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
-        <div class="modal-content" style="background:#171412;color:#f5eee7;border:1px solid rgba(196,155,99,.4)">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="createSurveyTitle">@(Model.EditingSurvey ? "Chỉnh sửa khảo sát" : "Tạo khảo sát")</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
             </div>
             <form asp-action="@(Model.EditingSurvey ? "EditSurvey" : "CreateSurvey")" method="post" id="createSurveyForm">
                 @Html.AntiForgeryToken()
@@ -244,10 +244,10 @@
 
 <div class="modal fade" id="editSurveyModal" tabindex="-1" role="dialog" aria-labelledby="editSurveyTitle" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content" style="background:#171412;color:#f5eee7;border:1px solid rgba(196,155,99,.4)">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editSurveyTitle">Cập nhật thông tin khảo sát</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
             </div>
             <form asp-action="EditSurvey" method="post" id="editSurveyForm">
                 @Html.AntiForgeryToken()

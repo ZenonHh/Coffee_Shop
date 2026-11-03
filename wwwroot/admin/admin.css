@@ -18,6 +18,35 @@
   --shadow: 0 8px 32px rgba(45, 35, 24, 0.035);
 }
 
+.page-content .modal-body .dialog-form input:not([type="checkbox"]):not([type="hidden"]),
+.page-content .modal-body .dialog-form select,
+.page-content .modal-body .dialog-form textarea {
+  min-height: 40px;
+  border: 1px solid #ded7cf;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.page-content .modal-body .dialog-form label {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.page-content .admin-table--dashboard-orders td:nth-child(2),
+.page-content .admin-table--dashboard-orders td:nth-child(4),
+.page-content .admin-table--feedback-review td:nth-child(1),
+.page-content .admin-table--feedback-review td:nth-child(2),
+.page-content .admin-table--contacts td:nth-child(1),
+.page-content .admin-table--contacts td:nth-child(2),
+.page-content .admin-table--contacts td:nth-child(3) {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -210,9 +239,9 @@ button {
 }
 #createSurveyForm label,
 #editSurveyForm label {
-  color: #e5ded7;
-  font-size: 13px;
-  font-weight: 600;
+  color: #4a4138;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 .feedback-filter .form-control,
 #createSurveyForm .form-control,
@@ -2314,4 +2343,784 @@ h1 > span {
 
 .order-hover-container:hover .order-hover-card {
   display: block;
+}
+
+/* Admin design system */
+:root {
+  --admin-accent: #c49b63;
+  --admin-accent-hover: #a37a44;
+  --admin-border: #e9e3dc;
+  --admin-header: #f5f1ec;
+  --admin-danger-bg: #fbeceb;
+  --admin-danger-text: #9c3d32;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.9rem;
+}
+
+.page-content h1,
+.page-content .page-title {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.page-content h2,
+.page-content h3,
+.page-content h4,
+.page-content h5,
+.page-content h6,
+.page-content p,
+.panel-heading h2 {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+.page-content .panel-heading h2 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.page-content .page-subtitle,
+.page-content .panel-heading p {
+  font-size: 0.82rem;
+}
+
+.page-content .button,
+.page-content .btn {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.page-content .button-small,
+.page-content .btn-sm {
+  min-height: 32px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.85rem;
+}
+
+.page-content .button-primary,
+.page-content .btn-primary {
+  border-color: var(--admin-accent);
+  background-color: var(--admin-accent);
+  color: #fff;
+}
+
+.page-content .button-primary:hover,
+.page-content .btn-primary:hover,
+.page-content .btn-primary:focus {
+  border-color: var(--admin-accent-hover);
+  background-color: var(--admin-accent-hover);
+  color: #fff;
+}
+
+.page-content .button-outline,
+.page-content .btn-outline-secondary,
+.page-content .btn-outline-info,
+.page-content .btn-outline-primary {
+  border-color: #d8cbbd;
+  background-color: #fff;
+  color: #71563c;
+}
+
+.page-content .button-outline:hover,
+.page-content .btn-outline-secondary:hover,
+.page-content .btn-outline-info:hover,
+.page-content .btn-outline-primary:hover {
+  border-color: var(--admin-accent);
+  background-color: #f8f2eb;
+  color: #563d27;
+}
+
+.page-content .btn-outline-danger,
+.page-content .button-outline.text-danger {
+  border-color: #e8c5c1;
+  background-color: #fff;
+  color: var(--admin-danger-text);
+}
+
+.page-content .btn-outline-danger:hover,
+.page-content .button-outline.text-danger:hover {
+  border-color: #d9a8a2;
+  background-color: var(--admin-danger-bg);
+  color: #842f27;
+}
+
+.page-content .table-responsive,
+.page-content .table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page-content .table-responsive {
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+}
+
+.page-content .table-scroll {
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+}
+
+.page-content .table,
+.page-content .data-table {
+  width: 100%;
+  margin-bottom: 0;
+  color: #453e37;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-content .admin-table--orders th:nth-child(1),
+.page-content .admin-table--orders td:nth-child(1),
+.page-content .admin-table--orders th:nth-child(3),
+.page-content .admin-table--orders td:nth-child(3),
+.page-content .admin-table--orders th:nth-child(5),
+.page-content .admin-table--orders td:nth-child(5),
+.page-content .admin-table--orders th:nth-child(6),
+.page-content .admin-table--orders td:nth-child(6),
+.page-content .admin-table--products th:nth-child(1),
+.page-content .admin-table--products td:nth-child(1),
+.page-content .admin-table--products th:nth-child(2),
+.page-content .admin-table--products td:nth-child(2),
+.page-content .admin-table--products th:nth-child(4),
+.page-content .admin-table--products td:nth-child(4),
+.page-content .admin-table--products th:nth-child(7),
+.page-content .admin-table--products td:nth-child(7),
+.page-content .admin-table--suppliers th:nth-child(5),
+.page-content .admin-table--suppliers td:nth-child(5),
+.page-content .admin-table--purchases th:nth-child(1),
+.page-content .admin-table--purchases td:nth-child(1),
+.page-content .admin-table--purchases th:nth-child(6),
+.page-content .admin-table--purchases td:nth-child(6),
+.page-content .admin-table--accounts th:nth-child(3),
+.page-content .admin-table--accounts td:nth-child(3),
+.page-content .admin-table--accounts th:nth-child(4),
+.page-content .admin-table--accounts td:nth-child(4),
+.page-content .admin-table--customers th:nth-child(1),
+.page-content .admin-table--customers td:nth-child(1),
+.page-content .admin-table--customers th:nth-child(7),
+.page-content .admin-table--customers td:nth-child(7),
+.page-content .admin-table--customers th:nth-child(9),
+.page-content .admin-table--customers td:nth-child(9),
+.page-content .admin-table--customers th:nth-child(10),
+.page-content .admin-table--customers td:nth-child(10),
+.page-content .admin-table--surveys th:nth-child(2),
+.page-content .admin-table--surveys td:nth-child(2),
+.page-content .admin-table--surveys th:nth-child(3),
+.page-content .admin-table--surveys td:nth-child(3),
+.page-content .admin-table--feedback-review th:nth-child(3),
+.page-content .admin-table--feedback-review td:nth-child(3),
+.page-content .admin-table--feedback-review th:nth-child(5),
+.page-content .admin-table--feedback-review td:nth-child(5),
+.page-content .admin-table--contacts th:nth-child(5),
+.page-content .admin-table--contacts td:nth-child(5),
+.page-content .admin-table--contacts th:nth-child(6),
+.page-content .admin-table--contacts td:nth-child(6),
+.page-content .admin-table--vouchers th:nth-child(1),
+.page-content .admin-table--vouchers td:nth-child(1),
+.page-content .admin-table--vouchers th:nth-child(4),
+.page-content .admin-table--vouchers td:nth-child(4),
+.page-content .admin-table--vouchers th:nth-child(6),
+.page-content .admin-table--vouchers td:nth-child(6),
+.page-content .admin-table--dashboard-orders th:nth-child(1),
+.page-content .admin-table--dashboard-orders td:nth-child(1),
+.page-content .admin-table--dashboard-orders th:nth-child(3),
+.page-content .admin-table--dashboard-orders td:nth-child(3),
+.page-content .admin-table--dashboard-orders th:nth-child(6),
+.page-content .admin-table--dashboard-orders td:nth-child(6),
+.page-content .admin-table--dashboard-orders th:nth-child(7),
+.page-content .admin-table--dashboard-orders td:nth-child(7) {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.page-content .admin-table--order-details th:nth-child(2),
+.page-content .admin-table--order-details td:nth-child(2),
+.page-content .admin-table--dashboard-orders th:nth-child(7),
+.page-content .admin-table--dashboard-orders td:nth-child(7) {
+  text-align: center;
+}
+
+.page-content .table thead th,
+.page-content .data-table thead th {
+  padding: 0.8rem 0.9rem;
+  border-top: 0;
+  border-bottom: 1px solid var(--admin-border);
+  background: var(--admin-header);
+  color: #66594d;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.page-content .table tbody td,
+.page-content .data-table tbody td {
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  border-top: 1px solid #f0ece7;
+  color: #4f4942;
+  font-size: 0.9rem;
+  vertical-align: middle;
+}
+
+.page-content .table-hover tbody tr:hover,
+.page-content .data-table tbody tr:hover {
+  background-color: #fbf8f4;
+}
+
+.page-content .data-table th:first-child,
+.page-content .data-table td:first-child {
+  padding-left: 1rem;
+}
+
+.page-content .data-table th:last-child,
+.page-content .data-table td:last-child {
+  padding-right: 1rem;
+  text-align: center;
+}
+
+.page-content .admin-data-table th,
+.page-content .admin-data-table td {
+  text-align: left;
+}
+
+.page-content .admin-data-table th.admin-col-center,
+.page-content .admin-data-table td.admin-col-center,
+.page-content .admin-data-table .order-id,
+.page-content .admin-data-table .account-actions {
+  text-align: center;
+}
+
+.page-content .admin-data-table th.admin-col-number,
+.page-content .admin-data-table td.admin-col-number,
+.page-content .admin-data-table .money-cell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-content .admin-data-table th.admin-col-actions,
+.page-content .admin-data-table td.admin-col-actions {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.page-content .admin-table--orders th:nth-child(1),
+.page-content .admin-table--orders td:nth-child(1),
+.page-content .admin-table--orders th:nth-child(3),
+.page-content .admin-table--orders td:nth-child(3),
+.page-content .admin-table--orders th:nth-child(5),
+.page-content .admin-table--orders td:nth-child(5),
+.page-content .admin-table--orders th:nth-child(6),
+.page-content .admin-table--orders td:nth-child(6) {
+  text-align: center;
+}
+
+.page-content .admin-table--orders th:nth-child(4),
+.page-content .admin-table--orders td:nth-child(4),
+.page-content .admin-table--purchases th:nth-child(5),
+.page-content .admin-table--purchases td:nth-child(5),
+.page-content .admin-table--customers th:nth-child(6),
+.page-content .admin-table--customers td:nth-child(6),
+.page-content .admin-table--products th:nth-child(5),
+.page-content .admin-table--products td:nth-child(5),
+.page-content .admin-table--suppliers th:nth-child(4),
+.page-content .admin-table--suppliers td:nth-child(4),
+.page-content .admin-table--purchase-details th:nth-child(3),
+.page-content .admin-table--purchase-details td:nth-child(3),
+.page-content .admin-table--purchase-details th:nth-child(4),
+.page-content .admin-table--purchase-details td:nth-child(4),
+.page-content .admin-table--order-details th:nth-child(3),
+.page-content .admin-table--order-details td:nth-child(3),
+.page-content .admin-table--order-details th:nth-child(4),
+.page-content .admin-table--order-details td:nth-child(4),
+.page-content .admin-table--order-details th:nth-child(5),
+.page-content .admin-table--order-details td:nth-child(5),
+.page-content .admin-table--dashboard-orders th:nth-child(5),
+.page-content .admin-table--dashboard-orders td:nth-child(5),
+.page-content .admin-table--vouchers th:nth-child(3),
+.page-content .admin-table--vouchers td:nth-child(3),
+.page-content .admin-table--vouchers th:nth-child(5),
+.page-content .admin-table--vouchers td:nth-child(5),
+.page-content .admin-table--customers th:nth-child(8),
+.page-content .admin-table--customers td:nth-child(8),
+.page-content .admin-table--surveys th:nth-child(5),
+.page-content .admin-table--surveys td:nth-child(5),
+.page-content .admin-table--surveys th:nth-child(6),
+.page-content .admin-table--surveys td:nth-child(6),
+.page-content .admin-table--purchase-details th:nth-child(2),
+.page-content .admin-table--purchase-details td:nth-child(2) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.page-content .admin-table--products th:nth-child(1),
+.page-content .admin-table--products td:nth-child(1),
+.page-content .admin-table--products th:nth-child(2),
+.page-content .admin-table--products td:nth-child(2),
+.page-content .admin-table--products th:nth-child(7),
+.page-content .admin-table--products td:nth-child(7),
+.page-content .admin-table--suppliers th:nth-child(5),
+.page-content .admin-table--suppliers td:nth-child(5),
+.page-content .admin-table--purchases th:nth-child(1),
+.page-content .admin-table--purchases td:nth-child(1),
+.page-content .admin-table--purchases th:nth-child(6),
+.page-content .admin-table--purchases td:nth-child(6),
+.page-content .admin-table--accounts th:nth-child(3),
+.page-content .admin-table--accounts td:nth-child(3),
+.page-content .admin-table--accounts th:nth-child(4),
+.page-content .admin-table--accounts td:nth-child(4),
+.page-content .admin-table--customers th:nth-child(1),
+.page-content .admin-table--customers td:nth-child(1),
+.page-content .admin-table--vouchers th:nth-child(1),
+.page-content .admin-table--vouchers td:nth-child(1),
+.page-content .admin-table--customers th:nth-child(7),
+.page-content .admin-table--customers td:nth-child(7),
+.page-content .admin-table--customers th:nth-child(9),
+.page-content .admin-table--customers td:nth-child(9),
+.page-content .admin-table--customers th:nth-child(10),
+.page-content .admin-table--customers td:nth-child(10),
+.page-content .admin-table--surveys th:nth-child(2),
+.page-content .admin-table--surveys td:nth-child(2),
+.page-content .admin-table--surveys th:nth-child(3),
+.page-content .admin-table--surveys td:nth-child(3),
+.page-content .admin-table--contacts th:nth-child(5),
+.page-content .admin-table--contacts td:nth-child(5),
+.page-content .admin-table--vouchers th:nth-child(4),
+.page-content .admin-table--vouchers td:nth-child(4),
+.page-content .admin-table--contacts th:nth-child(6),
+.page-content .admin-table--contacts td:nth-child(6) {
+  text-align: center;
+}
+
+.page-content .admin-table--suppliers td:nth-child(3),
+.page-content .admin-table--suppliers td:nth-child(1),
+.page-content .admin-table--purchases td:nth-child(2),
+.page-content .admin-table--products td:nth-child(3),
+.page-content .admin-table--orders td:nth-child(2),
+.page-content .admin-table--customers td:nth-child(2),
+.page-content .admin-table--customers td:nth-child(3),
+.page-content .admin-table--customers td:nth-child(5),
+.page-content .admin-table--accounts td:nth-child(1),
+.page-content .admin-table--accounts td:nth-child(2),
+.page-content .admin-table--surveys td:nth-child(1),
+.page-content .admin-table--feedback-review td:nth-child(1),
+.page-content .admin-table--feedback-review td:nth-child(2),
+.page-content .admin-table--dashboard-orders td:nth-child(2),
+.page-content .admin-table--dashboard-orders td:nth-child(4),
+.page-content .admin-table--contacts td:nth-child(1),
+.page-content .admin-table--contacts td:nth-child(2),
+.page-content .admin-table--contacts td:nth-child(3) {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-content .data-table .money-cell {
+  color: #34312c;
+  font-weight: 600;
+}
+
+.page-content .data-table .status,
+.page-content .table .badge,
+.page-content .data-table .badge,
+.page-content .data-table .role-badge {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35em 0.75em;
+  border-radius: 50rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-transform: none;
+  vertical-align: middle;
+}
+
+.page-content .data-table .status {
+  gap: 0.4rem;
+}
+
+.page-content .data-table .status i {
+  flex: 0 0 5px;
+}
+
+.page-content .table .badge-success,
+.page-content .data-table .badge-success {
+  background: #e7f3eb;
+  color: #24643d;
+}
+
+.page-content .table .badge-warning,
+.page-content .data-table .badge-warning {
+  background: #fff2d6;
+  color: #825815;
+}
+
+.page-content .table .badge-danger,
+.page-content .data-table .badge-danger {
+  background: #fbeceb;
+  color: #9c3d32;
+}
+
+.page-content .table .badge-secondary,
+.page-content .data-table .badge-secondary {
+  background: #efedea;
+  color: #625c55;
+}
+
+.page-content .table .badge-info,
+.page-content .data-table .badge-info {
+  background: #e8f1f5;
+  color: #3e6578;
+}
+
+.page-content .admin-data-table td:last-child > form,
+.page-content .admin-data-table .purchase-actions form,
+.page-content .admin-data-table .account-actions form {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.page-content .admin-data-table td:last-child > a,
+.page-content .admin-data-table td:last-child > button,
+.page-content .admin-data-table td:last-child > form > button {
+  margin: 3px;
+  vertical-align: middle;
+}
+
+.page-content .admin-data-table .account-actions,
+.page-content .admin-data-table .purchase-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.page-content .admin-data-table .account-role-form {
+  gap: 6px;
+}
+
+.page-content .admin-data-table .account-role-form select {
+  min-height: 32px;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  background: #fff;
+}
+
+.page-content .admin-table--contacts td:last-child form {
+  display: inline-flex;
+  margin: 3px;
+}
+
+.page-content .admin-table--feedback-review td:last-child {
+  text-align: left;
+}
+
+.page-content .modal-content {
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.page-content .modal-header {
+  align-items: center;
+  padding: 1.1rem 1.35rem;
+  border-bottom: 1px solid #eee9e3;
+  background: #fcfaf8;
+}
+
+.page-content .modal-title {
+  color: #352d26;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.page-content .modal-header .close {
+  margin: -0.5rem -0.5rem -0.5rem auto;
+  padding: 0.5rem;
+  color: #766c62;
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.page-content .modal-body {
+  padding: 1.35rem;
+}
+
+.page-content .modal-body .form-group {
+  margin-bottom: 1rem;
+}
+
+.page-content .modal-body label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #4a4138;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.page-content .modal-body label .form-control,
+.page-content .modal-body .form-control {
+  min-height: 40px;
+  border: 1px solid #ded7cf;
+  border-radius: 7px;
+  background-color: #fff;
+  color: #39332e;
+  font-family: inherit;
+  font-size: 0.9rem;
+  box-shadow: none;
+}
+
+.page-content .modal-body textarea.form-control {
+  min-height: unset;
+}
+
+.page-content .modal-body .form-control:focus {
+  border-color: #c49b63;
+  box-shadow: 0 0 0 3px rgba(196, 155, 99, 0.16);
+}
+
+.page-content .modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 1rem 1.35rem;
+  border-top: 1px solid #eee9e3;
+  background: #fcfaf8;
+}
+
+.page-content .modal-footer .button,
+.page-content .modal-footer .btn,
+.page-content .product-edit-actions .button {
+  min-height: 40px;
+}
+
+.page-content .modal-footer .button + .button,
+.page-content .modal-footer .btn + .btn {
+  margin-left: 0;
+}
+
+.page-content .product-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin: 1.25rem -1.35rem -1.35rem;
+  padding: 1rem 1.35rem;
+  border-top: 1px solid #eee9e3;
+  background: #fcfaf8;
+}
+
+.page-content .modal .form-text {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 767.98px) {
+  .page-content .table-responsive,
+  .page-content .table-scroll {
+    border-radius: 8px;
+  }
+
+  .page-content .data-table,
+  .page-content .table {
+    min-width: 680px;
+  }
+
+  .page-content .modal-dialog {
+    margin: 0.75rem;
+  }
+
+  .page-content .modal-body,
+  .page-content .modal-header,
+  .page-content .modal-footer {
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+/* Shared table layout utilities */
+.table-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+  padding: 16px 20px !important;
+}
+
+.table-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  min-width: 0;
+}
+
+.table-toolbar form,
+.table-toolbar .form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.table-toolbar .form-control,
+.table-toolbar .form-select,
+.table-toolbar .btn,
+.table-toolbar .button {
+  height: 38px !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+}
+
+.table-toolbar .form-control {
+  min-width: 190px;
+}
+
+.table-toolbar .btn-add {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 16px !important;
+  border-color: #c49b63 !important;
+  background-color: #c49b63 !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+.table-toolbar .btn-add:hover,
+.table-toolbar .btn-add:focus {
+  border-color: #a37a44 !important;
+  background-color: #a37a44 !important;
+  color: #fff !important;
+}
+
+.table-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.table-actions > form,
+.table-actions form {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+
+.table-actions .btn,
+.table-actions .button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border-radius: 6px !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+}
+
+.table-actions .action-note {
+  margin: 0 4px !important;
+  color: #8c8c8c !important;
+  font-size: 0.75rem !important;
+  white-space: nowrap !important;
+}
+
+.custom-admin-table th,
+.custom-admin-table td {
+  padding: 14px 16px !important;
+  vertical-align: middle !important;
+}
+
+.custom-admin-table th:last-child {
+  text-align: center !important;
+}
+
+.custom-admin-table .col-center {
+  text-align: center !important;
+}
+
+.custom-admin-table .col-right {
+  text-align: right !important;
+}
+
+.custom-admin-table .col-left {
+  text-align: left !important;
+}
+
+.custom-admin-table td.col-truncate {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .table-card-header {
+    align-items: stretch !important;
+    padding: 14px 16px !important;
+  }
+
+  .table-toolbar {
+    width: 100%;
+  }
+
+  .table-toolbar form {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+
+  .table-toolbar .form-control {
+    flex: 1 1 180px;
+    min-width: 0;
+  }
+
+  .table-actions {
+    justify-content: flex-start !important;
+  }
 }

@@ -12,25 +12,25 @@
 </div>
 
 <section class="panel table-panel">
-    <div class="panel-heading account-table-heading">
+    <div class="panel-heading table-card-header account-table-heading">
         <div>
             <h2>Danh sách khách hàng</h2>
             <p>Tổng cộng @Model.CustomerAccountCount khách hàng; @Model.ActiveCustomerCount đang hoạt động, @Model.LockedCustomerCount đã khóa.</p>
         </div>
-        <div class="account-table-tools account-customer-tools">
+        <div class="table-toolbar account-table-tools account-customer-tools">
             <form asp-area="Admin" asp-controller="KhachHang" asp-action="Index" method="get" class="customer-search-form" role="search">
                 <input type="search" name="search" value="@Model.Search" class="form-control account-search"
                        placeholder="Tìm tên, tài khoản, email, số điện thoại..." aria-label="Tìm khách hàng" />
                 <button type="submit" class="button button-outline">Tìm kiếm</button>
             </form>
-            <button type="button" class="button button-primary js-create-customer" data-url="@Url.Action("Create", "KhachHang", new { area = "Admin" })">
+            <button type="button" class="button button-primary btn-add js-create-customer" data-url="@Url.Action("Create", "KhachHang", new { area = "Admin" })">
                 + Thêm khách hàng
             </button>
         </div>
     </div>
 
     <div class="table-scroll">
-        <table class="data-table" id="customerTable">
+        <table class="data-table admin-data-table admin-table--customers custom-admin-table" id="customerTable">
             <thead>
                 <tr>
                     <th>MÃ KH</th>
@@ -64,22 +64,22 @@
                         _ => "🥉"
                     };
                     <tr>
-                        <td class="order-id"><strong>#KH@(customer.MaKH.ToString("D4"))</strong></td>
-                        <td>@(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "(Khách vãng lai)" : customer.TaiKhoan)</td>
-                        <td><strong>@customer.HoTen</strong></td>
+                        <td class="order-id col-center"><strong>#KH@(customer.MaKH.ToString("D4"))</strong></td>
+                        <td class="col-left col-truncate">@(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "(Khách vãng lai)" : customer.TaiKhoan)</td>
+                        <td class="col-left col-truncate"><strong>@customer.HoTen</strong></td>
                         <td>@customer.Sdt</td>
-                        <td>@(string.IsNullOrWhiteSpace(customer.Email) ? "-" : customer.Email)</td>
-                        <td><span class="font-weight-bold" style="color: #ffc107; font-size: 14px;">@customer.DiemTichLuy</span> pts</td>
-                        <td><span class="badge @tierBadgeClass">@tierIcon @customer.HangTV</span></td>
-                        <td><span class="badge badge-secondary">@customer.TotalOrders đơn</span></td>
-                        <td>@customer.NgayTao.ToString("dd/MM/yyyy")</td>
-                        <td>
+                        <td class="col-left col-truncate">@(string.IsNullOrWhiteSpace(customer.Email) ? "-" : customer.Email)</td>
+                        <td class="col-right"><span class="font-weight-bold" style="color: #ffc107; font-size: 14px;">@customer.DiemTichLuy</span> pts</td>
+                        <td class="col-center"><span class="badge @tierBadgeClass">@tierIcon @customer.HangTV</span></td>
+                        <td class="col-right"><span class="badge badge-secondary">@customer.TotalOrders đơn</span></td>
+                        <td class="col-center">@customer.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td class="col-center">
                             <span class="status @(customer.TrangThai ? "status-success" : "status-muted")">
                                 <i></i>@(customer.TrangThai ? "Hoạt động" : "Đã khóa")
                             </span>
                         </td>
                         <td>
-                            <div class="account-actions">
+                            <div class="table-actions account-actions">
                                 <button type="button" class="button button-small button-outline js-edit-customer"
                                         data-url="@Url.Action("Edit", "KhachHang", new { area = "Admin", id = customer.MaKH })">Sửa</button>
                                 <form asp-area="Admin" asp-controller="KhachHang" asp-action="ToggleStatus" method="post"

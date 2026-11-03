@@ -66,7 +66,7 @@
     @if (Model.Tab == "reviews")
     {
         <div class="table-scroll">
-            <table class="data-table">
+            <table class="data-table admin-data-table admin-table--feedback-review">
                 <thead>
                     <tr>
                         <th>KHÁCH HÀNG</th>
@@ -114,7 +114,7 @@
     else
     {
         <div class="table-scroll">
-            <table class="data-table">
+            <table class="data-table admin-data-table admin-table--contacts">
                 <thead>
                     <tr>
                         <th>KHÁCH HÀNG</th>
@@ -138,16 +138,18 @@
                             <td>@contact.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
                             <td><span class="status @(pending ? "status-warning" : "status-success")"><i></i>@contact.TrangThai</span></td>
                             <td>
-                                <form asp-action="ToggleContactStatus" method="post" class="mb-1">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@contact.MaLienHe" />
-                                    <button class="button button-small button-outline" type="submit">@(pending ? "Đã xử lý" : "Chưa xử lý")</button>
+                            <div class="account-actions">
+                                    <form asp-action="ToggleContactStatus" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@contact.MaLienHe" />
+                                        <button class="button button-small button-outline" type="submit">@(pending ? "Đã xử lý" : "Chưa xử lý")</button>
                                 </form>
                                 <form asp-action="DeleteContact" method="post" onsubmit="return confirm('Xóa lời nhắn của @contact.HoTen?');">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@contact.MaLienHe" />
                                     <button class="button button-small button-outline text-danger" type="submit">Xóa</button>
                                 </form>
+                            </div>
                             </td>
                         </tr>
                     }

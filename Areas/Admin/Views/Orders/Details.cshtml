@@ -65,7 +65,7 @@
 <section class="panel table-panel">
     <div class="panel-heading table-heading"><div><h2>Các món trong đơn</h2><p>@Model.Details.Sum(detail => detail.SoLuong) sản phẩm</p></div></div>
     <div class="table-scroll">
-        <table class="data-table">
+        <table class="data-table admin-data-table admin-table--order-details">
             <thead><tr><th>MÓN</th><th>SIZE</th><th>SỐ LƯỢNG</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead>
             <tbody>
                 @foreach (var detail in Model.Details)

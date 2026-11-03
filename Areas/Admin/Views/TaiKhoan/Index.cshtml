@@ -32,12 +32,12 @@
 }
 
 <section class="panel table-panel">
-            <div class="panel-heading table-heading account-table-heading">
+            <div class="panel-heading table-heading table-card-header account-table-heading">
                 <div>
                     <h2>Danh sách nhân sự &amp; quản trị</h2>
                     <p>Hiện có @Model.InternalAccountCount tài khoản trong hệ thống nội bộ.</p>
                 </div>
-                <div class="account-table-tools">
+                <div class="table-toolbar account-table-tools">
                     <input type="search" class="form-control account-search" data-account-search="internalAccountTable"
                            placeholder="Tìm tên, vai trò, trạng thái..." aria-label="Tìm tài khoản nội bộ" />
                     <button type="button" class="button button-primary" data-toggle="modal" data-target="#createInternalAccountModal">
@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="table-scroll">
-                <table class="data-table" id="internalAccountTable">
+                <table class="data-table admin-data-table admin-table--accounts custom-admin-table" id="internalAccountTable">
                     <thead>
                         <tr>
                             <th>TÊN ĐĂNG NHẬP</th>
@@ -74,7 +74,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="account-actions">
+                                    <div class="table-actions account-actions">
                                         @if (!isCurrentAccount)
                                         {
                                             <form asp-action="ChangeRole" method="post" class="account-role-form">
