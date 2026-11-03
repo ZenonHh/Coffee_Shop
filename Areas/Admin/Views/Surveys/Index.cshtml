@@ -57,6 +57,7 @@
                         <td>
                             <div class="d-flex flex-wrap" style="gap:6px">
                                 <a class="button button-small button-outline" asp-action="Index" asp-route-resultId="@survey.MaKhaoSat">Kết quả</a>
+                                <a asp-action="Statistics" asp-route-id="@survey.MaKhaoSat" class="btn btn-sm btn-outline-info">Thống kê</a>
                                 @if (survey.HasResponses)
                                 {
                                     <button type="button" class="button button-small button-outline js-edit-survey"

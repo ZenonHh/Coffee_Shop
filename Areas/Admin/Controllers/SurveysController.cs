@@ -44,6 +44,159 @@ public class SurveysController : Controller
         return View(model);
     }
 
+    [HttpGet("Statistics")]
+    public async Task<IActionResult> Statistics(int? id, DateTime? fromDate, DateTime? toDate)
+    {
+        var model = new SurveyStatisticsViewModel
+        {
+            SelectedSurveyId = id,
+            FromDate = fromDate,
+            ToDate = toDate,
+            Surveys = await _context.Surveys.AsNoTracking()
+                .OrderBy(survey => survey.TieuDe)
+                .Select(survey => new SurveyStatisticsSurveyOptionViewModel
+                {
+                    Id = survey.MaKhaoSat,
+                    Title = survey.TieuDe
+                })
+                .ToListAsync()
+        };
+        ViewData["Title"] = "Thống kê khảo sát";
+
+        if (fromDate.HasValue && toDate.HasValue && fromDate.Value.Date > toDate.Value.Date)
+        {
+            ModelState.AddModelError(nameof(fromDate), "Từ ngày phải nhỏ hơn hoặc bằng đến ngày.");
+            return View(model);
+        }
+
+        if (!id.HasValue)
+        {
+            return View(model);
+        }
+
+        var survey = await _context.Surveys.AsNoTracking()
+            .Include(item => item.Questions)
+                .ThenInclude(question => question.Options)
+            .FirstOrDefaultAsync(item => item.MaKhaoSat == id.Value);
+        if (survey == null)
+        {
+            return NotFound();
+        }
+
+        model.SurveyTitle = survey.TieuDe;
+        model.QuestionCount = survey.Questions.Count;
+
+        var responsesQuery = _context.SurveyResponses.AsNoTracking()
+            .Where(response => response.MaKhaoSat == id.Value);
+        if (fromDate.HasValue)
+        {
+            var start = fromDate.Value.Date;
+            responsesQuery = responsesQuery.Where(response => response.NgayHoanThanh >= start);
+        }
+        if (toDate.HasValue)
+        {
+            var endExclusive = toDate.Value.Date.AddDays(1);
+            responsesQuery = responsesQuery.Where(response => response.NgayHoanThanh < endExclusive);
+        }
+        model.ResponseCount = await responsesQuery.CountAsync();
+
+        var questionIds = survey.Questions.Select(question => question.MaCauHoi).ToList();
+        var answersQuery = _context.SurveyAnswers.AsNoTracking()
+            .Where(answer => questionIds.Contains(answer.MaCauHoi));
+        if (fromDate.HasValue)
+        {
+            var start = fromDate.Value.Date;
+            answersQuery = answersQuery.Where(answer => answer.NgayTraLoi >= start);
+        }
+        if (toDate.HasValue)
+        {
+            var endExclusive = toDate.Value.Date.AddDays(1);
+            answersQuery = answersQuery.Where(answer => answer.NgayTraLoi < endExclusive);
+        }
+        var answers = await answersQuery
+            .Select(answer => new
+            {
+                answer.MaCauHoi,
+                answer.MaLuotTraLoi,
+                answer.NoiDungTraLoi,
+                answer.NgayTraLoi
+            })
+            .ToListAsync();
+
+        var ratingValues = new List<int>();
+        foreach (var question in survey.Questions.OrderBy(question => question.ThuTu))
+        {
+            var questionAnswers = answers
+                .Where(answer => answer.MaCauHoi == question.MaCauHoi
+                    && !string.IsNullOrWhiteSpace(answer.NoiDungTraLoi))
+                .ToList();
+            var result = new SurveyStatisticsQuestionViewModel
+            {
+                Text = question.NoiDungCauHoi,
+                Type = question.LoaiCauHoi,
+                ResponseCount = questionAnswers
+                    .Where(answer => answer.MaLuotTraLoi.HasValue)
+                    .Select(answer => answer.MaLuotTraLoi!.Value)
+                    .Distinct()
+                    .Count()
+                    + questionAnswers.Count(answer => !answer.MaLuotTraLoi.HasValue)
+            };
+
+            if (question.LoaiCauHoi == "SAO")
+            {
+                var ratings = questionAnswers
+                    .Select(answer => int.TryParse(answer.NoiDungTraLoi, out var rating) ? rating : 0)
+                    .Where(rating => rating is >= 1 and <= 5)
+                    .ToList();
+                ratingValues.AddRange(ratings);
+                result.AverageRating = ratings.Count == 0 ? null : ratings.Average();
+                result.Ratings = Enumerable.Range(1, 5)
+                    .Select(rating => new SurveyStatisticsRatingViewModel
+                    {
+                        Rating = rating,
+                        Count = ratings.Count(value => value == rating),
+                        Percentage = ratings.Count == 0
+                            ? 0
+                            : ratings.Count(value => value == rating) * 100d / ratings.Count
+                    })
+                    .ToList();
+            }
+            else if (question.LoaiCauHoi == "TU_LUAN")
+            {
+                result.TextAnswers = questionAnswers
+                    .OrderByDescending(answer => answer.NgayTraLoi)
+                    .Select(answer => new SurveyStatisticsTextAnswerViewModel
+                    {
+                        Text = answer.NoiDungTraLoi!,
+                        AnsweredAt = answer.NgayTraLoi
+                    })
+                    .ToList();
+            }
+            else if (question.LoaiCauHoi is "MOT_LUA_CHON" or "NHIEU_LUA_CHON")
+            {
+                result.Options = question.Options.OrderBy(option => option.ThuTu)
+                    .Select(option =>
+                    {
+                        var count = questionAnswers.Count(answer => answer.NoiDungTraLoi == option.NoiDung);
+                        return new SurveyStatisticsOptionViewModel
+                        {
+                            Text = option.NoiDung,
+                            Count = count,
+                            Percentage = result.ResponseCount == 0
+                                ? 0
+                                : count * 100d / result.ResponseCount
+                        };
+                    })
+                    .ToList();
+            }
+
+            model.Questions.Add(result);
+        }
+
+        model.AverageRating = ratingValues.Count == 0 ? null : ratingValues.Average();
+        return View(model);
+    }
+
     [HttpPost("CreateSurvey")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateSurvey(SurveyEditorViewModel editor)

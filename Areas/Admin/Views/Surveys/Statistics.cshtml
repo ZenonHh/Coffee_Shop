@@ -1,0 +1,203 @@
+@model CoffeeShop.Models.ViewModels.SurveyStatisticsViewModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Thống kê khảo sát";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Thống kê khảo sát</h1>
+        <p>Phân tích lượt phản hồi, điểm đánh giá và câu trả lời theo từng câu hỏi.</p>
+    </div>
+    <a class="button button-small button-outline" asp-action="Index">Quay lại danh sách</a>
+</div>
+
+<section class="panel mb-4">
+    <div class="panel-heading mb-3">
+        <div>
+            <h2>Bộ lọc thống kê</h2>
+            <p>Chọn khảo sát và khoảng ngày trả lời cần xem.</p>
+        </div>
+    </div>
+    <form asp-action="Statistics" method="get" class="form-row align-items-end">
+        <div class="form-group col-md-5">
+            <label for="id">Chiến dịch khảo sát</label>
+            <select id="id" name="id" class="form-control">
+                <option value="">-- Chọn khảo sát --</option>
+                @foreach (var survey in Model.Surveys)
+                {
+                    <option value="@survey.Id" selected="@(Model.SelectedSurveyId == survey.Id)">@survey.Title</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md-3">
+            <label for="fromDate">Từ ngày</label>
+            <input id="fromDate" name="fromDate" type="date" class="form-control"
+                   value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="toDate">Đến ngày</label>
+            <input id="toDate" name="toDate" type="date" class="form-control"
+                   value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group col-md-1">
+            <button type="submit" class="button button-primary">Lọc</button>
+        </div>
+    </form>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger mb-0"></div>
+    }
+</section>
+
+@if (Model.SelectedSurveyId.HasValue && Model.SurveyTitle != null)
+{
+    <div class="mb-3">
+        <h2>@Model.SurveyTitle</h2>
+        <p class="muted-cell">
+            Khoảng thời gian:
+            @(Model.FromDate?.ToString("dd/MM/yyyy") ?? "Toàn bộ")
+            –
+            @(Model.ToDate?.ToString("dd/MM/yyyy") ?? "hiện có")
+        </p>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỔNG SỐ CÂU HỎI</div>
+                <div class="stat-value">@Model.QuestionCount</div>
+                <div class="stat-foot">Trong khảo sát đã chọn</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">LƯỢT HOÀN THÀNH</div>
+                <div class="stat-value">@Model.ResponseCount</div>
+                <div class="stat-foot">Từ lượt hoàn thành khảo sát</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">ĐIỂM ĐÁNH GIÁ TRUNG BÌNH</div>
+                <div class="stat-value">@(Model.AverageRating?.ToString("0.0") ?? "—") <small>/ 5</small></div>
+                <div class="stat-foot">Tính từ các câu trả lời hợp lệ dạng sao</div>
+            </section>
+        </div>
+    </div>
+    <p class="muted-cell">
+        Lượt hoàn thành được đếm từ bản ghi lượt tham gia; thống kê chi tiết lấy từ câu trả lời và ngày trả lời.
+    </p>
+
+    @if (Model.Questions.Count == 0)
+    {
+        <section class="panel">
+            <p class="muted-cell mb-0">Khảo sát này chưa có câu hỏi.</p>
+        </section>
+    }
+    else
+    {
+        @for (var index = 0; index < Model.Questions.Count; index++)
+        {
+            var question = Model.Questions[index];
+            <section class="panel mb-3">
+                <div class="panel-heading mb-3">
+                    <div>
+                        <h2>Câu @(index + 1): @question.Text</h2>
+                        <p>@question.ResponseCount lượt trả lời câu hỏi</p>
+                    </div>
+                    <span class="status status-muted"><i></i>@question.Type</span>
+                </div>
+
+                @if (question.Type == "SAO")
+                {
+                    <p class="mb-3">
+                        Điểm trung bình:
+                        <strong>@(question.AverageRating?.ToString("0.0") ?? "Chưa có đánh giá")</strong>
+                        @if (question.AverageRating.HasValue)
+                        {
+                            <span>/ 5</span>
+                        }
+                    </p>
+                    @foreach (var rating in question.Ratings)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>@rating.Rating sao</span>
+                                <span>@rating.Count lượt (@rating.Percentage.ToString("0.#")%)</span>
+                            </div>
+                            <div class="progress" role="progressbar"
+                                 aria-label="@rating.Rating sao"
+                                 aria-valuenow="@rating.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)"
+                                 aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar bg-warning"
+                                     style="width: @rating.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (question.Type is "MOT_LUA_CHON" or "NHIEU_LUA_CHON")
+                {
+                    @if (question.Options.Count == 0)
+                    {
+                        <p class="muted-cell mb-0">Câu hỏi chưa có phương án lựa chọn.</p>
+                    }
+                    @foreach (var option in question.Options)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>@option.Text</span>
+                                <span>@option.Count lượt (@option.Percentage.ToString("0.#")%)</span>
+                            </div>
+                            <div class="progress" role="progressbar"
+                                 aria-label="@option.Text"
+                                 aria-valuenow="@option.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)"
+                                 aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: @option.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            </div>
+                        </div>
+                    }
+                    @if (question.ResponseCount == 0)
+                    {
+                        <p class="muted-cell mb-0">Chưa có lượt trả lời câu hỏi này.</p>
+                    }
+                }
+                else if (question.Type == "TU_LUAN")
+                {
+                    @if (question.TextAnswers.Count == 0)
+                    {
+                        <p class="muted-cell mb-0">Chưa có câu trả lời tự luận.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var answer in question.TextAnswers)
+                            {
+                                <div class="list-group-item">
+                                    <p class="mb-2" style="white-space:pre-wrap">@answer.Text</p>
+                                    <small class="text-muted">@answer.AnsweredAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="muted-cell mb-0">Loại câu hỏi này chưa có kiểu thống kê riêng.</p>
+                }
+            </section>
+        }
+    }
+}
+else if (Model.SelectedSurveyId.HasValue && ViewData.ModelState.IsValid)
+{
+    <section class="panel">
+        <p class="muted-cell mb-0">Không tìm thấy khảo sát đã chọn.</p>
+    </section>
+}
+else if (!Model.SelectedSurveyId.HasValue)
+{
+    <section class="panel">
+        <p class="muted-cell mb-0">Chọn một khảo sát để xem các chỉ số và câu trả lời chi tiết.</p>
+    </section>
+}
