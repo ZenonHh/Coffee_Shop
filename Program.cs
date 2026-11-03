@@ -6,9 +6,28 @@ using CoffeeShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Cấu hình DbContext kết nối SQL Server
+var defaultConnectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("The DefaultConnection connection string is not configured.");
+var secondaryConnectionString = builder.Configuration.GetConnectionString("SecondaryConnection");
+
 builder.Services.AddDbContext<CoffeeShopDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    options.UseSqlServer(defaultConnectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null);
+
+        if (!string.IsNullOrWhiteSpace(secondaryConnectionString))
+        {
+            sqlOptions.ExecutionStrategy(dependencies =>
+                new SqlServerFailoverExecutionStrategy(dependencies, secondaryConnectionString));
+        }
+    }));
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<CoffeeShopDbContext>();
 
 // 2. Cấu hình Session (dành cho Giỏ hàng)
 builder.Services.AddDistributedMemoryCache();
@@ -108,5 +127,7 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHealthChecks("/health");
 
 app.Run();
