@@ -223,3 +223,18 @@ BEGIN
     );
 END;
 GO
+
+-- 7. Bo sung doi tuong nhan cho khao sat
+IF OBJECT_ID(N'dbo.KhaoSat', N'U') IS NULL
+BEGIN
+    ;THROW 51001, N'Khong tim thay bang dbo.KhaoSat trong database hien tai.', 1;
+END;
+GO
+
+IF COL_LENGTH(N'dbo.KhaoSat', N'DoiTuong') IS NULL
+BEGIN
+    ALTER TABLE dbo.KhaoSat
+        ADD [DoiTuong] NVARCHAR(20) NOT NULL
+            CONSTRAINT [DF_KhaoSat_DoiTuong] DEFAULT (N'TatCa') WITH VALUES;
+END;
+GO

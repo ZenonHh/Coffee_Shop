@@ -1,64 +1,52 @@
 @model CoffeeShop.Models.ViewModels.AdminAccountIndexViewModel
 @{
-    ViewData["Title"] = "Quản lý tài khoản hệ thống & Khách hàng";
+    ViewData["Title"] = "Tài khoản";
     var formModel = ViewBag.FormModel as CoffeeShop.Models.ViewModels.InternalAccountCreateViewModel ?? new();
     var roles = ViewBag.Roles as List<CoffeeShop.Models.ViewModels.RoleOptionViewModel> ?? new();
-    var activeTab = Model.ActiveTab ?? "internal";
+    string RoleLabel(string name) => name switch
+    {
+        "Admin" => "Quản trị viên",
+        "NhanVien" or "Staff" => "Nhân viên",
+        "QuanLy" or "Manager" => "Quản lý",
+        _ => name
+    };
+    string RoleBadgeClass(string name) => name switch
+    {
+        "Admin" => "role-badge-admin",
+        "NhanVien" or "Staff" => "role-badge-staff",
+        _ => "role-badge-other"
+    };
 }
 
 <div class="welcome-row page-title-row">
     <div>
         <div class="eyebrow">HỆ THỐNG &amp; CRM</div>
-        <h1>Quản Lý Tài Khoản</h1>
-        <p class="page-subtitle">Quản trị toàn diện tài khoản quản trị viên, nhân viên và khách hàng thành viên.</p>
+        <h1>Tài khoản</h1>
+        <p class="page-subtitle">Quản lý tài khoản quản trị viên, quản lý và nhân viên.</p>
     </div>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" style="background: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; color: #a3e9b7;">
-        ✓ @TempData["Success"]
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert" style="background: rgba(220, 53, 69, 0.2); border: 1px solid #dc3545; color: #f8b4b9;">
-        ⚠ @TempData["Error"]
-    </div>
-}
 @if (!ViewData.ModelState.IsValid)
 {
     <div asp-validation-summary="All" class="alert alert-danger mb-4"></div>
 }
 
-<!-- HỆ THỐNG NAV-TABS CHUYỂN ĐỔI -->
-<div class="d-flex border-bottom mb-4" style="border-color: rgba(196, 155, 99, 0.3) !important; gap: 10px;">
-    <a asp-action="Index" asp-route-tab="internal" 
-       class="btn @(activeTab == "internal" ? "btn-primary font-weight-bold" : "btn-outline-primary") py-2 px-4" 
-       style="border-radius: 8px 8px 0 0; font-size: 14px;">
-         Tài Khoản Quản Trị &amp; Nhân Viên (@Model.InternalAccountCount)
-    </a>
-    <a asp-action="Index" asp-route-tab="customer" 
-       class="btn @(activeTab == "customer" ? "btn-primary font-weight-bold" : "btn-outline-primary") py-2 px-4" 
-       style="border-radius: 8px 8px 0 0; font-size: 14px;">
-         Tài Khoản Khách Hàng Thành Viên (@Model.CustomerAccountCount)
-    </a>
-</div>
-
-@if (activeTab == "internal")
-{
-    <section class="panel table-panel">
-            <div class="panel-heading table-heading">
+<section class="panel table-panel">
+            <div class="panel-heading table-heading account-table-heading">
                 <div>
                     <h2>Danh sách nhân sự &amp; quản trị</h2>
                     <p>Hiện có @Model.InternalAccountCount tài khoản trong hệ thống nội bộ.</p>
                 </div>
-                <button type="button" class="button button-primary" data-toggle="modal" data-target="#createInternalAccountModal">
-                    + Tạo tài khoản mới
-                </button>
+                <div class="account-table-tools">
+                    <input type="search" class="form-control account-search" data-account-search="internalAccountTable"
+                           placeholder="Tìm tên, vai trò, trạng thái..." aria-label="Tìm tài khoản nội bộ" />
+                    <button type="button" class="button button-primary" data-toggle="modal" data-target="#createInternalAccountModal">
+                        + Tạo tài khoản
+                    </button>
+                </div>
             </div>
             <div class="table-scroll">
-                <table class="data-table">
+                <table class="data-table" id="internalAccountTable">
                     <thead>
                         <tr>
                             <th>TÊN ĐĂNG NHẬP</th>
@@ -71,13 +59,14 @@
                     <tbody>
                         @foreach (var account in Model.InternalAccounts)
                         {
-                            <tr>
+                            var isCurrentAccount = string.Equals(account.TenDangNhap, User.Identity?.Name, StringComparison.OrdinalIgnoreCase);
+                            <tr data-search-row>
                                 <td class="order-id">
                                     <strong style="color: #c49b63;">@account.TenDangNhap</strong>
                                 </td>
                                 <td>@account.HoTen</td>
                                 <td>
-                                    <span class="badge badge-gold-outline">@account.TenVaiTro</span>
+                                    <span class="role-badge @RoleBadgeClass(account.TenVaiTro)">@RoleLabel(account.TenVaiTro)</span>
                                 </td>
                                 <td>
                                     <span class="status @(account.TrangThai ? "status-success" : "status-muted")">
@@ -85,13 +74,45 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <form asp-action="ToggleStatus" method="post" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái tài khoản @account.TenDangNhap?');">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@account.MaTaiKhoan" />
-                                        <button class="button button-small @(account.TrangThai ? "button-outline text-danger" : "button-primary")" type="submit">
-                                            @(account.TrangThai ? "Khóa" : "Mở khóa")
+                                    <div class="account-actions">
+                                        @if (!isCurrentAccount)
+                                        {
+                                            <form asp-action="ChangeRole" method="post" class="account-role-form">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@account.MaTaiKhoan" />
+                                                <select name="maVaiTro" aria-label="Vai trò của @account.TenDangNhap">
+                                                    @foreach (var role in roles)
+                                                    {
+                                                        <option value="@role.MaVaiTro" selected="@(role.TenVaiTro == account.TenVaiTro)">@RoleLabel(role.TenVaiTro)</option>
+                                                    }
+                                                </select>
+                                                <button class="button button-small button-outline" type="submit">Lưu quyền</button>
+                                            </form>
+                                            <form asp-action="ToggleStatus" method="post" onsubmit="return confirm('Bạn có chắc muốn @(account.TrangThai ? "khóa" : "mở khóa") tài khoản @account.TenDangNhap?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@account.MaTaiKhoan" />
+                                                <button class="button button-small @(account.TrangThai ? "button-outline text-danger" : "button-primary")" type="submit">
+                                                    @(account.TrangThai ? "Khóa" : "Mở khóa")
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="muted-cell">Tài khoản của bạn</span>
+                                        }
+                                        <button type="button" class="button button-small button-outline js-reset-account"
+                                                data-account-id="@account.MaTaiKhoan" data-account-name="@account.TenDangNhap">
+                                            Đặt lại mật khẩu
                                         </button>
-                                    </form>
+                                        @if (!isCurrentAccount)
+                                        {
+                                            <form asp-action="Delete" method="post" onsubmit="return confirm('Xóa vĩnh viễn tài khoản @account.TenDangNhap?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@account.MaTaiKhoan" />
+                                                <button class="button button-small button-outline text-danger" type="submit">Xóa</button>
+                                            </form>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -103,7 +124,7 @@
                 </table>
             </div>
     </section>
-    <partial name="_Pagination" model="ViewBag.Pagination" />
+<partial name="_Pagination" model="ViewBag.Pagination" />
 
     <div class="modal fade" id="createInternalAccountModal" tabindex="-1" role="dialog" aria-labelledby="createInternalAccountModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -122,7 +143,7 @@
                             <select name="MaVaiTro" required>
                                 @foreach (var role in roles)
                                 {
-                                    <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@role.TenVaiTro</option>
+                                    <option value="@role.MaVaiTro" selected="@(formModel.MaVaiTro == role.MaVaiTro)">@RoleLabel(role.TenVaiTro)</option>
                                 }
                             </select>
                         </label>
@@ -144,169 +165,43 @@
     {
         <script>$(function () { $("#createInternalAccountModal").modal("show"); });</script>
     }
-}
-else
-{
-    <!-- TAB 2: TÀI KHOẢN KHÁCH HÀNG (CRM) -->
-    <section class="panel table-panel">
-        <div class="panel-heading d-flex flex-wrap justify-content-between align-items-center">
-            <div>
-                <h2>Danh sách khách hàng thành viên</h2>
-                <p>Tổng cộng @Model.CustomerAccountCount khách hàng đã đăng ký và mua sắm.</p>
-            </div>
-            <div class="d-flex flex-wrap align-items-center" style="gap: 12px;">
-                <div class="p-2 px-3 rounded" style="background: rgba(196, 155, 99, 0.1); border: 1px solid rgba(196, 155, 99, 0.3);">
-                    <small class="text-muted d-block">Hoạt động:</small>
-                    <strong class="text-success">@Model.ActiveCustomerCount</strong>
-                </div>
-                <div class="p-2 px-3 rounded" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3);">
-                    <small class="text-muted d-block">Đã khóa:</small>
-                    <strong class="text-danger">@Model.LockedCustomerCount</strong>
-                </div>
-                <button type="button" class="button button-primary js-create-customer" data-url="@Url.Action("CreateCustomer")">
-                    + Thêm khách hàng
-                </button>
+
+    <div class="modal fade" id="resetAccountPasswordModal" tabindex="-1" role="dialog" aria-labelledby="resetAccountPasswordTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form asp-action="ResetPassword" method="post" class="dialog-form">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="resetAccountId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="resetAccountPasswordTitle">Đặt lại mật khẩu</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Đặt mật khẩu mới cho <strong id="resetAccountName"></strong>.</p>
+                        <label>Mật khẩu mới
+                            <input name="newPassword" type="password" minlength="8" maxlength="72" autocomplete="new-password" required />
+                        </label>
+                        <small class="muted-cell">Tối thiểu 8 ký tự. Mật khẩu sẽ được băm trước khi lưu.</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
+                        <button class="button button-primary" type="submit">Lưu mật khẩu</button>
+                    </div>
+                </form>
             </div>
         </div>
-
-        <div class="table-scroll">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>MÃ KH</th>
-                        <th>TÀI KHOẢN</th>
-                        <th>HỌ VÀ TÊN</th>
-                        <th>SỐ ĐIỆN THOẠI</th>
-                        <th>EMAIL</th>
-                        <th>ĐIỂM TÍCH LŨY</th>
-                        <th>HẠNG THẺ</th>
-                        <th>SỐ ĐƠN</th>
-                        <th>NGÀY THAM GIA</th>
-                        <th>TRẠNG THÁI</th>
-                        <th>THAO TÁC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var customer in Model.CustomerAccounts)
-                    {
-                        var tierBadgeClass = customer.HangTV switch
-                        {
-                            "Kim Cương" => "badge-info",
-                            "Vàng" => "badge-warning",
-                            "Bạc" => "badge-secondary",
-                            _ => "badge-gold-outline"
-                        };
-                        var tierIcon = customer.HangTV switch
-                        {
-                            "Kim Cương" => "💎",
-                            "Vàng" => "🥇",
-                            "Bạc" => "🥈",
-                            _ => "🥉"
-                        };
-
-                        <tr>
-                            <td class="order-id">
-                                <strong>#KH@customer.MaKH.ToString("D4")</strong>
-                            </td>
-                            <td>
-                                @(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "(Khách vãng lai)" : customer.TaiKhoan)
-                            </td>
-                            <td>
-                                <strong>@customer.HoTen</strong>
-                            </td>
-                            <td>@customer.Sdt</td>
-                            <td>@(string.IsNullOrWhiteSpace(customer.Email) ? "-" : customer.Email)</td>
-                            <td>
-                                <span class="font-weight-bold" style="color: #ffc107; font-size: 14px;">@customer.DiemTichLuy</span> pts
-                            </td>
-                            <td>
-                                <span class="badge @tierBadgeClass">@tierIcon @customer.HangTV</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-secondary">@customer.TotalOrders đơn</span>
-                            </td>
-                            <td>@customer.NgayTao.ToString("dd/MM/yyyy")</td>
-                            <td>
-                                <span class="status @(customer.TrangThai ? "status-success" : "status-muted")">
-                                    <i></i>@(customer.TrangThai ? "Hoạt động" : "Đã khóa")
-                                </span>
-                            </td>
-                            <td>
-                                <button type="button" class="button button-small button-outline js-edit-customer" data-url="@Url.Action("EditCustomer", new { id = customer.MaKH })">
-                                    Sửa
-                                </button>
-                                <form asp-action="ToggleCustomerStatus" method="post" onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái tài khoản khách hàng @customer.HoTen?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@customer.MaKH" />
-                                    <button class="button button-small @(customer.TrangThai ? "button-outline text-danger" : "button-primary")" type="submit">
-                                        @(customer.TrangThai ? "Khóa" : "Mở khóa")
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                    @if (!Model.CustomerAccounts.Any())
-                    {
-                        <tr><td colspan="11" class="text-center py-4 muted-cell">Chưa có khách hàng nào trong hệ thống.</td></tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </section>
-    <partial name="_Pagination" model="ViewBag.Pagination" />
-}
-
-<div class="modal fade" id="customerAccountModal" tabindex="-1" role="dialog" aria-hidden="true"></div>
-
+    </div>
 @section Scripts {
     <script>
         (function () {
-            const modal = $("#customerAccountModal");
-
-            async function loadCustomerForm(url) {
-                const response = await fetch(url, {
-                    headers: { "X-Requested-With": "XMLHttpRequest" }
+            document.querySelectorAll(".js-reset-account").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    document.getElementById("resetAccountId").value = button.dataset.accountId;
+                    document.getElementById("resetAccountName").textContent = button.dataset.accountName;
+                    $("#resetAccountPasswordModal").modal("show");
                 });
-                if (!response.ok) throw new Error("Không tải được biểu mẫu khách hàng.");
-                modal.html(await response.text()).modal("show");
-            }
-
-            document.addEventListener("click", async function (event) {
-                const button = event.target.closest(".js-edit-customer, .js-create-customer");
-                if (!button) return;
-                try {
-                    await loadCustomerForm(button.dataset.url);
-                } catch (error) {
-                    window.alert(error.message);
-                }
             });
 
-            $(document).on("submit", ".customer-edit-form", async function (event) {
-                event.preventDefault();
-                const form = event.currentTarget;
-                const submitButton = form.querySelector('button[type="submit"]');
-                submitButton.disabled = true;
-                try {
-                    const response = await fetch(form.action, {
-                        method: "POST",
-                        body: new FormData(form),
-                        headers: { "X-Requested-With": "XMLHttpRequest" }
-                    });
-                    if (!response.ok) throw new Error("Không thể lưu khách hàng. Vui lòng thử lại.");
-                    const contentType = response.headers.get("content-type") || "";
-                    if (contentType.includes("application/json")) {
-                        modal.modal("hide");
-                        window.location.reload();
-                        return;
-                    }
-                    modal.html(await response.text()).modal("show");
-                } catch (error) {
-                    window.alert(error.message);
-                    submitButton.disabled = false;
-                }
-            });
-
-            modal.on("hidden.bs.modal", function () { modal.empty(); });
         })();
     </script>
 }

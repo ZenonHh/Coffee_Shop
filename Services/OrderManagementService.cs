@@ -11,7 +11,11 @@ namespace CoffeeShop.Services
         public const string Confirmed = "Đã xác nhận";
         public const string Delivering = "Đang giao";
         public const string Completed = "Hoàn thành";
+        public const string LegacyCompleted = "Hoàn tất";
         public const string Cancelled = "Đã hủy";
+
+        public static string Canonicalize(string status) =>
+            status == LegacyCompleted ? Completed : status;
 
         public static bool CanConfirm(string status) => status == WaitingForConfirmation;
 

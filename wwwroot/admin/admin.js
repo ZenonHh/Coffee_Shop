@@ -26,13 +26,21 @@
         document.querySelectorAll('[data-search-row]').forEach(function (row) {
             var matchesQuery = row.textContent.toLocaleLowerCase('vi').includes(query);
             var matchesStatus = !status || !row.dataset.status || row.dataset.status === status;
-            row.hidden = !matchesQuery || !matchesStatus;
+            var table = row.closest('table');
+            var localSearch = table && Array.from(document.querySelectorAll('[data-account-search]'))
+                .find(function (input) { return input.dataset.accountSearch === table.id; });
+            var localQuery = localSearch ? localSearch.value.trim().toLocaleLowerCase('vi') : '';
+            var matchesLocalQuery = row.textContent.toLocaleLowerCase('vi').includes(localQuery);
+            row.hidden = !matchesQuery || !matchesStatus || !matchesLocalQuery;
         });
     }
 
     if (search) {
         search.addEventListener('input', filterRows);
     }
+    document.querySelectorAll('[data-account-search]').forEach(function (input) {
+        input.addEventListener('input', filterRows);
+    });
     function focusGlobalSearch() {
         if (!search) {
             return;

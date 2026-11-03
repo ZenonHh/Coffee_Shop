@@ -8,18 +8,12 @@ namespace CoffeeShop.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "NgayPhanHoiQuanTri",
-                table: "PhanHoi",
-                type: "datetime2",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "PhanHoiQuanTri",
-                table: "PhanHoi",
-                type: "nvarchar(2000)",
-                maxLength: 2000,
-                nullable: true);
+            migrationBuilder.Sql("""
+                IF COL_LENGTH(N'dbo.PhanHoi', N'NgayPhanHoiQuanTri') IS NULL
+                    ALTER TABLE [dbo].[PhanHoi] ADD [NgayPhanHoiQuanTri] datetime2 NULL;
+                IF COL_LENGTH(N'dbo.PhanHoi', N'PhanHoiQuanTri') IS NULL
+                    ALTER TABLE [dbo].[PhanHoi] ADD [PhanHoiQuanTri] nvarchar(2000) NULL;
+                """);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

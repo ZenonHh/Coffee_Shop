@@ -150,6 +150,78 @@ button {
 .side-link.active .side-icon {
   color: var(--coffee);
 }
+.side-badge {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #9c3d32;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-bottom: 1px solid #e8e1d9;
+}
+.admin-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px 8px 0 0;
+  color: #706b63;
+  font-weight: 600;
+}
+.admin-tab:hover,
+.admin-tab.active {
+  background: #f3ece4;
+  color: var(--coffee-dark);
+  text-decoration: none;
+}
+.tab-count {
+  display: inline-grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #9c3d32;
+  color: #fff;
+  font-size: 11px;
+}
+.rating-stars {
+  color: #b47b22;
+  white-space: nowrap;
+}
+.question-editor[draggable="true"] {
+  cursor: grab;
+}
+.feedback-filter label {
+  color: #4a443d;
+  font-size: 13px;
+  font-weight: 600;
+}
+#createSurveyForm label,
+#editSurveyForm label {
+  color: #e5ded7;
+  font-size: 13px;
+  font-weight: 600;
+}
+.feedback-filter .form-control,
+#createSurveyForm .form-control,
+#editSurveyForm .form-control {
+  min-height: 38px;
+  margin-top: 5px;
+  border-color: #ded7cf;
+  color: #322c26;
+}
 .side-caption-spaced {
   margin: 29px 0 11px;
 }
@@ -1969,6 +2041,237 @@ h1 > span {
   height: 54px;
   padding: 8px 14px;
   font-size: 11px;
+}
+.account-table-heading {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+}
+.account-table-tools {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+}
+.account-search {
+  width: 280px;
+  min-width: 180px;
+  min-height: 38px;
+  border: 1px solid #e8dfd6;
+  border-radius: 8px;
+  background: #fff;
+  color: #423a33;
+}
+.account-customer-tools {
+  gap: 9px;
+}
+.customer-search-form {
+  display: flex;
+  flex: 1 1 360px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.customer-search-form .account-search {
+  flex: 1 1 240px;
+  width: auto;
+}
+.account-customer-tools > .account-search {
+  width: 210px;
+}
+.account-customer-tools > div {
+  flex: 0 0 auto;
+  min-width: 75px;
+  padding: 8px 11px !important;
+}
+.account-customer-tools > .button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 290px;
+}
+.account-actions form {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+.account-role-form select {
+  min-height: 32px;
+  max-width: 130px;
+  padding: 4px 7px;
+  border: 1px solid #e6ddd4;
+  border-radius: 6px;
+  background: #fff;
+  color: #51463c;
+  font-size: 11px;
+}
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.role-badge-admin {
+  background: #f7e9da;
+  color: #74451f;
+}
+.role-badge-staff {
+  background: #e7f2eb;
+  color: #246746;
+}
+.role-badge-other {
+  background: #eeeaf4;
+  color: #5e4d7b;
+}
+.dashboard-crm-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 18px 20px;
+  border: 1px solid #eadfd3;
+  background: #fffaf6;
+}
+.dashboard-crm-summary h2 {
+  margin: 0 0 5px;
+  color: #5a4232;
+  font-size: 16px;
+}
+.dashboard-crm-heading {
+  width: 100%;
+}
+.dashboard-crm-summary strong {
+  color: var(--coffee);
+}
+.crm-segment-grid {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.crm-segment h3 {
+  margin: 0 0 10px;
+  color: #5a4232;
+  font-size: 14px;
+}
+.crm-segment-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) auto;
+  gap: 5px 12px;
+  margin-top: 9px;
+  color: #62574c;
+  font-size: 12px;
+}
+.crm-segment-row strong {
+  white-space: nowrap;
+}
+.crm-segment-row small {
+  color: #8e857b;
+  font-weight: 500;
+}
+.crm-segment-track {
+  grid-column: 1 / -1;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #eee7df;
+}
+.crm-segment-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--coffee);
+}
+.order-code-link,
+.dashboard-recent .text-primary {
+  color: var(--coffee) !important;
+}
+.order-status {
+  padding: 6px 9px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.order-status-waiting {
+  background: #fff2d6;
+  color: #86590b;
+}
+.order-status-confirmed {
+  background: #e8edf7;
+  color: #3f5681;
+}
+.order-status-delivering {
+  background: #f2e8dd;
+  color: #755336;
+}
+.order-status-completed {
+  background: #e4f2e9;
+  color: #286541;
+}
+.order-status-cancelled {
+  background: #f8e6e3;
+  color: #9a3e32;
+}
+.order-status-unknown {
+  background: #eeeae5;
+  color: #665c52;
+}
+.dashboard-recent .badge {
+  padding: 6px 9px;
+  font-size: 11px;
+}
+@media (max-width: 700px) {
+  .account-table-heading {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .account-search {
+    width: 100%;
+  }
+  .account-table-tools {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .account-customer-tools > .account-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .customer-search-form {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+  }
+  .customer-search-form .account-search {
+    flex: 1 1 100%;
+  }
+  .account-customer-tools > .button {
+    margin-left: auto;
+  }
+  .dashboard-crm-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .crm-segment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 701px) and (max-width: 1100px) {
+  .account-table-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .account-table-tools {
+    justify-content: flex-end;
+  }
 }
 .purchase-actions {
   white-space: normal;

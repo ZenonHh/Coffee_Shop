@@ -37,6 +37,9 @@ namespace CoffeeShop.Models.ViewModels
         [Display(Name = "Email")]
         public string? Email { get; set; }
 
+        [DataType(DataType.Date)]
+        public DateTime? NgaySinh { get; set; }
+
         [Required(ErrorMessage = "Vui lòng nhập mật khẩu")]
         [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
         [DataType(DataType.Password)]

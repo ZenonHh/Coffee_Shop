@@ -138,6 +138,10 @@ namespace CoffeeShop.Controllers
             model.Username = model.Username?.Trim() ?? string.Empty;
             model.Phone = model.Phone?.Trim() ?? string.Empty;
             model.Email = model.Email?.Trim();
+            if (model.NgaySinh?.Date > DateTime.Today)
+            {
+                ModelState.AddModelError(nameof(model.NgaySinh), "Ngày sinh không được ở tương lai.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -191,6 +195,7 @@ namespace CoffeeShop.Controllers
                     HoTen = model.FullName,
                     Sdt = model.Phone,
                     Email = model.Email,
+                    NgaySinh = model.NgaySinh?.Date,
                     HangTV = "Đồng",
                     DiemTichLuy = 0,
                     NgayTao = DateTime.Now

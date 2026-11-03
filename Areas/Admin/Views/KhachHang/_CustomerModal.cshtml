@@ -5,7 +5,7 @@
 
 <div class="modal-dialog" role="document">
     <div class="modal-content">
-        <form asp-action="@(isNewCustomer ? "CreateCustomer" : "EditCustomer")"
+        <form asp-area="Admin" asp-controller="KhachHang" asp-action="@(isNewCustomer ? "Create" : "Edit")"
               asp-route-id="@(isNewCustomer ? null : Model.MaKH)"
               method="post"
               class="customer-edit-form">
@@ -36,6 +36,11 @@
                     <label asp-for="Email">Email</label>
                     <input asp-for="Email" class="form-control" maxlength="100" type="email" />
                     <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="NgaySinh">Ngày sinh (tùy chọn)</label>
+                    <input asp-for="NgaySinh" class="form-control" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="NgaySinh" class="text-danger"></span>
                 </div>
                 <hr />
                 <div class="form-group">

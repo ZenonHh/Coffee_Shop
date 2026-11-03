@@ -3,12 +3,12 @@
     ViewData["Title"] = "Quản lý đơn hàng";
     string BadgeClass(string status) => status switch
     {
-        "Chờ xác nhận" => "badge-warning",
-        "Đã xác nhận" => "badge-info",
-        "Đang giao" => "badge-primary",
-        "Hoàn thành" => "badge-success",
-        "Đã hủy" => "badge-danger",
-        _ => "badge-secondary"
+        "Chờ xác nhận" => "order-status-waiting",
+        "Đã xác nhận" => "order-status-confirmed",
+        "Đang giao" => "order-status-delivering",
+        "Hoàn thành" => "order-status-completed",
+        "Đã hủy" => "order-status-cancelled",
+        _ => "order-status-unknown"
     };
 }
 
@@ -17,12 +17,12 @@
 </div>
 <div class="card stat-card mb-4">
     <div class="card-header bg-white d-flex flex-wrap align-items-center">
-        <a asp-action="Index" class="btn btn-sm @(string.IsNullOrEmpty(Model.SelectedStatus) ? "btn-primary" : "btn-outline-primary") mr-2 mb-1">Tất cả</a>
-        <a asp-action="Index" asp-route-status="Chờ xác nhận" class="btn btn-sm @(Model.SelectedStatus == "Chờ xác nhận" ? "btn-warning" : "btn-outline-warning") mr-2 mb-1">Chờ xác nhận</a>
-        <a asp-action="Index" asp-route-status="Đã xác nhận" class="btn btn-sm @(Model.SelectedStatus == "Đã xác nhận" ? "btn-info" : "btn-outline-info") mr-2 mb-1">Đã xác nhận</a>
-        <a asp-action="Index" asp-route-status="Đang giao" class="btn btn-sm @(Model.SelectedStatus == "Đang giao" ? "btn-primary" : "btn-outline-primary") mr-2 mb-1">Đang giao</a>
-        <a asp-action="Index" asp-route-status="Hoàn thành" class="btn btn-sm @(Model.SelectedStatus == "Hoàn thành" ? "btn-success" : "btn-outline-success") mr-2 mb-1">Hoàn thành</a>
-        <a asp-action="Index" asp-route-status="Đã hủy" class="btn btn-sm @(Model.SelectedStatus == "Đã hủy" ? "btn-danger" : "btn-outline-danger") mb-1">Đã hủy</a>
+        <a asp-action="Index" class="button button-small @(string.IsNullOrEmpty(Model.SelectedStatus) ? "button-primary" : "button-outline") mr-2 mb-1">Tất cả</a>
+        <a asp-action="Index" asp-route-status="Chờ xác nhận" class="button button-small @(Model.SelectedStatus == "Chờ xác nhận" ? "button-primary" : "button-outline") mr-2 mb-1">Chờ xác nhận</a>
+        <a asp-action="Index" asp-route-status="Đã xác nhận" class="button button-small @(Model.SelectedStatus == "Đã xác nhận" ? "button-primary" : "button-outline") mr-2 mb-1">Đã xác nhận</a>
+        <a asp-action="Index" asp-route-status="Đang giao" class="button button-small @(Model.SelectedStatus == "Đang giao" ? "button-primary" : "button-outline") mr-2 mb-1">Đang giao</a>
+        <a asp-action="Index" asp-route-status="Hoàn thành" class="button button-small @(Model.SelectedStatus == "Hoàn thành" ? "button-primary" : "button-outline") mr-2 mb-1">Hoàn thành</a>
+        <a asp-action="Index" asp-route-status="Đã hủy" class="button button-small @(Model.SelectedStatus == "Đã hủy" ? "button-primary" : "button-outline") mb-1">Đã hủy</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -40,7 +40,7 @@
                                 <td>
                                     <!-- RÊ CHUỘT VÀO HIỂN THỊ POP-UP VỀ ĐƠN HÀNG VÀ NÚT XEM CHI TIẾT -->
                                     <div class="order-hover-container">
-                                        <a asp-action="Details" asp-route-id="@order.MaHD" class="font-weight-bold text-primary" style="text-decoration: underline; font-size: 13px;">
+                                        <a asp-action="Details" asp-route-id="@order.MaHD" class="font-weight-bold order-code-link" style="text-decoration: underline; font-size: 13px;">
                                             @orderCode
                                         </a>
 
@@ -102,7 +102,7 @@
                                         <span class="badge badge-secondary">COD</span>
                                     }
                                 </td>
-                                <td><span class="badge @BadgeClass(order.TrangThai)">@order.TrangThai</span></td>
+                                <td><span class="badge order-status @BadgeClass(order.TrangThai)">@order.TrangThai</span></td>
                                 <td class="text-right text-nowrap">
                                     @if (order.TrangThai == "Chờ xác nhận"
                                         && !order.PhuongThucThanhToan.Contains("Đã thanh toán")

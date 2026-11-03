@@ -54,10 +54,16 @@ namespace CoffeeShop.Models.Entities
 
         public DateTime NgayKetThuc { get; set; }
 
+        [Required]
+        [MaxLength(20)]
+        public string DoiTuong { get; set; } = "TatCa";
+
         [ForeignKey("MaTaiKhoan")]
         public virtual Account? Account { get; set; }
 
         public virtual ICollection<SurveyQuestion> Questions { get; set; } = new List<SurveyQuestion>();
+        public virtual ICollection<SurveyAudienceCustomer> AudienceCustomers { get; set; } = new List<SurveyAudienceCustomer>();
+        public virtual ICollection<SurveyResponse> Responses { get; set; } = new List<SurveyResponse>();
     }
 
     [Table("CauHoiKhaoSat")]
@@ -73,10 +79,66 @@ namespace CoffeeShop.Models.Entities
         public string NoiDungCauHoi { get; set; } = string.Empty;
 
         [MaxLength(50)]
-        public string LoaiCauHoi { get; set; } = "TRAC_NGHIEM";
+        public string LoaiCauHoi { get; set; } = "SAO";
+
+        public int ThuTu { get; set; }
 
         [ForeignKey("MaKhaoSat")]
         public virtual Survey? Survey { get; set; }
+
+        public virtual ICollection<SurveyAnswer> Answers { get; set; } = new List<SurveyAnswer>();
+        public virtual ICollection<SurveyQuestionOption> Options { get; set; } = new List<SurveyQuestionOption>();
+    }
+
+    [Table("DapAnLuaChonKhaoSat")]
+    public class SurveyQuestionOption
+    {
+        [Key]
+        public int MaLuaChon { get; set; }
+
+        public int MaCauHoi { get; set; }
+
+        [Required]
+        [MaxLength(255)]
+        public string NoiDung { get; set; } = string.Empty;
+
+        public int ThuTu { get; set; }
+
+        [ForeignKey("MaCauHoi")]
+        public virtual SurveyQuestion? Question { get; set; }
+    }
+
+    [Table("DoiTuongKhaoSat")]
+    public class SurveyAudienceCustomer
+    {
+        public int MaKhaoSat { get; set; }
+
+        public int MaKH { get; set; }
+
+        [ForeignKey("MaKhaoSat")]
+        public virtual Survey? Survey { get; set; }
+
+        [ForeignKey("MaKH")]
+        public virtual Customer? Customer { get; set; }
+    }
+
+    [Table("LuotThamGiaKhaoSat")]
+    public class SurveyResponse
+    {
+        [Key]
+        public int MaLuotTraLoi { get; set; }
+
+        public int MaKhaoSat { get; set; }
+
+        public int MaKH { get; set; }
+
+        public DateTime NgayHoanThanh { get; set; } = DateTime.Now;
+
+        [ForeignKey("MaKhaoSat")]
+        public virtual Survey? Survey { get; set; }
+
+        [ForeignKey("MaKH")]
+        public virtual Customer? Customer { get; set; }
 
         public virtual ICollection<SurveyAnswer> Answers { get; set; } = new List<SurveyAnswer>();
     }
@@ -89,12 +151,17 @@ namespace CoffeeShop.Models.Entities
 
         public int MaCauHoi { get; set; }
 
+        public int? MaLuotTraLoi { get; set; }
+
         public string? NoiDungTraLoi { get; set; }
 
         public DateTime NgayTraLoi { get; set; } = DateTime.Now;
 
         [ForeignKey("MaCauHoi")]
         public virtual SurveyQuestion? Question { get; set; }
+
+        [ForeignKey("MaLuotTraLoi")]
+        public virtual SurveyResponse? Response { get; set; }
     }
 
     [Table("LienHe")]

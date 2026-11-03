@@ -26,6 +26,9 @@ namespace CoffeeShop.Data
         public DbSet<Survey> Surveys { get; set; } = null!;
         public DbSet<SurveyQuestion> SurveyQuestions { get; set; } = null!;
         public DbSet<SurveyAnswer> SurveyAnswers { get; set; } = null!;
+        public DbSet<SurveyQuestionOption> SurveyQuestionOptions { get; set; } = null!;
+        public DbSet<SurveyAudienceCustomer> SurveyAudienceCustomers { get; set; } = null!;
+        public DbSet<SurveyResponse> SurveyResponses { get; set; } = null!;
         public DbSet<Supplier> Suppliers { get; set; } = null!;
         public DbSet<Ingredient> Ingredients { get; set; } = null!;
         public DbSet<StaffMember> StaffMembers { get; set; } = null!;
@@ -123,6 +126,49 @@ namespace CoffeeShop.Data
                 .HasOne(o => o.Voucher)
                 .WithMany()
                 .HasForeignKey(o => o.MaVoucher)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SurveyAudienceCustomer>()
+                .HasKey(target => new { target.MaKhaoSat, target.MaKH });
+
+            modelBuilder.Entity<SurveyAudienceCustomer>()
+                .HasOne(target => target.Survey)
+                .WithMany(survey => survey.AudienceCustomers)
+                .HasForeignKey(target => target.MaKhaoSat)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SurveyAudienceCustomer>()
+                .HasOne(target => target.Customer)
+                .WithMany()
+                .HasForeignKey(target => target.MaKH)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SurveyQuestionOption>()
+                .HasOne(option => option.Question)
+                .WithMany(question => question.Options)
+                .HasForeignKey(option => option.MaCauHoi)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SurveyResponse>()
+                .HasIndex(response => new { response.MaKhaoSat, response.MaKH })
+                .IsUnique();
+
+            modelBuilder.Entity<SurveyResponse>()
+                .HasOne(response => response.Survey)
+                .WithMany(survey => survey.Responses)
+                .HasForeignKey(response => response.MaKhaoSat)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SurveyResponse>()
+                .HasOne(response => response.Customer)
+                .WithMany()
+                .HasForeignKey(response => response.MaKH)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SurveyAnswer>()
+                .HasOne(answer => answer.Response)
+                .WithMany(response => response.Answers)
+                .HasForeignKey(answer => answer.MaLuotTraLoi)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

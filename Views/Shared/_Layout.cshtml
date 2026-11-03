@@ -152,7 +152,9 @@
     </div>
 
     <!-- FLOATING SURVEY POPUP WIDGET -->
-    <div id="surveyPopupWidget">
+    @if (User.IsInRole("Customer"))
+    {
+    <div id="surveyPopupWidget" style="display:none">
         <div id="surveyPopupCard" class="survey-popup-card">
             <div class="survey-popup-header">
                 <h5>
@@ -182,6 +184,7 @@
             <span>Làm khảo sát ý kiến</span>
         </a>
     </div>
+    }
 
     <script src="~/js/jquery.min.js"></script>
     <script src="~/js/jquery-migrate-3.0.1.min.js"></script>
@@ -212,16 +215,20 @@
             updateCartBadge();
 
             // Khảo sát widget tương tác
+            var $popupWidget = $('#surveyPopupWidget');
             var $popupCard = $('#surveyPopupCard');
             var isSurveyPage = window.location.pathname.toLowerCase().indexOf('/survey') !== -1;
 
-            if (!isSurveyPage) {
+            if (!isSurveyPage && $popupWidget.length) {
                 // Tải thông tin khảo sát đang mở nếu có
                 $.get('/Survey/GetActiveSurvey', function(data) {
                     if (data && data.tieuDe) {
                         $('#surveyTitle').text(data.tieuDe);
                         if (data.moTa) {
                             $('#surveyDesc').text(data.moTa);
+                        }
+                        if (!sessionStorage.getItem('survey_dismissed')) {
+                            $popupWidget.fadeIn(300);
                         }
                     }
                 });
@@ -233,14 +240,6 @@
                     sessionStorage.setItem('survey_dismissed', 'true');
                 });
 
-                // Tự động gợi ý popup sau 5s
-                if (!sessionStorage.getItem('survey_dismissed')) {
-                    setTimeout(function() {
-                        if (!$popupCard.is(':visible')) {
-                            $popupCard.fadeIn(300);
-                        }
-                    }, 5000);
-                }
             } else {
                 $('#surveyPopupWidget').hide();
             }

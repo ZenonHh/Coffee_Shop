@@ -68,6 +68,9 @@ namespace CoffeeShop.Models.Entities
         [MaxLength(100)]
         public string? Email { get; set; }
 
+        [Column(TypeName = "date")]
+        public DateTime? NgaySinh { get; set; }
+
         public int DiemTichLuy { get; set; } = 0;
 
         [MaxLength(20)]
@@ -83,6 +86,35 @@ namespace CoffeeShop.Models.Entities
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
         public virtual ICollection<PointHistory> PointHistories { get; set; } = new List<PointHistory>();
         public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    }
+
+    public static class CustomerCrmOptions
+    {
+        public static IReadOnlyList<string> AgeGroups { get; } =
+            new[] { "Dưới 18", "18–24", "25–34", "35–44", "45 trở lên" };
+
+        public static string? GetAgeGroup(DateTime? birthDate, DateTime today)
+        {
+            if (!birthDate.HasValue || birthDate.Value.Date > today.Date)
+            {
+                return null;
+            }
+
+            var age = today.Year - birthDate.Value.Year;
+            if (birthDate.Value.Date > today.Date.AddYears(-age))
+            {
+                age--;
+            }
+
+            return age switch
+            {
+                < 18 => AgeGroups[0],
+                <= 24 => AgeGroups[1],
+                <= 34 => AgeGroups[2],
+                <= 44 => AgeGroups[3],
+                _ => AgeGroups[4]
+            };
+        }
     }
 
     [Table("LichSuDiem")]

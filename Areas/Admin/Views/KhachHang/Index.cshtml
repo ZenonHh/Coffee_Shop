@@ -1,0 +1,159 @@
+@model CoffeeShop.Models.ViewModels.CustomerManagementViewModel
+@{
+    ViewData["Title"] = "Khách hàng";
+}
+
+<div class="welcome-row page-title-row">
+    <div>
+        <div class="eyebrow">HỆ THỐNG &amp; CRM</div>
+        <h1>Khách hàng</h1>
+        <p class="page-subtitle">Quản lý hồ sơ, tài khoản và trạng thái thành viên.</p>
+    </div>
+</div>
+
+<section class="panel table-panel">
+    <div class="panel-heading account-table-heading">
+        <div>
+            <h2>Danh sách khách hàng</h2>
+            <p>Tổng cộng @Model.CustomerAccountCount khách hàng; @Model.ActiveCustomerCount đang hoạt động, @Model.LockedCustomerCount đã khóa.</p>
+        </div>
+        <div class="account-table-tools account-customer-tools">
+            <form asp-area="Admin" asp-controller="KhachHang" asp-action="Index" method="get" class="customer-search-form" role="search">
+                <input type="search" name="search" value="@Model.Search" class="form-control account-search"
+                       placeholder="Tìm tên, tài khoản, email, số điện thoại..." aria-label="Tìm khách hàng" />
+                <button type="submit" class="button button-outline">Tìm kiếm</button>
+            </form>
+            <button type="button" class="button button-primary js-create-customer" data-url="@Url.Action("Create", "KhachHang", new { area = "Admin" })">
+                + Thêm khách hàng
+            </button>
+        </div>
+    </div>
+
+    <div class="table-scroll">
+        <table class="data-table" id="customerTable">
+            <thead>
+                <tr>
+                    <th>MÃ KH</th>
+                    <th>TÀI KHOẢN</th>
+                    <th>HỌ VÀ TÊN</th>
+                    <th>SỐ ĐIỆN THOẠI</th>
+                    <th>EMAIL</th>
+                    <th>ĐIỂM TÍCH LŨY</th>
+                    <th>HẠNG THẺ</th>
+                    <th>SỐ ĐƠN</th>
+                    <th>NGÀY THAM GIA</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model.Customers)
+                {
+                    var tierBadgeClass = customer.HangTV switch
+                    {
+                        "Kim Cương" => "badge-info",
+                        "Vàng" => "badge-warning",
+                        "Bạc" => "badge-secondary",
+                        _ => "badge-gold-outline"
+                    };
+                    var tierIcon = customer.HangTV switch
+                    {
+                        "Kim Cương" => "💎",
+                        "Vàng" => "🥇",
+                        "Bạc" => "🥈",
+                        _ => "🥉"
+                    };
+                    <tr>
+                        <td class="order-id"><strong>#KH@(customer.MaKH.ToString("D4"))</strong></td>
+                        <td>@(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "(Khách vãng lai)" : customer.TaiKhoan)</td>
+                        <td><strong>@customer.HoTen</strong></td>
+                        <td>@customer.Sdt</td>
+                        <td>@(string.IsNullOrWhiteSpace(customer.Email) ? "-" : customer.Email)</td>
+                        <td><span class="font-weight-bold" style="color: #ffc107; font-size: 14px;">@customer.DiemTichLuy</span> pts</td>
+                        <td><span class="badge @tierBadgeClass">@tierIcon @customer.HangTV</span></td>
+                        <td><span class="badge badge-secondary">@customer.TotalOrders đơn</span></td>
+                        <td>@customer.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="status @(customer.TrangThai ? "status-success" : "status-muted")">
+                                <i></i>@(customer.TrangThai ? "Hoạt động" : "Đã khóa")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="account-actions">
+                                <button type="button" class="button button-small button-outline js-edit-customer"
+                                        data-url="@Url.Action("Edit", "KhachHang", new { area = "Admin", id = customer.MaKH })">Sửa</button>
+                                <form asp-area="Admin" asp-controller="KhachHang" asp-action="ToggleStatus" method="post"
+                                      onsubmit="return confirm('Bạn có chắc muốn đổi trạng thái tài khoản khách hàng @customer.HoTen?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@customer.MaKH" />
+                                    <button class="button button-small @(customer.TrangThai ? "button-outline text-danger" : "button-primary")" type="submit">
+                                        @(customer.TrangThai ? "Khóa" : "Mở khóa")
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Customers.Any())
+                {
+                    <tr><td colspan="11" class="text-center py-4 muted-cell">Không tìm thấy khách hàng phù hợp.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<partial name="_Pagination" model="ViewBag.Pagination" />
+<div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-hidden="true"></div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const modal = $("#customerModal");
+
+            async function loadCustomerForm(url) {
+                const response = await fetch(url, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                if (!response.ok) throw new Error("Không tải được biểu mẫu khách hàng.");
+                modal.html(await response.text()).modal("show");
+            }
+
+            document.addEventListener("click", async function (event) {
+                const button = event.target.closest(".js-edit-customer, .js-create-customer");
+                if (!button) return;
+                try {
+                    await loadCustomerForm(button.dataset.url);
+                } catch (error) {
+                    window.alert(error.message);
+                }
+            });
+
+            $(document).on("submit", ".customer-edit-form", async function (event) {
+                event.preventDefault();
+                const form = event.currentTarget;
+                const submitButton = form.querySelector('button[type="submit"]');
+                submitButton.disabled = true;
+                try {
+                    const response = await fetch(form.action, {
+                        method: "POST",
+                        body: new FormData(form),
+                        headers: { "X-Requested-With": "XMLHttpRequest" }
+                    });
+                    if (!response.ok) throw new Error("Không thể lưu khách hàng. Vui lòng thử lại.");
+                    if ((response.headers.get("content-type") || "").includes("application/json")) {
+                        modal.modal("hide");
+                        window.location.reload();
+                        return;
+                    }
+                    modal.html(await response.text()).modal("show");
+                } catch (error) {
+                    window.alert(error.message);
+                    submitButton.disabled = false;
+                }
+            });
+
+            modal.on("hidden.bs.modal", function () { modal.empty(); });
+        })();
+    </script>
+}

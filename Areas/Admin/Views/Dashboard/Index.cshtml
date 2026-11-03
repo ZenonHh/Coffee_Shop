@@ -1,15 +1,24 @@
 @model CoffeeShop.Models.ViewModels.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Bảng điều khiển";
+    string OrderStatusClass(string status) => status switch
+    {
+        CoffeeShop.Services.OrderStatuses.WaitingForConfirmation => "order-status-waiting",
+        CoffeeShop.Services.OrderStatuses.Confirmed => "order-status-confirmed",
+        CoffeeShop.Services.OrderStatuses.Delivering => "order-status-delivering",
+        CoffeeShop.Services.OrderStatuses.Completed => "order-status-completed",
+        CoffeeShop.Services.OrderStatuses.Cancelled => "order-status-cancelled",
+        _ => "order-status-unknown"
+    };
 }
 
-<!-- Thống kê Card -->
+<!-- Số liệu cần theo dõi -->
 <div class="row mb-4 dashboard-overview">
     <div class="col-md-3">
         <div class="card stat-card dashboard-card dashboard-card-revenue p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-uppercase small mb-1">Tổng Doanh Thu</h6>
+                    <h6 class="text-uppercase small mb-1">Tổng doanh thu</h6>
                     <h3 class="font-weight-bold mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
                 </div>
                 <i class="fas fa-money-bill-wave fa-2x opacity-50"></i>
@@ -20,10 +29,10 @@
         <div class="card stat-card dashboard-card dashboard-card-orders p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-uppercase small mb-1">Tổng Đơn Hàng</h6>
-                    <h3 class="font-weight-bold mb-0">@Model.TotalOrders</h3>
+                    <h6 class="text-uppercase small mb-1">Đơn chờ xác nhận</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.PendingOrderCount</h3>
                 </div>
-                <i class="fas fa-receipt fa-2x opacity-50"></i>
+                <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
             </div>
         </div>
     </div>
@@ -31,10 +40,10 @@
         <div class="card stat-card dashboard-card dashboard-card-customers p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-uppercase small mb-1">Khách Hàng</h6>
-                    <h3 class="font-weight-bold mb-0">@Model.TotalCustomers</h3>
+                    <h6 class="text-uppercase small mb-1">Phản hồi chưa xử lý</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.UnprocessedFeedbackCount</h3>
                 </div>
-                <i class="fas fa-users fa-2x opacity-50"></i>
+                <i class="fas fa-inbox fa-2x opacity-50"></i>
             </div>
         </div>
     </div>
@@ -42,33 +51,91 @@
         <div class="card stat-card dashboard-card dashboard-card-products p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-uppercase small mb-1">Món Uống Đang Bán</h6>
-                    <h3 class="font-weight-bold mb-0">@Model.TotalProducts</h3>
+                    <h6 class="text-uppercase small mb-1">Khảo sát đang mở</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.ActiveSurveyCount</h3>
                 </div>
-                <i class="fas fa-coffee fa-2x opacity-50"></i>
+                <i class="fas fa-poll fa-2x opacity-50"></i>
             </div>
         </div>
     </div>
 </div>
 
+<section class="panel mb-4 dashboard-crm-summary">
+    <div class="dashboard-crm-heading">
+        <h2>Thống kê chăm sóc khách hàng</h2>
+        <p class="page-subtitle mb-0">
+            Mức độ hài lòng trung bình:
+            @if (Model.RatedFeedbackCount > 0)
+            {
+                <strong>@Model.AverageSatisfaction.ToString("0.0")/5</strong>
+                <span>từ @Model.RatedFeedbackCount lượt đánh giá có chấm điểm.</span>
+            }
+            else
+            {
+                <span>Chưa có đánh giá được chấm điểm.</span>
+            }
+        </p>
+    </div>
+    <div class="crm-segment-grid">
+        <div class="crm-segment">
+            <h3>Độ tuổi</h3>
+            @if (Model.AgeGroupStats.Sum(item => item.Count) == 0)
+            {
+                <p class="muted-cell">Chưa có ngày sinh để thống kê nhóm tuổi.</p>
+            }
+            else
+            {
+                @foreach (var segment in Model.AgeGroupStats)
+                {
+                    var width = segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+                    <div class="crm-segment-row">
+                        <span>@segment.Label</span>
+                        <strong>@segment.Percentage.ToString("0.#")% <small>(@segment.Count)</small></strong>
+                        <div class="crm-segment-track"><span style="width: @(width)%"></span></div>
+                    </div>
+                }
+            }
+        </div>
+        <div class="crm-segment">
+            <h3>Sở thích</h3>
+            @if (Model.InterestStats.Sum(item => item.Count) == 0)
+            {
+                <p class="muted-cell">Chưa có đơn hoàn thành để thống kê sở thích theo sản phẩm đã mua.</p>
+            }
+            else
+            {
+                @foreach (var segment in Model.InterestStats)
+                {
+                    var width = segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+                    <div class="crm-segment-row">
+                        <span>@segment.Label</span>
+                        <strong>@segment.Percentage.ToString("0.#")% <small>(@segment.Count)</small></strong>
+                        <div class="crm-segment-track"><span style="width: @(width)%"></span></div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
 <!-- Đơn hàng gần đây -->
 <div class="card stat-card dashboard-recent mb-4">
     <div class="card-header dashboard-card-header font-weight-bold d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-list-alt text-primary mr-2"></i> Đơn Hàng Mới Nhất</span>
-        <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-primary">Xem tất cả đơn &rarr;</a>
+        <span><i class="fas fa-list-alt mr-2"></i> Đơn hàng mới nhất</span>
+        <a asp-controller="Orders" asp-action="Index" class="button button-small button-outline">Xem tất cả đơn &rarr;</a>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="thead-light">
                     <tr>
-                        <th>Mã Đơn</th>
-                        <th>Khách Hàng</th>
-                        <th>Số Điện Thoại</th>
-                        <th>Địa Chỉ Nhận</th>
-                        <th>Tổng Tiền</th>
-                        <th>Thời Gian</th>
-                        <th>Trạng Thái</th>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Địa chỉ nhận</th>
+                        <th>Tổng tiền</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,18 +151,7 @@
                                 <td class="text-primary font-weight-bold">@order.TongTien.ToString("N0") đ</td>
                                 <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>
-                                    @if (order.TrangThai == "Hoàn thành")
-                                    {
-                                        <span class="badge badge-success">@order.TrangThai</span>
-                                    }
-                                    else if (order.TrangThai == "Đã hủy")
-                                    {
-                                        <span class="badge badge-danger">@order.TrangThai</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-warning">@order.TrangThai</span>
-                                    }
+                                    <span class="badge order-status @OrderStatusClass(order.TrangThai)">@order.TrangThai</span>
                                 </td>
                             </tr>
                         }

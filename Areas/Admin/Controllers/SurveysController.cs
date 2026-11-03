@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
@@ -9,165 +8,376 @@ using CoffeeShop.Models.ViewModels;
 namespace CoffeeShop.Areas.Admin.Controllers;
 
 [Area("Admin")]
+[Route("Admin/[controller]")]
 [Authorize(Roles = "Admin,Staff,NhanVien")]
 public class SurveysController : Controller
 {
-    private readonly CoffeeShopDbContext _context;
-    public SurveysController(CoffeeShopDbContext context) => _context = context;
-
-    public IActionResult Index(int? editId)
+    private static readonly HashSet<string> QuestionTypes = new(StringComparer.Ordinal)
     {
-        return RedirectToAction("Index", "CustomerCare", new { area = "Admin", editId });
+        "SAO", "TU_LUAN", "MOT_LUA_CHON", "NHIEU_LUA_CHON"
+    };
+
+    private readonly CoffeeShopDbContext _context;
+
+    public SurveysController(CoffeeShopDbContext context)
+    {
+        _context = context;
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Survey survey, List<string>? questionContent, List<string>? questionType)
+    [HttpGet("")]
+    [HttpGet("Index")]
+    public async Task<IActionResult> Index(int page = 1, int? resultId = null, int? editId = null)
     {
-        Normalize(survey);
-        if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return await InvalidForm(survey);
-        survey.MaTaiKhoan = await CurrentAccountId();
+        const int pageSize = 10;
+        var totalCount = await _context.Surveys.CountAsync();
+        page = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize)));
+        var model = await BuildIndexModel(page, pageSize, resultId, editId);
+        if (model.EditingSurvey) ViewBag.OpenCreateModal = true;
+        ViewBag.Pagination = new PaginationViewModel
+        {
+            PageNumber = page,
+            PageSize = pageSize,
+            TotalCount = totalCount,
+            PageParameter = "page"
+        };
+        ViewData["Title"] = "Quản lý khảo sát";
+        return View(model);
+    }
+
+    [HttpPost("CreateSurvey")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateSurvey(SurveyEditorViewModel editor)
+    {
+        ValidateEditor(editor, requireQuestions: true);
+        var targetCustomers = await ValidateAudience(editor);
+        if (!ModelState.IsValid)
+        {
+            ViewBag.OpenCreateModal = true;
+            ViewBag.FormError = "Vui lòng kiểm tra thông tin khảo sát, thời gian, đối tượng và câu hỏi.";
+            ViewBag.Pagination = new PaginationViewModel { PageNumber = 1, PageSize = 10, TotalCount = await _context.Surveys.CountAsync(), PageParameter = "page" };
+            ViewData["Title"] = "Quản lý khảo sát";
+            return View("Index", await BuildIndexModel(1, 10, editor: editor));
+        }
+
+        var survey = new Survey
+        {
+            MaTaiKhoan = int.TryParse(User.FindFirst("AccountId")?.Value, out var accountId) ? accountId : 0,
+            TieuDe = editor.TieuDe.Trim(),
+            MoTa = string.IsNullOrWhiteSpace(editor.MoTa) ? null : editor.MoTa.Trim(),
+            NgayBatDau = editor.NgayBatDau,
+            NgayKetThuc = editor.NgayKetThuc,
+            DoiTuong = editor.DoiTuong,
+            AudienceCustomers = targetCustomers.Select(customer => new SurveyAudienceCustomer { MaKH = customer }).ToList(),
+            Questions = editor.Questions.Select((question, index) => new SurveyQuestion
+            {
+                NoiDungCauHoi = question.NoiDung.Trim(),
+                LoaiCauHoi = question.Loai,
+                ThuTu = index + 1,
+                Options = question.Loai is "MOT_LUA_CHON" or "NHIEU_LUA_CHON"
+                    ? question.LuaChon.Where(option => !string.IsNullOrWhiteSpace(option))
+                        .Select((option, optionIndex) => new SurveyQuestionOption
+                        {
+                            NoiDung = option.Trim(),
+                            ThuTu = optionIndex + 1
+                        }).ToList()
+                    : new List<SurveyQuestionOption>()
+            }).ToList()
+        };
+
         _context.Surveys.Add(survey);
         await _context.SaveChangesAsync();
+        TempData["Success"] = "Đã tạo khảo sát.";
+        return RedirectToAction(nameof(Index));
+    }
 
-        // Thêm các câu hỏi chi tiết nếu có
-        if (questionContent != null && questionContent.Any())
+    [HttpPost("EditSurvey")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditSurvey(SurveyEditorViewModel editor)
+    {
+        var survey = await _context.Surveys
+            .Include(item => item.Questions).ThenInclude(question => question.Answers)
+            .Include(item => item.AudienceCustomers)
+            .FirstOrDefaultAsync(item => item.MaKhaoSat == editor.MaKhaoSat);
+        if (survey == null) return NotFound();
+        var hasResponses = await _context.SurveyResponses.AnyAsync(response => response.MaKhaoSat == survey.MaKhaoSat)
+            || survey.Questions.Any(question => question.Answers.Count > 0);
+        if (editor.OnlyMetadata)
         {
-            for (int i = 0; i < questionContent.Count; i++)
+            ValidateEditor(editor, requireQuestions: false);
+        }
+        else
+        {
+            ValidateEditor(editor, requireQuestions: true);
+            await ValidateAudience(editor);
+            if (hasResponses)
             {
-                var text = questionContent[i]?.Trim();
-                if (!string.IsNullOrWhiteSpace(text))
-                {
-                    var type = (questionType != null && i < questionType.Count && !string.IsNullOrWhiteSpace(questionType[i])) 
-                        ? questionType[i].Trim() 
-                        : "TRAC_NGHIEM";
-
-                    _context.SurveyQuestions.Add(new SurveyQuestion
-                    {
-                        MaKhaoSat = survey.MaKhaoSat,
-                        NoiDungCauHoi = text,
-                        LoaiCauHoi = type
-                    });
-                }
+                TempData["Error"] = "Khảo sát đã có câu trả lời; không thể sửa câu hỏi hoặc đối tượng nhận.";
+                return RedirectToAction(nameof(Index));
             }
-            await _context.SaveChangesAsync();
         }
-
-        TempData["Success"] = "Đã tạo khảo sát chi tiết thành công.";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Survey survey)
-    {
-        var existing = await _context.Surveys.FindAsync(survey.MaKhaoSat);
-        if (existing == null) return NotFound();
-        Normalize(survey);
-        if (!ModelState.IsValid || survey.NgayKetThuc <= survey.NgayBatDau) return await InvalidForm(survey);
-        existing.TieuDe = survey.TieuDe; existing.MoTa = survey.MoTa; existing.NgayBatDau = survey.NgayBatDau; existing.NgayKetThuc = survey.NgayKetThuc;
-        await _context.SaveChangesAsync();
-        TempData["Success"] = "Đã cập nhật khảo sát.";
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var survey = await _context.Surveys.FindAsync(id);
-        if (survey != null) { _context.Surveys.Remove(survey); await _context.SaveChangesAsync(); TempData["Success"] = "Đã xóa khảo sát."; }
-        return RedirectToAction(nameof(Index));
-    }
-
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddQuestion(int surveyId, string content, string type = "TRAC_NGHIEM")
-    {
-        if (!string.IsNullOrWhiteSpace(content) && await _context.Surveys.AnyAsync(s => s.MaKhaoSat == surveyId))
+        if (!ModelState.IsValid)
         {
-            _context.SurveyQuestions.Add(new SurveyQuestion { MaKhaoSat = surveyId, NoiDungCauHoi = content.Trim(), LoaiCauHoi = type });
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Đã thêm câu hỏi.";
+            ViewBag.OpenCreateModal = true;
+            ViewBag.FormError = "Vui lòng kiểm tra thông tin khảo sát, thời gian, đối tượng và câu hỏi.";
+            ViewBag.Pagination = new PaginationViewModel { PageNumber = 1, PageSize = 10, TotalCount = await _context.Surveys.CountAsync(), PageParameter = "page" };
+            ViewData["Title"] = "Quản lý khảo sát";
+            return View("Index", await BuildIndexModel(1, 10, editor: editor));
         }
-        return RedirectToAction(nameof(Index), new { editId = surveyId });
+
+        survey.TieuDe = editor.TieuDe.Trim();
+        survey.MoTa = string.IsNullOrWhiteSpace(editor.MoTa) ? null : editor.MoTa.Trim();
+        survey.NgayBatDau = editor.NgayBatDau;
+        survey.NgayKetThuc = editor.NgayKetThuc;
+        if (!editor.OnlyMetadata)
+        {
+            _context.SurveyAudienceCustomers.RemoveRange(survey.AudienceCustomers);
+            survey.AudienceCustomers = editor.DoiTuong == "TatCa"
+                ? new List<SurveyAudienceCustomer>()
+                : editor.MaKH.Distinct().Select(customerId => new SurveyAudienceCustomer { MaKH = customerId }).ToList();
+
+            _context.SurveyQuestions.RemoveRange(survey.Questions);
+            survey.Questions = BuildQuestions(editor);
+        }
+        await _context.SaveChangesAsync();
+        TempData["Success"] = editor.OnlyMetadata
+            ? "Đã cập nhật thông tin khảo sát."
+            : "Đã cập nhật khảo sát và danh sách câu hỏi.";
+        return RedirectToAction(nameof(Index));
     }
 
-    [HttpPost, ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteQuestion(int id, int surveyId)
+    [HttpPost("DeleteSurvey")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSurvey(int id)
     {
-        var question = await _context.SurveyQuestions.FindAsync(id);
-        if (question != null) { _context.SurveyQuestions.Remove(question); await _context.SaveChangesAsync(); }
-        return RedirectToAction(nameof(Index), new { editId = surveyId });
+        var survey = await _context.Surveys
+            .Include(item => item.Questions)
+            .FirstOrDefaultAsync(item => item.MaKhaoSat == id);
+        if (survey == null) return NotFound();
+
+        var questionIds = survey.Questions.Select(question => question.MaCauHoi).ToList();
+        var answers = await _context.SurveyAnswers.Where(answer => questionIds.Contains(answer.MaCauHoi)).ToListAsync();
+        var responses = await _context.SurveyResponses.Where(response => response.MaKhaoSat == id).ToListAsync();
+        _context.SurveyAnswers.RemoveRange(answers);
+        _context.SurveyResponses.RemoveRange(responses);
+        _context.Surveys.Remove(survey);
+        await _context.SaveChangesAsync();
+        TempData["Success"] = "Đã xóa khảo sát và các dữ liệu trả lời liên quan.";
+        return RedirectToAction(nameof(Index));
     }
 
-    private Task<List<SurveyListItemViewModel>> GetSurveyListAsync(int page = 1, int pageSize = 10) => _context.Surveys
-        .AsNoTracking()
-        .OrderByDescending(survey => survey.NgayBatDau)
-        .Skip((page - 1) * pageSize)
-        .Take(pageSize)
-        .Select(survey => new SurveyListItemViewModel
+    private async Task<SurveyAdminIndexViewModel> BuildIndexModel(
+        int page,
+        int pageSize,
+        int? resultId = null,
+        int? editId = null,
+        SurveyEditorViewModel? editor = null)
+    {
+        var surveys = await _context.Surveys.AsNoTracking()
+            .OrderByDescending(survey => survey.NgayBatDau)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(survey => new SurveyListItemViewModel
+            {
+                MaKhaoSat = survey.MaKhaoSat,
+                TieuDe = survey.TieuDe,
+                MoTa = survey.MoTa,
+                NgayBatDau = survey.NgayBatDau,
+                NgayKetThuc = survey.NgayKetThuc,
+                DoiTuong = survey.DoiTuong == "TatCa" ? "Tất cả khách hàng" : "Khách hàng được chọn",
+                AnswerCount = survey.Responses.Count,
+                QuestionCount = survey.Questions.Count,
+                HasResponses = survey.Responses.Any() || survey.Questions.Any(question => question.Answers.Any())
+            })
+            .ToListAsync();
+
+        var editingSurvey = editor?.MaKhaoSat > 0 ? editor : editId.HasValue ? await GetEditor(editId.Value) : null;
+        var model = new SurveyAdminIndexViewModel
+        {
+            Surveys = surveys,
+            Customers = await _context.Customers.AsNoTracking()
+                .Where(customer => customer.TrangThai)
+                .OrderBy(customer => customer.HoTen)
+                .Select(customer => new SurveyCustomerOptionViewModel
+                {
+                    MaKH = customer.MaKH,
+                    HoTen = customer.HoTen,
+                    TaiKhoan = customer.TaiKhoan
+                })
+                .ToListAsync(),
+            Editor = editingSurvey ?? new SurveyEditorViewModel
+            {
+                NgayBatDau = DateTime.Now,
+                NgayKetThuc = DateTime.Now.AddDays(7),
+                Questions = new List<SurveyQuestionEditorViewModel>
+                {
+                    new() { Loai = "SAO" },
+                    new() { Loai = "TU_LUAN" }
+                }
+            },
+            EditingSurvey = editingSurvey?.MaKhaoSat > 0
+        };
+
+        if (resultId.HasValue)
+        {
+            model.Results = await BuildResult(resultId.Value);
+        }
+        return model;
+    }
+
+    private async Task<SurveyEditorViewModel?> GetEditor(int surveyId)
+    {
+        var survey = await _context.Surveys.AsNoTracking()
+            .Include(item => item.Questions).ThenInclude(question => question.Options)
+            .Include(item => item.AudienceCustomers)
+            .FirstOrDefaultAsync(item => item.MaKhaoSat == surveyId);
+        if (survey == null) return null;
+        return new SurveyEditorViewModel
         {
             MaKhaoSat = survey.MaKhaoSat,
             TieuDe = survey.TieuDe,
             MoTa = survey.MoTa,
             NgayBatDau = survey.NgayBatDau,
             NgayKetThuc = survey.NgayKetThuc,
-            AnswerCount = survey.Questions.SelectMany(question => question.Answers).Count(),
-            Questions = survey.Questions.Select(question => new SurveyQuestionListItemViewModel
-            {
-                MaCauHoi = question.MaCauHoi,
-                NoiDungCauHoi = question.NoiDungCauHoi,
-                LoaiCauHoi = question.LoaiCauHoi,
-                Answers = new SurveyAnswerCountViewModel { Count = question.Answers.Count },
-                RecentAnswers = question.Answers
-                    .OrderByDescending(a => a.NgayTraLoi)
-                    .Take(15)
-                    .Select(a => new SurveyAnswerDetailViewModel
-                    {
-                        MaCauTraLoi = a.MaCauTraLoi,
-                        NoiDungTraLoi = a.NoiDungTraLoi,
-                        NgayTraLoi = a.NgayTraLoi
-                    }).ToList()
-            }).ToList()
-        })
-        .ToListAsync();
-
-    private Task<int> CurrentAccountId()
-    {
-        return Task.FromResult(int.TryParse(User.FindFirstValue("AccountId"), out var accountId) ? accountId : 0);
-    }
-
-    private async Task<IActionResult> InvalidForm(Survey survey)
-    {
-        ViewBag.EditSurvey = survey.MaKhaoSat > 0 ? survey : null;
-        ViewBag.FormError = "Vui lòng kiểm tra tiêu đề và thời gian khảo sát.";
-        const int pageSize = 10;
-        var surveyCount = await _context.Surveys.CountAsync();
-        var reviewCount = await _context.Feedbacks.CountAsync();
-        var unansweredCount = await _context.Feedbacks.CountAsync(feedback =>
-            feedback.PhanHoiQuanTri == null || feedback.PhanHoiQuanTri == "");
-        ViewBag.ActiveTab = "surveys";
-        ViewBag.SurveyCount = surveyCount;
-        ViewBag.ActiveSurveyCount = await _context.Surveys.CountAsync(item =>
-            item.NgayBatDau <= DateTime.Now && item.NgayKetThuc >= DateTime.Now);
-        ViewBag.TotalContacts = await _context.ContactMessages.CountAsync();
-        ViewBag.UnprocessedCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Chưa xử lý");
-        ViewBag.ProcessedContactCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Đã xử lý");
-        ViewBag.ReviewCount = reviewCount;
-        ViewBag.UnansweredReviewsCount = unansweredCount;
-        ViewBag.AnsweredReviewsCount = reviewCount - unansweredCount;
-        ViewBag.Pagination = new PaginationViewModel
-        {
-            PageNumber = 1,
-            PageSize = pageSize,
-            TotalCount = surveyCount,
-            PageParameter = "surveyPage"
+            DoiTuong = survey.DoiTuong,
+            MaKH = survey.AudienceCustomers.Select(target => target.MaKH).ToList(),
+            Questions = survey.Questions.OrderBy(question => question.ThuTu)
+                .Select(question => new SurveyQuestionEditorViewModel
+                {
+                    NoiDung = question.NoiDungCauHoi,
+                    Loai = question.LoaiCauHoi,
+                    LuaChon = question.Options.OrderBy(option => option.ThuTu)
+                        .Select(option => option.NoiDung).ToList()
+                }).ToList()
         };
-        ViewBag.ContactMessages = new List<ContactMessage>();
-        ViewBag.Feedbacks = new List<Feedback>();
-        return View("Index", await GetSurveyListAsync(1, pageSize));
     }
 
-    private static void Normalize(Survey survey)
+    private static List<SurveyQuestion> BuildQuestions(SurveyEditorViewModel editor) =>
+        editor.Questions.Select((question, index) => new SurveyQuestion
+        {
+            NoiDungCauHoi = question.NoiDung.Trim(),
+            LoaiCauHoi = question.Loai,
+            ThuTu = index + 1,
+            Options = question.Loai is "MOT_LUA_CHON" or "NHIEU_LUA_CHON"
+                ? question.LuaChon.Where(option => !string.IsNullOrWhiteSpace(option))
+                    .Select((option, optionIndex) => new SurveyQuestionOption
+                    {
+                        NoiDung = option.Trim(),
+                        ThuTu = optionIndex + 1
+                    }).ToList()
+                : new List<SurveyQuestionOption>()
+        }).ToList();
+
+    private async Task<SurveyResultViewModel?> BuildResult(int surveyId)
     {
-        survey.TieuDe = survey.TieuDe?.Trim() ?? string.Empty;
-        survey.MoTa = string.IsNullOrWhiteSpace(survey.MoTa) ? null : survey.MoTa.Trim();
+        var survey = await _context.Surveys.AsNoTracking()
+            .Include(item => item.Questions).ThenInclude(question => question.Options)
+            .FirstOrDefaultAsync(item => item.MaKhaoSat == surveyId);
+        if (survey == null) return null;
+
+        var responses = await _context.SurveyResponses.AsNoTracking()
+            .Where(response => response.MaKhaoSat == surveyId)
+            .Include(response => response.Answers)
+            .ToListAsync();
+        var result = new SurveyResultViewModel
+        {
+            MaKhaoSat = surveyId,
+            TieuDe = survey.TieuDe,
+            TotalResponses = responses.Count
+        };
+
+        foreach (var question in survey.Questions.OrderBy(question => question.ThuTu))
+        {
+            var questionAnswers = responses.SelectMany(response => response.Answers)
+                .Where(answer => answer.MaCauHoi == question.MaCauHoi && !string.IsNullOrWhiteSpace(answer.NoiDungTraLoi))
+                .ToList();
+            var questionResult = new SurveyQuestionResultViewModel
+            {
+                NoiDung = question.NoiDungCauHoi,
+                Loai = question.LoaiCauHoi
+            };
+            if (question.LoaiCauHoi == "SAO")
+            {
+                var ratings = questionAnswers.Select(answer => int.TryParse(answer.NoiDungTraLoi, out var rating) ? rating : 0)
+                    .Where(rating => rating is >= 1 and <= 5).ToList();
+                questionResult.AverageRating = ratings.Count == 0 ? null : ratings.Average();
+            }
+            else if (question.LoaiCauHoi == "TU_LUAN")
+            {
+                questionResult.TextAnswers = questionAnswers.Select(answer => answer.NoiDungTraLoi!).ToList();
+            }
+            else
+            {
+                foreach (var option in question.Options.OrderBy(option => option.ThuTu))
+                {
+                    var count = questionAnswers.Count(answer => answer.NoiDungTraLoi == option.NoiDung);
+                    questionResult.Options.Add(new SurveyOptionResultViewModel
+                    {
+                        NoiDung = option.NoiDung,
+                        Count = count,
+                        Percentage = responses.Count == 0 ? 0 : count * 100d / responses.Count
+                    });
+                }
+            }
+            result.Questions.Add(questionResult);
+        }
+        return result;
+    }
+
+    private async Task<List<int>> ValidateAudience(SurveyEditorViewModel editor)
+    {
+        if (editor.DoiTuong == "TatCa") return new List<int>();
+        if (editor.DoiTuong != "ChonKhachHang" || editor.MaKH.Count == 0)
+        {
+            ModelState.AddModelError(nameof(editor.MaKH), "Hãy chọn ít nhất một khách hàng nhận khảo sát.");
+            return new List<int>();
+        }
+
+        var selectedIds = editor.MaKH.Distinct().ToList();
+        var activeIds = await _context.Customers.AsNoTracking()
+            .Where(customer => customer.TrangThai && selectedIds.Contains(customer.MaKH))
+            .Select(customer => customer.MaKH)
+            .ToListAsync();
+        if (activeIds.Count != selectedIds.Count)
+        {
+            ModelState.AddModelError(nameof(editor.MaKH), "Danh sách có khách hàng không tồn tại hoặc đã bị khóa.");
+        }
+        return activeIds;
+    }
+
+    private void ValidateEditor(SurveyEditorViewModel editor, bool requireQuestions)
+    {
+        editor.TieuDe = editor.TieuDe?.Trim() ?? string.Empty;
+        editor.MoTa = string.IsNullOrWhiteSpace(editor.MoTa) ? null : editor.MoTa.Trim();
+        if (editor.NgayKetThuc <= editor.NgayBatDau)
+        {
+            ModelState.AddModelError(nameof(editor.NgayKetThuc), "Ngày kết thúc phải sau ngày bắt đầu.");
+        }
+        if (requireQuestions && editor.Questions.Count == 0)
+        {
+            ModelState.AddModelError(nameof(editor.Questions), "Khảo sát cần có ít nhất một câu hỏi.");
+        }
+        if (editor.Questions.Count > 30)
+        {
+            ModelState.AddModelError(nameof(editor.Questions), "Mỗi khảo sát tối đa 30 câu hỏi.");
+        }
+
+        foreach (var question in editor.Questions)
+        {
+            question.NoiDung = question.NoiDung?.Trim() ?? string.Empty;
+            question.LuaChon = question.LuaChon
+                .Where(option => !string.IsNullOrWhiteSpace(option))
+                .Select(option => option.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            if (!QuestionTypes.Contains(question.Loai))
+            {
+                ModelState.AddModelError(nameof(editor.Questions), "Loại câu hỏi không hợp lệ.");
+            }
+            if (question.Loai is "MOT_LUA_CHON" or "NHIEU_LUA_CHON"
+                && (question.LuaChon.Count < 2 || question.LuaChon.Count > 20))
+            {
+                ModelState.AddModelError(nameof(editor.Questions), "Câu hỏi trắc nghiệm cần từ 2 đến 20 đáp án.");
+            }
+        }
     }
 }

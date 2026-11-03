@@ -6,11 +6,22 @@ namespace CoffeeShop.Models.ViewModels
     public class AdminDashboardViewModel
     {
         public decimal TotalRevenue { get; set; }
-        public int TotalOrders { get; set; }
-        public int TotalCustomers { get; set; }
-        public int TotalProducts { get; set; }
+        public int PendingOrderCount { get; set; }
+        public int UnprocessedFeedbackCount { get; set; }
+        public int ActiveSurveyCount { get; set; }
+        public double AverageSatisfaction { get; set; }
+        public int RatedFeedbackCount { get; set; }
+        public List<CrmSegmentViewModel> AgeGroupStats { get; set; } = new();
+        public List<CrmSegmentViewModel> InterestStats { get; set; } = new();
         public List<AdminDashboardOrderViewModel> RecentOrders { get; set; } = new();
         public List<Product> TopProducts { get; set; } = new();
+    }
+
+    public class CrmSegmentViewModel
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public double Percentage { get; set; }
     }
 
     public class AdminDashboardOrderViewModel
@@ -116,7 +127,7 @@ namespace CoffeeShop.Models.ViewModels
         [Required, StringLength(100)]
         public string HoTen { get; set; } = string.Empty;
 
-        [Range(2, 4)]
+        [Range(1, 4)]
         public int MaVaiTro { get; set; } = 3;
 
         [Required, MinLength(8), StringLength(72)]
@@ -173,6 +184,9 @@ namespace CoffeeShop.Models.ViewModels
         [StringLength(100, ErrorMessage = "Email tối đa 100 ký tự.")]
         public string? Email { get; set; }
 
+        [DataType(DataType.Date)]
+        public DateTime? NgaySinh { get; set; }
+
         [StringLength(72, ErrorMessage = "Mật khẩu tối đa 72 ký tự.")]
         [MinLength(6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự.")]
         [DataType(DataType.Password)]
@@ -181,13 +195,17 @@ namespace CoffeeShop.Models.ViewModels
 
     public class AdminAccountIndexViewModel
     {
-        public string ActiveTab { get; set; } = "internal";
         public List<InternalAccountListItemViewModel> InternalAccounts { get; set; } = new();
-        public List<CustomerAccountListItemViewModel> CustomerAccounts { get; set; } = new();
         public int InternalAccountCount { get; set; }
+    }
+
+    public class CustomerManagementViewModel
+    {
+        public List<CustomerAccountListItemViewModel> Customers { get; set; } = new();
         public int CustomerAccountCount { get; set; }
         public int ActiveCustomerCount { get; set; }
         public int LockedCustomerCount { get; set; }
+        public string? Search { get; set; }
     }
 
     public class PaginationViewModel
@@ -314,28 +332,88 @@ namespace CoffeeShop.Models.ViewModels
         public string? MoTa { get; set; }
         public DateTime NgayBatDau { get; set; }
         public DateTime NgayKetThuc { get; set; }
+        public string DoiTuong { get; set; } = string.Empty;
         public int AnswerCount { get; set; }
-        public List<SurveyQuestionListItemViewModel> Questions { get; set; } = new();
+        public int QuestionCount { get; set; }
+        public bool HasResponses { get; set; }
     }
 
-    public class SurveyQuestionListItemViewModel
+    public class SurveyAdminIndexViewModel
     {
-        public int MaCauHoi { get; set; }
-        public string NoiDungCauHoi { get; set; } = string.Empty;
-        public string LoaiCauHoi { get; set; } = "TRAC_NGHIEM";
-        public SurveyAnswerCountViewModel Answers { get; set; } = new();
-        public List<SurveyAnswerDetailViewModel> RecentAnswers { get; set; } = new();
+        public List<SurveyListItemViewModel> Surveys { get; set; } = new();
+        public List<SurveyCustomerOptionViewModel> Customers { get; set; } = new();
+        public SurveyEditorViewModel Editor { get; set; } = new();
+        public bool EditingSurvey { get; set; }
+        public SurveyResultViewModel? Results { get; set; }
     }
 
-    public class SurveyAnswerDetailViewModel
+    public class SurveyCustomerOptionViewModel
     {
-        public int MaCauTraLoi { get; set; }
-        public string? NoiDungTraLoi { get; set; }
-        public DateTime NgayTraLoi { get; set; }
+        public int MaKH { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string? TaiKhoan { get; set; }
     }
 
-    public class SurveyAnswerCountViewModel
+    public class SurveyEditorViewModel
     {
+        public int MaKhaoSat { get; set; }
+        [Required, StringLength(255)]
+        public string TieuDe { get; set; } = string.Empty;
+        public string? MoTa { get; set; }
+        public DateTime NgayBatDau { get; set; }
+        public DateTime NgayKetThuc { get; set; }
+        [Required]
+        public string DoiTuong { get; set; } = "TatCa";
+        public List<int> MaKH { get; set; } = new();
+        public List<SurveyQuestionEditorViewModel> Questions { get; set; } = new();
+        public bool OnlyMetadata { get; set; }
+    }
+
+    public class SurveyQuestionEditorViewModel
+    {
+        [Required, StringLength(255)]
+        public string NoiDung { get; set; } = string.Empty;
+        [Required]
+        public string Loai { get; set; } = "SAO";
+        public List<string> LuaChon { get; set; } = new();
+    }
+
+    public class SurveyResultViewModel
+    {
+        public int MaKhaoSat { get; set; }
+        public string TieuDe { get; set; } = string.Empty;
+        public int TotalResponses { get; set; }
+        public List<SurveyQuestionResultViewModel> Questions { get; set; } = new();
+    }
+
+    public class SurveyQuestionResultViewModel
+    {
+        public string NoiDung { get; set; } = string.Empty;
+        public string Loai { get; set; } = string.Empty;
+        public double? AverageRating { get; set; }
+        public List<SurveyOptionResultViewModel> Options { get; set; } = new();
+        public List<string> TextAnswers { get; set; } = new();
+    }
+
+    public class SurveyOptionResultViewModel
+    {
+        public string NoiDung { get; set; } = string.Empty;
         public int Count { get; set; }
+        public double Percentage { get; set; }
+    }
+
+    public class FeedbackAdminIndexViewModel
+    {
+        public string Tab { get; set; } = "reviews";
+        public string Status { get; set; } = "all";
+        public int? Stars { get; set; }
+        public int? ProductId { get; set; }
+        public string? Search { get; set; }
+        public List<Feedback> Feedbacks { get; set; } = new();
+        public List<ContactMessage> Contacts { get; set; } = new();
+        public List<Product> Products { get; set; } = new();
+        public int PendingFeedbackCount { get; set; }
+        public int PendingContactCount { get; set; }
+        public PaginationViewModel Pagination { get; set; } = new();
     }
 }

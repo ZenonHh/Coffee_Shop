@@ -1,0 +1,163 @@
+@model CoffeeShop.Models.ViewModels.FeedbackAdminIndexViewModel
+@{
+    ViewData["Title"] = "Phản hồi";
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Phản hồi</h1>
+        <p>Quản lý đánh giá sản phẩm và lời nhắn liên hệ của khách hàng.</p>
+    </div>
+</div>
+
+<div class="admin-tabs mb-3">
+    <a class="admin-tab @(Model.Tab == "reviews" ? "active" : "")" asp-action="Index" asp-route-tab="reviews">
+        Đánh giá sản phẩm <span class="tab-count">@Model.PendingFeedbackCount</span>
+    </a>
+    <a class="admin-tab @(Model.Tab == "contacts" ? "active" : "")" asp-action="Index" asp-route-tab="contacts">
+        Góp ý &amp; liên hệ <span class="tab-count">@Model.PendingContactCount</span>
+    </a>
+</div>
+
+<section class="panel table-panel">
+    <div class="panel-heading table-heading">
+        <div>
+            <h2>@(Model.Tab == "reviews" ? "Đánh giá sản phẩm" : "Góp ý và liên hệ")</h2>
+            <p>@(Model.Tab == "reviews" ? "Lọc theo trạng thái, số sao, sản phẩm hoặc khách hàng." : "Theo dõi và xử lý lời nhắn liên hệ.")</p>
+        </div>
+    </div>
+    <form method="get" asp-action="Index" class="feedback-filter d-flex flex-wrap align-items-end mb-3" style="gap:10px">
+        <input type="hidden" name="tab" value="@Model.Tab" />
+        <label class="mb-0">Trạng thái
+            <select name="status" class="form-control">
+                <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
+                <option value="pending" selected="@(Model.Status == "pending")">Chưa phản hồi</option>
+                <option value="answered" selected="@(Model.Status == "answered")">Đã phản hồi</option>
+            </select>
+        </label>
+        @if (Model.Tab == "reviews")
+        {
+            <label class="mb-0">Số sao
+                <select name="stars" class="form-control">
+                    <option value="">Tất cả</option>
+                    @for (var rating = 1; rating <= 5; rating++)
+                    {
+                        <option value="@rating" selected="@(Model.Stars == rating)">@rating sao</option>
+                    }
+                </select>
+            </label>
+            <label class="mb-0">Sản phẩm
+                <select name="productId" class="form-control">
+                    <option value="">Tất cả sản phẩm</option>
+                    @foreach (var product in Model.Products)
+                    {
+                        <option value="@product.MaSP" selected="@(Model.ProductId == product.MaSP)">@product.TenSP</option>
+                    }
+                </select>
+            </label>
+        }
+        <label class="mb-0 flex-grow-1">@(Model.Tab == "reviews" ? "Khách hàng hoặc nội dung" : "Khách hàng, email hoặc nội dung")
+            <input name="search" value="@Model.Search" class="form-control" type="search" placeholder="Nhập từ khóa..." />
+        </label>
+        <button type="submit" class="button button-primary">Lọc</button>
+        <a asp-action="Index" asp-route-tab="@Model.Tab" class="button button-outline">Xóa lọc</a>
+    </form>
+
+    @if (Model.Tab == "reviews")
+    {
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>KHÁCH HÀNG</th>
+                        <th>SẢN PHẨM</th>
+                        <th>ĐÁNH GIÁ</th>
+                        <th>NỘI DUNG</th>
+                        <th>NGÀY GỬI</th>
+                        <th>PHẢN HỒI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var feedback in Model.Feedbacks)
+                    {
+                        <tr>
+                            <td>@(feedback.Customer?.HoTen ?? "Khách hàng")</td>
+                            <td>@(feedback.Product?.TenSP ?? "Đánh giá chung")</td>
+                            <td><span class="rating-stars">@(new string('★', feedback.DanhGia ?? 0))</span> <small>@(feedback.DanhGia?.ToString() ?? "—")/5</small></td>
+                            <td style="white-space:pre-wrap">@feedback.NoiDung</td>
+                            <td>@feedback.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri))
+                                {
+                                    <small class="muted-cell d-block mb-2">Đã phản hồi lúc @(feedback.NgayPhanHoiQuanTri?.ToString("dd/MM/yyyy HH:mm") ?? "—")</small>
+                                }
+                                <form asp-action="ReplyToFeedback" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@feedback.MaPhanHoi" />
+                                    <textarea name="response" class="form-control mb-2" rows="2" maxlength="2000" required
+                                              placeholder="Nhập phản hồi cho khách hàng...">@feedback.PhanHoiQuanTri</textarea>
+                                    <button type="submit" class="button button-small button-primary">
+                                        @(string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri) ? "Gửi phản hồi" : "Cập nhật")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.Feedbacks.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-center py-4 muted-cell">Không tìm thấy đánh giá phù hợp.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>KHÁCH HÀNG</th>
+                        <th>EMAIL</th>
+                        <th>CHỦ ĐỀ</th>
+                        <th>NỘI DUNG</th>
+                        <th>NGÀY GỬI</th>
+                        <th>TRẠNG THÁI</th>
+                        <th>THAO TÁC</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var contact in Model.Contacts)
+                    {
+                        var pending = contact.TrangThai == "Chưa xử lý";
+                        <tr>
+                            <td>@contact.HoTen</td>
+                            <td><a href="mailto:@contact.Email">@contact.Email</a></td>
+                            <td>@(string.IsNullOrWhiteSpace(contact.ChuDe) ? "Không có chủ đề" : contact.ChuDe)</td>
+                            <td style="white-space:pre-wrap;max-width:320px">@contact.NoiDung</td>
+                            <td>@contact.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><span class="status @(pending ? "status-warning" : "status-success")"><i></i>@contact.TrangThai</span></td>
+                            <td>
+                                <form asp-action="ToggleContactStatus" method="post" class="mb-1">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@contact.MaLienHe" />
+                                    <button class="button button-small button-outline" type="submit">@(pending ? "Đã xử lý" : "Chưa xử lý")</button>
+                                </form>
+                                <form asp-action="DeleteContact" method="post" onsubmit="return confirm('Xóa lời nhắn của @contact.HoTen?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@contact.MaLienHe" />
+                                    <button class="button button-small button-outline text-danger" type="submit">Xóa</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.Contacts.Count == 0)
+                    {
+                        <tr><td colspan="7" class="text-center py-4 muted-cell">Không tìm thấy lời nhắn phù hợp.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    <partial name="_Pagination" model="Model.Pagination" />
+</section>

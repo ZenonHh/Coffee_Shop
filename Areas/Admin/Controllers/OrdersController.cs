@@ -23,6 +23,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
         public async Task<IActionResult> Index(string? status, int page = 1)
         {
             const int pageSize = 10;
+            status = status == null ? null : OrderStatuses.Canonicalize(status);
             var ordersQuery = _context.Orders
                 .Include(o => o.OrderDetails)
                 .ThenInclude(d => d.Product)
@@ -32,7 +33,10 @@ namespace CoffeeShop.Areas.Admin.Controllers
 
             if (!string.IsNullOrWhiteSpace(status))
             {
-                ordersQuery = ordersQuery.Where(order => order.TrangThai == status);
+                ordersQuery = status == OrderStatuses.Completed
+                    ? ordersQuery.Where(order => order.TrangThai == OrderStatuses.Completed
+                        || order.TrangThai == OrderStatuses.LegacyCompleted)
+                    : ordersQuery.Where(order => order.TrangThai == status);
             }
 
             var totalCount = await ordersQuery.CountAsync();
@@ -62,6 +66,10 @@ namespace CoffeeShop.Areas.Admin.Controllers
                     })
                     .ToListAsync()
             };
+            foreach (var order in viewModel.Orders)
+            {
+                order.TrangThai = OrderStatuses.Canonicalize(order.TrangThai);
+            }
             return View(viewModel);
         }
 

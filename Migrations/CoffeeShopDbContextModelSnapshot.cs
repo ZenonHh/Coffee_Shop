@@ -55,7 +55,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaVaiTro");
 
-                    b.ToTable("TaiKhoan", (string)null);
+                    b.ToTable("TaiKhoan");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.CartSnapshot", b =>
@@ -73,7 +73,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CoffeeShopBrowserCart", (string)null);
+                    b.ToTable("CoffeeShopBrowserCart");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Category", b =>
@@ -94,7 +94,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaLoaiSP");
 
-                    b.ToTable("LoaiSanPham", (string)null);
+                    b.ToTable("LoaiSanPham");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.ContactMessage", b =>
@@ -137,7 +137,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaLienHe");
 
-                    b.ToTable("LienHe", (string)null);
+                    b.ToTable("LienHe");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Customer", b =>
@@ -173,6 +173,9 @@ namespace CoffeeShop.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<DateTime?>("NgaySinh")
+                        .HasColumnType("date");
+
                     b.Property<DateTime>("NgayTao")
                         .HasColumnType("datetime2");
 
@@ -190,7 +193,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaKH");
 
-                    b.ToTable("KhachHang", (string)null);
+                    b.ToTable("KhachHang");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Feedback", b =>
@@ -235,7 +238,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("PhanHoi", (string)null);
+                    b.ToTable("PhanHoi");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Ingredient", b =>
@@ -260,7 +263,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaNL");
 
-                    b.ToTable("NguyenLieu", (string)null);
+                    b.ToTable("NguyenLieu");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Order", b =>
@@ -342,7 +345,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaVoucher");
 
-                    b.ToTable("HoaDon", (string)null);
+                    b.ToTable("HoaDon");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.OrderDetail", b =>
@@ -382,7 +385,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("ChiTietHoaDon", (string)null);
+                    b.ToTable("ChiTietHoaDon");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.OrderDetailTopping", b =>
@@ -400,7 +403,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("ChiTietHoaDon_Topping", (string)null);
+                    b.ToTable("ChiTietHoaDon_Topping");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.PointHistory", b =>
@@ -431,7 +434,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaKH");
 
-                    b.ToTable("LichSuDiem", (string)null);
+                    b.ToTable("LichSuDiem");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Product", b =>
@@ -464,7 +467,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaLoaiSP");
 
-                    b.ToTable("SanPham", (string)null);
+                    b.ToTable("SanPham");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.ProductVariant", b =>
@@ -493,7 +496,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("BienTheSanPham", (string)null);
+                    b.ToTable("BienTheSanPham");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Purchase", b =>
@@ -548,7 +551,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("NguoiDuyetId");
 
-                    b.ToTable("PhieuNhap", (string)null);
+                    b.ToTable("PhieuNhap");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.PurchaseDetail", b =>
@@ -585,7 +588,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaSP");
 
-                    b.ToTable("ChiTietPhieuNhap", (string)null);
+                    b.ToTable("ChiTietPhieuNhap");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Role", b =>
@@ -607,7 +610,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaVaiTro");
 
-                    b.ToTable("VaiTro", (string)null);
+                    b.ToTable("VaiTro");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.StaffMember", b =>
@@ -638,7 +641,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaNV");
 
-                    b.ToTable("NhanVien", (string)null);
+                    b.ToTable("NhanVien");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Supplier", b =>
@@ -667,7 +670,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaNCC");
 
-                    b.ToTable("NhaCungCap", (string)null);
+                    b.ToTable("NhaCungCap");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Survey", b =>
@@ -677,6 +680,11 @@ namespace CoffeeShop.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaKhaoSat"));
+
+                    b.Property<string>("DoiTuong")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("MaTaiKhoan")
                         .HasColumnType("int");
@@ -699,7 +707,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaTaiKhoan");
 
-                    b.ToTable("KhaoSat", (string)null);
+                    b.ToTable("KhaoSat");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyAnswer", b =>
@@ -713,6 +721,9 @@ namespace CoffeeShop.Migrations
                     b.Property<int>("MaCauHoi")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MaLuotTraLoi")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("NgayTraLoi")
                         .HasColumnType("datetime2");
 
@@ -723,7 +734,24 @@ namespace CoffeeShop.Migrations
 
                     b.HasIndex("MaCauHoi");
 
-                    b.ToTable("CauTraLoi", (string)null);
+                    b.HasIndex("MaLuotTraLoi");
+
+                    b.ToTable("CauTraLoi");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyAudienceCustomer", b =>
+                {
+                    b.Property<int>("MaKhaoSat")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaKH")
+                        .HasColumnType("int");
+
+                    b.HasKey("MaKhaoSat", "MaKH");
+
+                    b.HasIndex("MaKH");
+
+                    b.ToTable("DoiTuongKhaoSat");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyQuestion", b =>
@@ -747,11 +775,67 @@ namespace CoffeeShop.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<int>("ThuTu")
+                        .HasColumnType("int");
+
                     b.HasKey("MaCauHoi");
 
                     b.HasIndex("MaKhaoSat");
 
-                    b.ToTable("CauHoiKhaoSat", (string)null);
+                    b.ToTable("CauHoiKhaoSat");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyQuestionOption", b =>
+                {
+                    b.Property<int>("MaLuaChon")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLuaChon"));
+
+                    b.Property<int>("MaCauHoi")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NoiDung")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("ThuTu")
+                        .HasColumnType("int");
+
+                    b.HasKey("MaLuaChon");
+
+                    b.HasIndex("MaCauHoi");
+
+                    b.ToTable("DapAnLuaChonKhaoSat");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyResponse", b =>
+                {
+                    b.Property<int>("MaLuotTraLoi")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaLuotTraLoi"));
+
+                    b.Property<int>("MaKH")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaKhaoSat")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NgayHoanThanh")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MaLuotTraLoi");
+
+                    b.HasIndex("MaKH");
+
+                    b.HasIndex("MaKhaoSat", "MaKH")
+                        .IsUnique();
+
+                    b.ToTable("LuotThamGiaKhaoSat");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Voucher", b =>
@@ -802,7 +886,7 @@ namespace CoffeeShop.Migrations
 
                     b.HasKey("MaVoucher");
 
-                    b.ToTable("Voucher", (string)null);
+                    b.ToTable("Voucher");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Account", b =>
@@ -998,7 +1082,33 @@ namespace CoffeeShop.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CoffeeShop.Models.Entities.SurveyResponse", "Response")
+                        .WithMany("Answers")
+                        .HasForeignKey("MaLuotTraLoi")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Question");
+
+                    b.Navigation("Response");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyAudienceCustomer", b =>
+                {
+                    b.HasOne("CoffeeShop.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("MaKH")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CoffeeShop.Models.Entities.Survey", "Survey")
+                        .WithMany("AudienceCustomers")
+                        .HasForeignKey("MaKhaoSat")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Survey");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyQuestion", b =>
@@ -1008,6 +1118,36 @@ namespace CoffeeShop.Migrations
                         .HasForeignKey("MaKhaoSat")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Survey");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyQuestionOption", b =>
+                {
+                    b.HasOne("CoffeeShop.Models.Entities.SurveyQuestion", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("MaCauHoi")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyResponse", b =>
+                {
+                    b.HasOne("CoffeeShop.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("MaKH")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CoffeeShop.Models.Entities.Survey", "Survey")
+                        .WithMany("Responses")
+                        .HasForeignKey("MaKhaoSat")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Survey");
                 });
@@ -1055,10 +1195,21 @@ namespace CoffeeShop.Migrations
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Survey", b =>
                 {
+                    b.Navigation("AudienceCustomers");
+
                     b.Navigation("Questions");
+
+                    b.Navigation("Responses");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyQuestion", b =>
+                {
+                    b.Navigation("Answers");
+
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.SurveyResponse", b =>
                 {
                     b.Navigation("Answers");
                 });
