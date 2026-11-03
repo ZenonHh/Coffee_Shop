@@ -222,6 +222,38 @@ button {
   border-color: #ded7cf;
   color: #322c26;
 }
+.survey-modal-content {
+  display: flex;
+  max-height: calc(100vh - 2rem);
+  flex-direction: column;
+  overflow: hidden;
+}
+.survey-modal-form {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+.survey-modal-form .modal-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+.survey-modal-form .modal-footer {
+  flex: 0 0 auto;
+}
+.survey-primary-action,
+.survey-primary-action:hover,
+.survey-primary-action:focus {
+  border-color: var(--coffee);
+  background: var(--coffee);
+  color: #fff;
+}
+.survey-primary-action:hover,
+.survey-primary-action:focus {
+  background: var(--coffee-dark);
+}
 .side-caption-spaced {
   margin: 29px 0 11px;
 }
