@@ -1,6 +1,7 @@
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
     var title = ViewData["Title"] ?? "Katinat Coffee - Thưởng thức cà phê & trà";
+    var isShopCatalogPage = ViewData["ShopCatalogPage"] as bool? ?? false;
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -30,7 +31,7 @@
     <link rel="stylesheet" href="~/css/coffee-blend-theme.css" asp-append-version="true">
 </head>
 <body>
-    <nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+    <nav class="navbar navbar-expand-xl navbar-dark ftco_navbar bg-dark ftco-navbar-light @(isShopCatalogPage ? "shop-catalog-navbar" : "")" id="ftco-navbar">
         <div class="container">
             <a class="navbar-brand" asp-controller="Home" asp-action="Index">Katinat<small>Coffee</small></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">

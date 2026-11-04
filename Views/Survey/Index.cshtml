@@ -3,13 +3,15 @@
     ViewData["Title"] = "Khảo sát ý kiến khách hàng";
 }
 
-<section class="ftco-section">
+<section class="ftco-section survey-page">
     <div class="container">
         <div class="row justify-content-center mb-5">
             <div class="col-md-8 text-center">
-                <span class="subheading" style="color:#c49b63">Lắng nghe và thấu hiểu</span>
-                <h1 class="text-white">Khảo sát ý kiến khách hàng</h1>
-                <p class="text-muted">Hoàn thành khảo sát để nhận 50 điểm tích lũy.</p>
+                <div class="survey-intro">
+                    <span class="survey-eyebrow">Lắng nghe và thấu hiểu</span>
+                    <h1>Khảo sát ý kiến khách hàng</h1>
+                    <p>Hoàn thành khảo sát để nhận <strong>50 điểm tích lũy</strong>.</p>
+                </div>
             </div>
         </div>
 
@@ -24,9 +26,10 @@
 
         @if (Model.Count == 0)
         {
-            <div class="text-center py-5">
-                <h3 class="text-white">Hiện không có khảo sát dành cho bạn</h3>
-                <p class="text-muted">Các khảo sát mới sẽ xuất hiện tại đây khi được mở.</p>
+            <div class="survey-empty-state text-center">
+                <span class="survey-empty-icon icon ion-ios-chatbubbles-outline" aria-hidden="true"></span>
+                <h3>Hiện không có khảo sát dành cho bạn</h3>
+                <p>Các khảo sát mới sẽ xuất hiện tại đây khi được mở.</p>
                 <a asp-controller="Shop" asp-action="Index" class="btn btn-primary">Khám phá thực đơn</a>
             </div>
         }
@@ -34,12 +37,12 @@
         {
             @foreach (var survey in Model)
             {
-                <section class="p-4 p-md-5 mb-4 rounded" style="background:#171412;border:1px solid rgba(196,155,99,.35)">
-                    <span class="badge badge-gold-outline">Đang mở đến @survey.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</span>
-                    <h2 class="text-white mt-3">@survey.TieuDe</h2>
+                <section class="survey-card">
+                    <span class="badge badge-gold-outline survey-deadline">Đang mở đến @survey.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</span>
+                    <h2>@survey.TieuDe</h2>
                     @if (!string.IsNullOrWhiteSpace(survey.MoTa))
                     {
-                        <p class="text-muted">@survey.MoTa</p>
+                        <p class="survey-description">@survey.MoTa</p>
                     }
                     <form asp-action="SubmitSurvey" method="post">
                         @Html.AntiForgeryToken()
@@ -47,18 +50,28 @@
                         @for (var index = 0; index < survey.Questions.Count; index++)
                         {
                             var question = survey.Questions.OrderBy(item => item.ThuTu).ElementAt(index);
-                            <fieldset class="form-group py-3" style="border-bottom:1px solid rgba(255,255,255,.1)">
-                                <legend class="text-white" style="font-size:1rem">Câu @(index + 1): @question.NoiDungCauHoi</legend>
+                            <fieldset class="survey-question">
+                                <legend>Câu @(index + 1): @question.NoiDungCauHoi</legend>
                                 @if (question.LoaiCauHoi == "SAO")
                                 {
-                                    <div class="d-flex flex-wrap" style="gap:12px">
-                                        @for (var rating = 5; rating >= 1; rating--)
-                                        {
-                                            <label class="text-white">
-                                                <input type="radio" name="answers[@question.MaCauHoi]" value="@rating" required />
-                                                <span style="color:#ffc107">@(new string('★', rating))</span> @rating/5
-                                            </label>
-                                        }
+                                    var ratingDescriptionId = $"survey-rating-description-{survey.MaKhaoSat}-{question.MaCauHoi}";
+                                    <div class="survey-rating" role="radiogroup" aria-describedby="@ratingDescriptionId">
+                                        <div class="survey-rating-options">
+                                            @for (var rating = 1; rating <= 5; rating++)
+                                            {
+                                                <label class="survey-rating-option">
+                                                    <input type="radio" name="answers[@question.MaCauHoi]" value="@rating" required aria-label="@rating trên 5" />
+                                                    <span class="survey-rating-choice">
+                                                        <span class="survey-rating-number">@rating</span>
+                                                        <span class="survey-rating-star" aria-hidden="true">★</span>
+                                                    </span>
+                                                </label>
+                                            }
+                                        </div>
+                                        <div class="survey-rating-endpoints" id="@ratingDescriptionId">
+                                            <span>Rất không hài lòng</span>
+                                            <span>Rất hài lòng</span>
+                                        </div>
                                     </div>
                                 }
                                 else if (question.LoaiCauHoi == "TU_LUAN")
@@ -70,15 +83,18 @@
                                     @foreach (var option in question.Options.OrderBy(item => item.ThuTu))
                                     {
                                         var inputType = question.LoaiCauHoi == "NHIEU_LUA_CHON" ? "checkbox" : "radio";
-                                        <label class="d-block text-white mb-2">
+                                        <label class="survey-answer-option">
                                             <input type="@inputType" name="answers[@question.MaCauHoi]" value="@option.NoiDung" @(question.LoaiCauHoi == "NHIEU_LUA_CHON" ? "" : "required") />
-                                            @option.NoiDung
+                                            <span>@option.NoiDung</span>
                                         </label>
                                     }
                                 }
                             </fieldset>
                         }
-                        <button type="submit" class="btn btn-primary py-2 px-4">Gửi câu trả lời</button>
+                        <div class="survey-submit-row">
+                            <button type="submit" class="btn btn-primary py-2 px-4">Gửi câu trả lời</button>
+                            <span class="survey-submit-note">Ý kiến của bạn giúp chúng tôi phục vụ tốt hơn.</span>
+                        </div>
                     </form>
                 </section>
             }

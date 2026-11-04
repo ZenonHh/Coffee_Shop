@@ -52,20 +52,12 @@
                             <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
 
-                        <div class="form-group d-flex justify-content-between align-items-center login-options">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" asp-for="RememberMe" class="custom-control-input" id="rememberMe">
-                                <label class="custom-control-label text-light" for="rememberMe">Ghi nhớ đăng nhập</label>
-                            </div>
-                        </div>
-
                         <button type="submit" class="btn btn-primary login-submit">Đăng Nhập</button>
 
                         <div class="text-center login-register">
                             Chưa có tài khoản? <a asp-action="Register" class="text-primary font-weight-bold">Đăng ký thành viên ngay</a>
                         </div>
                     </form>
-                    <div class="text-center login-admin-link"><a asp-area="Admin" asp-controller="Account" asp-action="Login">Đăng nhập khu vực quản trị</a></div>
                 </div>
             </div>
         </div>

@@ -169,7 +169,7 @@ select.form-control option {
     border: 0 !important;
     border-radius: 999px !important;
     background: linear-gradient(135deg, #d3ad76, #b88d53) !important;
-    color: #17120c !important;
+    color: #3b2411 !important;
     font-size: 14px;
     font-weight: 700;
     box-shadow: 0 5px 14px rgba(196, 155, 99, 0.2);
@@ -342,6 +342,105 @@ select.form-control option {
 
     .login-heading h3 {
         font-size: 25px;
+    }
+}
+
+.shop-catalog-navbar {
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    background: var(--dark-surface) !important;
+    border-bottom: 1px solid var(--dark-border);
+}
+
+.shop-catalog-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 170px;
+    min-height: 170px;
+    overflow: hidden;
+    background: url('/images/bg_3.jpg') center 55% / cover no-repeat;
+}
+
+.shop-catalog-banner::before {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(10, 8, 7, 0.86), rgba(10, 8, 7, 0.7));
+    content: "";
+}
+
+.shop-catalog-banner .container {
+    position: relative;
+    z-index: 1;
+}
+
+.shop-catalog-banner-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.shop-catalog-banner-content h1 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.shop-catalog-breadcrumbs {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 13px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.shop-catalog-breadcrumbs a {
+    color: var(--primary);
+}
+
+.shop-catalog-breadcrumbs a:hover,
+.shop-catalog-breadcrumbs a:focus {
+    color: #ffffff;
+}
+
+.shop-catalog-section {
+    padding: 24px 0 7em;
+}
+
+.shop-search-submit.btn,
+.shop-search-submit.btn:hover,
+.shop-search-submit.btn:focus {
+    color: #3b2411 !important;
+}
+
+@media (max-width: 767.98px) {
+    .shop-catalog-banner {
+        height: 150px;
+        min-height: 150px;
+        background-position: center;
+    }
+
+    .shop-catalog-banner-content {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .shop-catalog-banner-content h1 {
+        font-size: 24px;
+    }
+
+    .shop-catalog-section {
+        padding: 18px 0 5em;
     }
 }
 
@@ -948,4 +1047,292 @@ select option {
 
 .shop-page .product-card-image {
     background-color: #1e1915;
+}
+
+.survey-page {
+    padding: 7rem 0 5rem;
+}
+
+.survey-intro {
+    margin-bottom: 0.5rem;
+}
+
+.survey-eyebrow {
+    display: inline-block;
+    margin-bottom: 0.6rem;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.survey-intro h1 {
+    margin-bottom: 0.75rem;
+    color: var(--text-light);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 600;
+}
+
+.survey-intro p,
+.survey-description,
+.survey-empty-state p {
+    color: var(--text-muted);
+}
+
+.survey-intro p strong {
+    color: var(--primary);
+}
+
+.survey-card {
+    max-width: 820px;
+    margin: 0 auto 1.5rem;
+    padding: clamp(1.25rem, 4vw, 2.75rem);
+    border: 1px solid rgba(196, 155, 99, 0.32);
+    border-radius: 14px;
+    background:
+        radial-gradient(ellipse at top left, rgba(196, 155, 99, 0.06), transparent 42%),
+        var(--dark-surface);
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.24);
+}
+
+.survey-deadline {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+}
+
+.survey-card > h2 {
+    margin: 1rem 0 0.75rem;
+    color: var(--text-light);
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.survey-description {
+    margin-bottom: 1.5rem;
+}
+
+.survey-question {
+    min-width: 0;
+    margin: 0;
+    padding: 1rem 0;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.survey-question legend {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.35rem;
+    color: var(--text-light);
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.65;
+}
+
+.survey-rating {
+    width: 100%;
+    max-width: 520px;
+}
+
+.survey-rating-options {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: clamp(0.35rem, 2vw, 0.75rem);
+}
+
+.survey-rating-option {
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    cursor: pointer;
+    text-align: center;
+}
+
+.survey-rating-option input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+.survey-rating-choice {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    border: 1px solid rgba(196, 155, 99, 0.32);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text-light);
+    transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.survey-rating-number {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.survey-rating-star {
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+.survey-rating-option:hover .survey-rating-choice {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.survey-rating-option input:checked + .survey-rating-choice {
+    border-color: var(--primary);
+    background: rgba(196, 155, 99, 0.16);
+    box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.survey-rating-option input:focus-visible + .survey-rating-choice {
+    outline: 3px solid rgba(196, 155, 99, 0.5);
+    outline-offset: 3px;
+}
+
+.survey-rating-endpoints {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.65rem;
+    color: #c4bcb1;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.survey-rating-endpoints span:last-child {
+    text-align: right;
+}
+
+.survey-answer-option {
+    display: flex;
+    min-height: 40px;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin: 0 0 0.4rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(196, 155, 99, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text-light);
+    cursor: pointer;
+    line-height: 1.5;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.survey-answer-option:hover,
+.survey-answer-option:focus-within {
+    border-color: rgba(196, 155, 99, 0.72);
+    background: rgba(196, 155, 99, 0.08);
+}
+
+.survey-answer-option:last-child {
+    margin-bottom: 0;
+}
+
+.survey-answer-option input {
+    flex: 0 0 auto;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0.15rem 0 0;
+    color-scheme: dark;
+    accent-color: var(--primary) !important;
+    cursor: pointer;
+}
+
+.survey-answer-option input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 3px;
+}
+
+.survey-question textarea.form-control {
+    min-height: 110px;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+}
+
+.survey-submit-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1.5rem;
+}
+
+.survey-submit-row .btn {
+    min-height: 46px;
+    border-radius: 7px;
+}
+
+.survey-submit-note {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.survey-empty-state {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    border: 1px dashed rgba(196, 155, 99, 0.4);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.survey-empty-state h3 {
+    color: var(--text-light);
+}
+
+.survey-empty-icon {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--primary);
+    font-size: 2rem;
+}
+
+@media (max-width: 575.98px) {
+    .survey-page {
+        padding: 7rem 0 3.5rem;
+    }
+
+    .survey-page .row.mb-5 {
+        margin-bottom: 2rem !important;
+    }
+
+    .survey-card {
+        border-radius: 11px;
+    }
+
+    .survey-rating-choice {
+        min-height: 50px;
+        gap: 0.15rem;
+        border-radius: 7px;
+    }
+
+    .survey-rating-number {
+        font-size: 1rem;
+    }
+
+    .survey-rating-star {
+        font-size: 0.8rem;
+    }
+
+    .survey-rating-endpoints {
+        gap: 0.35rem;
+        font-size: 0.75rem;
+    }
+
+    .survey-submit-row {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
 }
