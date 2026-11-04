@@ -1,21 +1,14 @@
 @model CoffeeShop.Models.ViewModels.AdminDashboardViewModel
 @{
     ViewData["Title"] = "Bảng điều khiển";
-    string OrderStatusClass(string status) => status switch
-    {
-        CoffeeShop.Services.OrderStatuses.WaitingForConfirmation => "order-status-waiting",
-        CoffeeShop.Services.OrderStatuses.Confirmed => "order-status-confirmed",
-        CoffeeShop.Services.OrderStatuses.Delivering => "order-status-delivering",
-        CoffeeShop.Services.OrderStatuses.Completed => "order-status-completed",
-        CoffeeShop.Services.OrderStatuses.Cancelled => "order-status-cancelled",
-        _ => "order-status-unknown"
-    };
 }
 
 <!-- Số liệu cần theo dõi -->
 <div class="row mb-4 dashboard-overview">
-    <div class="col-md-3">
-        <div class="card stat-card dashboard-card dashboard-card-revenue p-3 mb-3">
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-3">
+            <a asp-controller="Orders" asp-action="Index" asp-route-status="@CoffeeShop.Services.OrderStatuses.Completed" class="card stat-card dashboard-card dashboard-card-revenue p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-uppercase small mb-1">Tổng doanh thu</h6>
@@ -23,10 +16,10 @@
                 </div>
                 <i class="fas fa-money-bill-wave fa-2x opacity-50"></i>
             </div>
+            </a>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stat-card dashboard-card dashboard-card-orders p-3 mb-3">
+        <div class="col-md-3">
+            <a asp-controller="Orders" asp-action="Index" asp-route-status="@CoffeeShop.Services.OrderStatuses.WaitingForConfirmation" class="card stat-card dashboard-card dashboard-card-orders p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-uppercase small mb-1">Đơn chờ xác nhận</h6>
@@ -34,21 +27,44 @@
                 </div>
                 <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
             </div>
+            </a>
         </div>
-    </div>
+    }
     <div class="col-md-3">
-        <div class="card stat-card dashboard-card dashboard-card-customers p-3 mb-3">
+        <a asp-controller="KhachHang" asp-action="Index" class="card stat-card dashboard-card dashboard-card-customers p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h6 class="text-uppercase small mb-1">Phản hồi chưa xử lý</h6>
-                    <h3 class="font-weight-bold mb-0">@Model.UnprocessedFeedbackCount</h3>
+                    <h6 class="text-uppercase small mb-1">Khách hàng</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.TotalCustomerCount</h3>
+                </div>
+                <i class="fas fa-users fa-2x opacity-50"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a asp-controller="Feedback" asp-action="Index" asp-route-tab="reviews" asp-route-status="pending" class="card stat-card dashboard-card dashboard-card-feedback p-3 mb-3 text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Đánh giá chưa phản hồi</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.PendingReviewCount</h3>
                 </div>
                 <i class="fas fa-inbox fa-2x opacity-50"></i>
             </div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3">
-        <div class="card stat-card dashboard-card dashboard-card-products p-3 mb-3">
+        <a asp-controller="Feedback" asp-action="Index" asp-route-tab="contacts" asp-route-status="pending" class="card stat-card dashboard-card dashboard-card-feedback p-3 mb-3 text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Góp ý chưa xử lý</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.PendingContactCount</h3>
+                </div>
+                <i class="fas fa-comment-dots fa-2x opacity-50"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a asp-controller="Surveys" asp-action="Index" asp-route-state="active" class="card stat-card dashboard-card dashboard-card-products p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h6 class="text-uppercase small mb-1">Khảo sát đang mở</h6>
@@ -56,114 +72,9 @@
                 </div>
                 <i class="fas fa-poll fa-2x opacity-50"></i>
             </div>
-        </div>
+        </a>
     </div>
-</div>
-
-<section class="panel mb-4 dashboard-crm-summary">
-    <div class="dashboard-crm-heading">
-        <h2>Thống kê chăm sóc khách hàng</h2>
-        <p class="page-subtitle mb-0">
-            Mức độ hài lòng trung bình:
-            @if (Model.RatedFeedbackCount > 0)
-            {
-                <strong>@Model.AverageSatisfaction.ToString("0.0")/5</strong>
-                <span>từ @Model.RatedFeedbackCount lượt đánh giá có chấm điểm.</span>
-            }
-            else
-            {
-                <span>Chưa có đánh giá được chấm điểm.</span>
-            }
-        </p>
-    </div>
-    <div class="crm-segment-grid">
-        <div class="crm-segment">
-            <h3>Độ tuổi</h3>
-            @if (Model.AgeGroupStats.Sum(item => item.Count) == 0)
-            {
-                <p class="muted-cell">Chưa có ngày sinh để thống kê nhóm tuổi.</p>
-            }
-            else
-            {
-                @foreach (var segment in Model.AgeGroupStats)
-                {
-                    var width = segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
-                    <div class="crm-segment-row">
-                        <span>@segment.Label</span>
-                        <strong>@segment.Percentage.ToString("0.#")% <small>(@segment.Count)</small></strong>
-                        <div class="crm-segment-track"><span style="width: @(width)%"></span></div>
-                    </div>
-                }
-            }
-        </div>
-        <div class="crm-segment">
-            <h3>Sở thích</h3>
-            @if (Model.InterestStats.Sum(item => item.Count) == 0)
-            {
-                <p class="muted-cell">Chưa có đơn hoàn thành để thống kê sở thích theo sản phẩm đã mua.</p>
-            }
-            else
-            {
-                @foreach (var segment in Model.InterestStats)
-                {
-                    var width = segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
-                    <div class="crm-segment-row">
-                        <span>@segment.Label</span>
-                        <strong>@segment.Percentage.ToString("0.#")% <small>(@segment.Count)</small></strong>
-                        <div class="crm-segment-track"><span style="width: @(width)%"></span></div>
-                    </div>
-                }
-            }
-        </div>
-    </div>
-</section>
-
-<!-- Đơn hàng gần đây -->
-<div class="card stat-card dashboard-recent mb-4">
-    <div class="card-header dashboard-card-header font-weight-bold d-flex justify-content-between align-items-center">
-        <span><i class="fas fa-list-alt mr-2"></i> Đơn hàng mới nhất</span>
-        <a asp-controller="Orders" asp-action="Index" class="button button-small button-outline">Xem tất cả đơn &rarr;</a>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 admin-data-table admin-table--dashboard-orders">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Mã đơn</th>
-                        <th>Khách hàng</th>
-                        <th>Số điện thoại</th>
-                        <th>Địa chỉ nhận</th>
-                        <th>Tổng tiền</th>
-                        <th>Thời gian</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.RecentOrders.Any())
-                    {
-                        foreach (var order in Model.RecentOrders)
-                        {
-                            <tr>
-                                <td><strong>#@order.MaHD</strong></td>
-                                <td>@order.HoTenNguoiNhan</td>
-                                <td>@order.SdtNguoiNhan</td>
-                                <td>@order.DiaChiGiao</td>
-                                <td class="text-primary font-weight-bold">@order.TongTien.ToString("N0") đ</td>
-                                <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
-                                <td>
-                                    <span class="badge order-status @OrderStatusClass(order.TrangThai)">@order.TrangThai</span>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Chưa có đơn hàng nào được ghi nhận.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+    <div class="col-12 d-flex justify-content-end mb-3">
+        <a asp-area="Admin" asp-controller="Statistics" asp-action="Index" class="button button-outline">Xem thống kê &rarr;</a>
     </div>
 </div>

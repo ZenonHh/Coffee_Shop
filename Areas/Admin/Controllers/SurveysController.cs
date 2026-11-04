@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
+using CoffeeShop.Services;
 
 namespace CoffeeShop.Areas.Admin.Controllers;
 
@@ -26,12 +27,24 @@ public class SurveysController : Controller
 
     [HttpGet("")]
     [HttpGet("Index")]
-    public async Task<IActionResult> Index(int page = 1, int? resultId = null, int? editId = null)
+    public async Task<IActionResult> Index(
+        int page = 1,
+        int? resultId = null,
+        int? editId = null,
+        string resultTab = "summary",
+        string state = "all")
     {
         const int pageSize = 10;
-        var totalCount = await _context.Surveys.CountAsync();
+        state = state is "active" or "draft" or "ended" ? state : "all";
+        var now = DateTime.Now;
+        var surveysQuery = _context.Surveys.AsNoTracking();
+        if (state == "active") surveysQuery = surveysQuery.Where(survey => survey.NgayBatDau <= now && survey.NgayKetThuc >= now);
+        if (state == "draft") surveysQuery = surveysQuery.Where(survey => survey.NgayBatDau > now);
+        if (state == "ended") surveysQuery = surveysQuery.Where(survey => survey.NgayKetThuc < now);
+        var totalCount = await surveysQuery.CountAsync();
         page = Math.Clamp(page, 1, Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize)));
-        var model = await BuildIndexModel(page, pageSize, resultId, editId);
+        resultTab = resultTab == "answers" ? "answers" : "summary";
+        var model = await BuildIndexModel(page, pageSize, resultId, editId, resultTab: resultTab, state: state);
         if (model.EditingSurvey) ViewBag.OpenCreateModal = true;
         ViewBag.Pagination = new PaginationViewModel
         {
@@ -323,10 +336,16 @@ public class SurveysController : Controller
         int pageSize,
         int? resultId = null,
         int? editId = null,
-        SurveyEditorViewModel? editor = null)
+        SurveyEditorViewModel? editor = null,
+        string resultTab = "summary",
+        string state = "all")
     {
-        var surveys = await _context.Surveys.AsNoTracking()
-            .OrderByDescending(survey => survey.NgayBatDau)
+        var now = DateTime.Now;
+        var surveysQuery = _context.Surveys.AsNoTracking();
+        if (state == "active") surveysQuery = surveysQuery.Where(survey => survey.NgayBatDau <= now && survey.NgayKetThuc >= now);
+        if (state == "draft") surveysQuery = surveysQuery.Where(survey => survey.NgayBatDau > now);
+        if (state == "ended") surveysQuery = surveysQuery.Where(survey => survey.NgayKetThuc < now);
+        var surveys = await surveysQuery.OrderByDescending(survey => survey.NgayBatDau)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(survey => new SurveyListItemViewModel
@@ -338,25 +357,58 @@ public class SurveysController : Controller
                 NgayKetThuc = survey.NgayKetThuc,
                 DoiTuong = survey.DoiTuong == "TatCa" ? "Tất cả khách hàng" : "Khách hàng được chọn",
                 AnswerCount = survey.Responses.Count,
+                AudienceCount = survey.DoiTuong == "TatCa"
+                    ? _context.Customers.Count()
+                    : survey.AudienceCustomers.Count(),
                 QuestionCount = survey.Questions.Count,
                 HasResponses = survey.Responses.Any() || survey.Questions.Any(question => question.Answers.Any())
             })
             .ToListAsync();
 
         var editingSurvey = editor?.MaKhaoSat > 0 ? editor : editId.HasValue ? await GetEditor(editId.Value) : null;
+        var activeCustomers = await _context.Customers.AsNoTracking()
+            .Where(customer => customer.TrangThai)
+            .OrderBy(customer => customer.HoTen)
+            .Select(customer => new
+            {
+                customer.MaKH,
+                customer.HoTen,
+                customer.TaiKhoan,
+                customer.NgaySinh
+            })
+            .ToListAsync();
+        var purchasedInterests = await _context.OrderDetails.AsNoTracking()
+            .Where(detail => detail.Order != null
+                && detail.Order.MaKH.HasValue
+                && detail.Order.Customer != null
+                && detail.Order.Customer.TrangThai
+                && (detail.Order.TrangThai == OrderStatuses.Completed
+                    || detail.Order.TrangThai == OrderStatuses.LegacyCompleted)
+                && detail.Product != null
+                && detail.Product.Category != null)
+            .Select(detail => new
+            {
+                CustomerId = detail.Order!.MaKH!.Value,
+                Interest = detail.Product!.Category!.TenLoaiSP
+            })
+            .Distinct()
+            .ToListAsync();
+        var customerOptions = activeCustomers.Select(customer => new SurveyCustomerOptionViewModel
+        {
+            MaKH = customer.MaKH,
+            HoTen = customer.HoTen,
+            TaiKhoan = customer.TaiKhoan,
+            AgeGroup = CustomerCrmOptions.GetAgeGroup(customer.NgaySinh, DateTime.Today),
+            Interests = purchasedInterests.Where(item => item.CustomerId == customer.MaKH)
+                .Select(item => item.Interest)
+                .Distinct()
+                .OrderBy(item => item)
+                .ToList()
+        }).ToList();
         var model = new SurveyAdminIndexViewModel
         {
             Surveys = surveys,
-            Customers = await _context.Customers.AsNoTracking()
-                .Where(customer => customer.TrangThai)
-                .OrderBy(customer => customer.HoTen)
-                .Select(customer => new SurveyCustomerOptionViewModel
-                {
-                    MaKH = customer.MaKH,
-                    HoTen = customer.HoTen,
-                    TaiKhoan = customer.TaiKhoan
-                })
-                .ToListAsync(),
+            Customers = customerOptions,
             Editor = editingSurvey ?? new SurveyEditorViewModel
             {
                 NgayBatDau = DateTime.Now,
@@ -367,7 +419,9 @@ public class SurveysController : Controller
                     new() { Loai = "TU_LUAN" }
                 }
             },
-            EditingSurvey = editingSurvey?.MaKhaoSat > 0
+            EditingSurvey = editingSurvey?.MaKhaoSat > 0,
+            ResultTab = resultTab,
+            State = state
         };
 
         if (resultId.HasValue)
@@ -430,6 +484,7 @@ public class SurveysController : Controller
         var responses = await _context.SurveyResponses.AsNoTracking()
             .Where(response => response.MaKhaoSat == surveyId)
             .Include(response => response.Answers)
+            .Include(response => response.Customer)
             .ToListAsync();
         var result = new SurveyResultViewModel
         {
@@ -437,6 +492,26 @@ public class SurveysController : Controller
             TieuDe = survey.TieuDe,
             TotalResponses = responses.Count
         };
+        var questionNames = survey.Questions.ToDictionary(question => question.MaCauHoi, question => question.NoiDungCauHoi);
+        result.Responses = responses.OrderByDescending(response => response.NgayHoanThanh)
+            .Select(response => new SurveyResponseResultViewModel
+            {
+                CustomerName = response.Customer?.HoTen ?? "Khách hàng",
+                CompletedAt = response.NgayHoanThanh,
+                Answers = response.Answers
+                    .OrderBy(answer => questionNames.ContainsKey(answer.MaCauHoi)
+                        ? survey.Questions.First(question => question.MaCauHoi == answer.MaCauHoi).ThuTu
+                        : int.MaxValue)
+                    .Select(answer => new SurveyAnswerResultViewModel
+                    {
+                        Question = questionNames.TryGetValue(answer.MaCauHoi, out var questionName)
+                            ? questionName
+                            : "Câu hỏi",
+                        Answer = answer.NoiDungTraLoi ?? "—"
+                    })
+                    .ToList()
+            })
+            .ToList();
 
         foreach (var question in survey.Questions.OrderBy(question => question.ThuTu))
         {

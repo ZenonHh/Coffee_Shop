@@ -1,0 +1,238 @@
+@model CoffeeShop.Models.ViewModels.CrmStatisticsViewModel
+@{
+    ViewData["Title"] = "Thống kê";
+    var fromDate = Model.FromDate.ToString("yyyy-MM-dd");
+    var toDate = Model.ToDate.ToString("yyyy-MM-dd");
+    var feedbackRate = Model.TotalCustomers == 0 ? 0
+        : Model.RespondedCustomerCount * 100d / Model.TotalCustomers;
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Thống kê</h1>
+        <p>Tổng hợp khách hàng, mức độ hài lòng và kết quả tham gia khảo sát.</p>
+    </div>
+</div>
+
+<section class="panel statistics-filter mb-4">
+    <form asp-action="Index" method="get" class="form-row align-items-end">
+        <input type="hidden" name="tab" value="@Model.Tab" />
+        <div class="form-group col-lg-3 col-md-4">
+            <label for="period">Khoảng thời gian</label>
+            <select id="period" name="period" class="form-control">
+                <option value="30days" selected="@(Model.Period == "30days")">30 ngày gần nhất</option>
+                <option value="quarter" selected="@(Model.Period == "quarter")">Quý hiện tại</option>
+                <option value="year" selected="@(Model.Period == "year")">Năm hiện tại</option>
+                <option value="custom" selected="@(Model.Period == "custom")">Tùy chọn</option>
+            </select>
+        </div>
+        <div class="form-group col-lg-3 col-md-4">
+            <label for="fromDate">Từ ngày</label>
+            <input id="fromDate" name="fromDate" type="date" class="form-control" value="@fromDate" />
+        </div>
+        <div class="form-group col-lg-3 col-md-4">
+            <label for="toDate">Đến ngày</label>
+            <input id="toDate" name="toDate" type="date" class="form-control" value="@toDate" />
+        </div>
+        <div class="form-group col-lg-3">
+            <button type="submit" class="button button-primary">Áp dụng</button>
+        </div>
+    </form>
+    <p class="muted-cell mb-0">Dữ liệu theo kỳ: @Model.FromDate.ToString("dd/MM/yyyy") – @Model.ToDate.ToString("dd/MM/yyyy")</p>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger mt-3 mb-0"></div>
+    }
+</section>
+
+@if (!Model.RangeIsValid)
+{
+    <section class="panel"><p class="muted-cell mb-0">Hãy chọn khoảng ngày hợp lệ để xem báo cáo.</p></section>
+}
+else
+{
+<nav class="admin-tabs statistics-tabs mb-4" aria-label="Các báo cáo">
+    <a class="admin-tab @(Model.Tab == "customers" ? "active" : "")"
+       asp-action="Index" asp-route-tab="customers" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khách hàng</a>
+    <a class="admin-tab @(Model.Tab == "satisfaction" ? "active" : "")"
+       asp-action="Index" asp-route-tab="satisfaction" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Hài lòng</a>
+    <a class="admin-tab @(Model.Tab == "surveys" ? "active" : "")"
+       asp-action="Index" asp-route-tab="surveys" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khảo sát</a>
+</nav>
+
+@if (Model.Tab == "customers")
+{
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỔNG KHÁCH HÀNG</div>
+                <div class="stat-value">@Model.TotalCustomers</div>
+                <div class="stat-foot">Khách mới trong kỳ: @Model.NewCustomers</div>
+            </section>
+        </div>
+        <div class="col-md-6 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">KHÁCH MỚI TRONG KỲ</div>
+                <div class="stat-value">@Model.NewCustomers</div>
+                <div class="stat-foot">@Model.FromDate.ToString("dd/MM/yyyy") – @Model.ToDate.ToString("dd/MM/yyyy")</div>
+            </section>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2>Phân bố độ tuổi</h2>
+                <p class="muted-cell">Tính trên toàn bộ khách hàng; đã bao gồm người chưa khai báo ngày sinh.</p>
+                @foreach (var segment in Model.AgeGroups)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count (@segment.Percentage.ToString("0.#")%)</strong></div>
+                        <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2>Sở thích</h2>
+                <p class="muted-cell">Ước tính từ nhóm sản phẩm đã mua; số khách tính theo tổng @Model.TotalCustomers khách.</p>
+                @if (Model.Interests.Count == 0)
+                {
+                    <p class="muted-cell mb-0">Chưa có đơn hoàn thành để thống kê sở thích.</p>
+                }
+                @foreach (var segment in Model.Interests)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count/@Model.TotalCustomers khách</strong></div>
+                        <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-12 mb-4">
+            <section class="panel statistics-panel">
+                <h2>Phân bố hạng thẻ</h2>
+                @if (Model.LoyaltyTiers.Count == 0)
+                {
+                    <p class="muted-cell mb-0">Chưa có dữ liệu khách hàng.</p>
+                }
+                @foreach (var segment in Model.LoyaltyTiers)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count (@segment.Percentage.ToString("0.#")%)</strong></div>
+                        <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+}
+else if (Model.Tab == "satisfaction")
+{
+    <div class="row mb-3">
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">ĐIỂM HÀI LÒNG TRUNG BÌNH</div>
+                <div class="stat-value">@(Model.AverageSatisfaction?.ToString("0.0") ?? "—") <small>/ 5</small></div>
+                <div class="stat-foot">Từ @Model.RatedFeedbackCount lượt đánh giá có chấm điểm</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỔNG ĐÁNH GIÁ</div>
+                <div class="stat-value">@Model.TotalFeedbackCount</div>
+                <div class="stat-foot">Lượt phản hồi trong kỳ</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỶ LỆ KHÁCH ĐÃ PHẢN HỒI</div>
+                <div class="stat-value">@feedbackRate.ToString("0.#")%</div>
+                <div class="stat-foot">@Model.RespondedCustomerCount/@Model.TotalCustomers khách</div>
+            </section>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2>Phân bố đánh giá</h2>
+                @foreach (var rating in Model.Ratings.OrderByDescending(item => item.Rating))
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@rating.Rating sao</span><strong>@rating.Count lượt (@rating.Percentage.ToString("0.#")%)</strong></div>
+                        <div class="statistics-track"><span style="width:@rating.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2>Xu hướng theo tháng</h2>
+                @if (Model.MonthlyRatings.Count == 0)
+                {
+                    <p class="muted-cell mb-0">Chưa có đánh giá trong kỳ.</p>
+                }
+                @foreach (var month in Model.MonthlyRatings)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@month.Month · @month.Count lượt</span><strong>@month.Average/5</strong></div>
+                        <div class="statistics-track"><span class="statistics-rating-track" style="width:@((month.Average * 20).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2>Sản phẩm được đánh giá cao</h2>
+                @if (Model.TopProducts.Count == 0) { <p class="muted-cell mb-0">Chưa có đánh giá theo sản phẩm.</p> }
+                @foreach (var product in Model.TopProducts)
+                {
+                    <div class="statistics-product-row"><span>@product.Name <small>(@product.Count lượt)</small></span><strong>@product.Average.ToString("0.0")/5</strong></div>
+                }
+            </section>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2>Sản phẩm được đánh giá thấp</h2>
+                @if (Model.LowestProducts.Count == 0) { <p class="muted-cell mb-0">Chưa có đánh giá theo sản phẩm.</p> }
+                @foreach (var product in Model.LowestProducts)
+                {
+                    <div class="statistics-product-row"><span>@product.Name <small>(@product.Count lượt)</small></span><strong>@product.Average.ToString("0.0")/5</strong></div>
+                }
+            </section>
+        </div>
+    </div>
+}
+else
+{
+    <section class="panel table-panel">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Tỷ lệ tham gia khảo sát</h2>
+                <p>Số lượt hoàn thành trong kỳ trên tổng số khách thuộc đối tượng nhận khảo sát.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead><tr><th>KHẢO SÁT</th><th>ĐỐI TƯỢNG</th><th>LƯỢT TRẢ LỜI</th><th>TỶ LỆ THAM GIA</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var survey in Model.Surveys)
+                    {
+                        <tr>
+                            <td><strong>@survey.Title</strong></td>
+                            <td>@survey.TargetCount khách</td>
+                            <td>@survey.ResponseCount/@survey.TargetCount khách (@survey.Percentage.ToString("0.#")%)</td>
+                            <td><div class="statistics-track"><span style="width:@survey.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div></td>
+                            <td><a class="button button-small button-outline" asp-controller="Surveys" asp-action="Statistics" asp-route-id="@survey.Id" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Xem kết quả</a></td>
+                        </tr>
+                    }
+                    @if (Model.Surveys.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có khảo sát.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+}

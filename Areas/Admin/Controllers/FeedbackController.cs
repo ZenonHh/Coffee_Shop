@@ -74,6 +74,11 @@ public class FeedbackController : Controller
             Search = search,
             PendingFeedbackCount = await _context.Feedbacks.CountAsync(item => item.PhanHoiQuanTri == null || item.PhanHoiQuanTri == ""),
             PendingContactCount = await _context.ContactMessages.CountAsync(item => item.TrangThai == "Chưa xử lý"),
+            TotalFeedbackCount = await _context.Feedbacks.CountAsync(),
+            AverageFeedbackRating = await _context.Feedbacks
+                .Where(item => item.DanhGia.HasValue)
+                .Select(item => (double?)item.DanhGia)
+                .AverageAsync(),
             Products = await _context.Products.AsNoTracking().OrderBy(item => item.TenSP).ToListAsync(),
             Pagination = new PaginationViewModel
             {
@@ -85,7 +90,9 @@ public class FeedbackController : Controller
         };
         if (tab == "reviews")
         {
-            model.Feedbacks = await feedbackQuery.OrderByDescending(item => item.NgayGui)
+            model.Feedbacks = await feedbackQuery
+                .OrderBy(item => item.PhanHoiQuanTri != null && item.PhanHoiQuanTri != "")
+                .ThenByDescending(item => item.NgayGui)
                 .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
         else

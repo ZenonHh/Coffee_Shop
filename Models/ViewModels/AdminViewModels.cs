@@ -7,14 +7,10 @@ namespace CoffeeShop.Models.ViewModels
     {
         public decimal TotalRevenue { get; set; }
         public int PendingOrderCount { get; set; }
-        public int UnprocessedFeedbackCount { get; set; }
+        public int TotalCustomerCount { get; set; }
+        public int PendingReviewCount { get; set; }
+        public int PendingContactCount { get; set; }
         public int ActiveSurveyCount { get; set; }
-        public double AverageSatisfaction { get; set; }
-        public int RatedFeedbackCount { get; set; }
-        public List<CrmSegmentViewModel> AgeGroupStats { get; set; } = new();
-        public List<CrmSegmentViewModel> InterestStats { get; set; } = new();
-        public List<AdminDashboardOrderViewModel> RecentOrders { get; set; } = new();
-        public List<Product> TopProducts { get; set; } = new();
     }
 
     public class CrmSegmentViewModel
@@ -22,17 +18,6 @@ namespace CoffeeShop.Models.ViewModels
         public string Label { get; set; } = string.Empty;
         public int Count { get; set; }
         public double Percentage { get; set; }
-    }
-
-    public class AdminDashboardOrderViewModel
-    {
-        public int MaHD { get; set; }
-        public string HoTenNguoiNhan { get; set; } = string.Empty;
-        public string SdtNguoiNhan { get; set; } = string.Empty;
-        public string? DiaChiGiao { get; set; }
-        public decimal TongTien { get; set; }
-        public DateTime NgayTao { get; set; }
-        public string TrangThai { get; set; } = string.Empty;
     }
 
     public class PurchaseCreateViewModel
@@ -206,6 +191,50 @@ namespace CoffeeShop.Models.ViewModels
         public int ActiveCustomerCount { get; set; }
         public int LockedCustomerCount { get; set; }
         public string? Search { get; set; }
+        public string Status { get; set; } = "all";
+        public string? Tier { get; set; }
+        public string? AgeGroup { get; set; }
+        public string? Interest { get; set; }
+        public List<string> InterestOptions { get; set; } = new();
+    }
+
+    public class CustomerDetailsViewModel
+    {
+        public int MaKH { get; set; }
+        public string HoTen { get; set; } = string.Empty;
+        public string? TaiKhoan { get; set; }
+        public string Sdt { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public DateTime? NgaySinh { get; set; }
+        public string HangTV { get; set; } = string.Empty;
+        public int DiemTichLuy { get; set; }
+        public List<string> Interests { get; set; } = new();
+        public List<CustomerDetailsOrderViewModel> Orders { get; set; } = new();
+        public List<CustomerDetailsFeedbackViewModel> Feedbacks { get; set; } = new();
+        public List<CustomerDetailsSurveyViewModel> Surveys { get; set; } = new();
+    }
+
+    public class CustomerDetailsOrderViewModel
+    {
+        public int MaHD { get; set; }
+        public DateTime NgayTao { get; set; }
+        public decimal TongTien { get; set; }
+        public string TrangThai { get; set; } = string.Empty;
+    }
+
+    public class CustomerDetailsFeedbackViewModel
+    {
+        public string? ProductName { get; set; }
+        public int? Rating { get; set; }
+        public string Content { get; set; } = string.Empty;
+        public string? AdminReply { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class CustomerDetailsSurveyViewModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public DateTime CompletedAt { get; set; }
     }
 
     public class PaginationViewModel
@@ -334,6 +363,7 @@ namespace CoffeeShop.Models.ViewModels
         public DateTime NgayKetThuc { get; set; }
         public string DoiTuong { get; set; } = string.Empty;
         public int AnswerCount { get; set; }
+        public int AudienceCount { get; set; }
         public int QuestionCount { get; set; }
         public bool HasResponses { get; set; }
     }
@@ -345,6 +375,8 @@ namespace CoffeeShop.Models.ViewModels
         public SurveyEditorViewModel Editor { get; set; } = new();
         public bool EditingSurvey { get; set; }
         public SurveyResultViewModel? Results { get; set; }
+        public string ResultTab { get; set; } = "summary";
+        public string State { get; set; } = "all";
     }
 
     public class SurveyCustomerOptionViewModel
@@ -352,6 +384,8 @@ namespace CoffeeShop.Models.ViewModels
         public int MaKH { get; set; }
         public string HoTen { get; set; } = string.Empty;
         public string? TaiKhoan { get; set; }
+        public string? AgeGroup { get; set; }
+        public List<string> Interests { get; set; } = new();
     }
 
     public class SurveyEditorViewModel
@@ -384,6 +418,20 @@ namespace CoffeeShop.Models.ViewModels
         public string TieuDe { get; set; } = string.Empty;
         public int TotalResponses { get; set; }
         public List<SurveyQuestionResultViewModel> Questions { get; set; } = new();
+        public List<SurveyResponseResultViewModel> Responses { get; set; } = new();
+    }
+
+    public class SurveyResponseResultViewModel
+    {
+        public string CustomerName { get; set; } = string.Empty;
+        public DateTime CompletedAt { get; set; }
+        public List<SurveyAnswerResultViewModel> Answers { get; set; } = new();
+    }
+
+    public class SurveyAnswerResultViewModel
+    {
+        public string Question { get; set; } = string.Empty;
+        public string Answer { get; set; } = string.Empty;
     }
 
     public class SurveyQuestionResultViewModel
@@ -414,6 +462,8 @@ namespace CoffeeShop.Models.ViewModels
         public List<Product> Products { get; set; } = new();
         public int PendingFeedbackCount { get; set; }
         public int PendingContactCount { get; set; }
+        public int TotalFeedbackCount { get; set; }
+        public double? AverageFeedbackRating { get; set; }
         public PaginationViewModel Pagination { get; set; } = new();
     }
 }

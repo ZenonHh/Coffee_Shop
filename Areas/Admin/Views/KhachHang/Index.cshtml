@@ -9,36 +9,70 @@
         <h1>Khách hàng</h1>
         <p class="page-subtitle">Quản lý hồ sơ, tài khoản và trạng thái thành viên.</p>
     </div>
+    <button type="button" class="button button-primary btn-add js-create-customer" data-url="@Url.Action("Create", "KhachHang", new { area = "Admin" })">
+        + Thêm khách hàng
+    </button>
 </div>
 
 <section class="panel table-panel">
-    <div class="panel-heading table-card-header account-table-heading">
+    <div class="panel-heading table-card-header customer-list-heading">
         <div>
             <h2>Danh sách khách hàng</h2>
             <p>Tổng cộng @Model.CustomerAccountCount khách hàng; @Model.ActiveCustomerCount đang hoạt động, @Model.LockedCustomerCount đã khóa.</p>
         </div>
-        <div class="table-toolbar account-table-tools account-customer-tools">
-            <form asp-area="Admin" asp-controller="KhachHang" asp-action="Index" method="get" class="customer-search-form" role="search">
+    </div>
+    <form asp-area="Admin" asp-controller="KhachHang" asp-action="Index" method="get" class="customer-filter-form" role="search">
+        <div class="customer-filter-search">
                 <input type="search" name="search" value="@Model.Search" class="form-control account-search"
                        placeholder="Tìm tên, tài khoản, email, số điện thoại..." aria-label="Tìm khách hàng" />
-                <button type="submit" class="button button-outline">Tìm kiếm</button>
-            </form>
-            <button type="button" class="button button-primary btn-add js-create-customer" data-url="@Url.Action("Create", "KhachHang", new { area = "Admin" })">
-                + Thêm khách hàng
-            </button>
         </div>
-    </div>
+        <label>Trạng thái
+            <select name="status" class="form-control">
+                <option value="all" selected="@(Model.Status == "all")">Tất cả</option>
+                <option value="active" selected="@(Model.Status == "active")">Hoạt động</option>
+                <option value="locked" selected="@(Model.Status == "locked")">Đã khóa</option>
+            </select>
+        </label>
+        <label>Hạng thẻ
+            <select name="tier" class="form-control">
+                <option value="">Tất cả</option>
+                @foreach (var tier in new[] { "Đồng", "Bạc", "Vàng", "Kim Cương" })
+                {
+                    <option value="@tier" selected="@(Model.Tier == tier)">@tier</option>
+                }
+            </select>
+        </label>
+        <label>Nhóm tuổi
+            <select name="ageGroup" class="form-control">
+                <option value="">Tất cả</option>
+                <option value="under18" selected="@(Model.AgeGroup == "under18")">Dưới 18</option>
+                <option value="18-24" selected="@(Model.AgeGroup == "18-24")">18–24</option>
+                <option value="25-34" selected="@(Model.AgeGroup == "25-34")">25–34</option>
+                <option value="35-44" selected="@(Model.AgeGroup == "35-44")">35–44</option>
+                <option value="45plus" selected="@(Model.AgeGroup == "45plus")">45 trở lên</option>
+                <option value="missing" selected="@(Model.AgeGroup == "missing")">Chưa khai báo</option>
+            </select>
+        </label>
+        <label>Sở thích
+            <select name="interest" class="form-control">
+                <option value="">Tất cả</option>
+                @foreach (var item in Model.InterestOptions)
+                {
+                    <option value="@item" selected="@(Model.Interest == item)">@item</option>
+                }
+            </select>
+        </label>
+        <button type="submit" class="button button-primary">Lọc</button>
+        <a asp-action="Index" class="button button-outline">Xóa lọc</a>
+    </form>
 
     <div class="table-scroll">
         <table class="data-table admin-data-table admin-table--customers custom-admin-table" id="customerTable">
             <thead>
                 <tr>
-                    <th>MÃ KH</th>
-                    <th>TÀI KHOẢN</th>
                     <th>HỌ VÀ TÊN</th>
-                    <th>SỐ ĐIỆN THOẠI</th>
-                    <th>EMAIL</th>
-                    <th>ĐIỂM TÍCH LŨY</th>
+                    <th>LIÊN HỆ</th>
+                    <th>ĐIỂM</th>
                     <th>HẠNG THẺ</th>
                     <th>SỐ ĐƠN</th>
                     <th>NGÀY THAM GIA</th>
@@ -51,26 +85,22 @@
                 {
                     var tierBadgeClass = customer.HangTV switch
                     {
-                        "Kim Cương" => "badge-info",
-                        "Vàng" => "badge-warning",
-                        "Bạc" => "badge-secondary",
-                        _ => "badge-gold-outline"
+                        "Kim Cương" => "tier-diamond",
+                        "Vàng" => "tier-gold",
+                        "Bạc" => "tier-silver",
+                        _ => "tier-bronze"
                     };
-                    var tierIcon = customer.HangTV switch
-                    {
-                        "Kim Cương" => "💎",
-                        "Vàng" => "🥇",
-                        "Bạc" => "🥈",
-                        _ => "🥉"
-                    };
-                    <tr>
-                        <td class="order-id col-center"><strong>#KH@(customer.MaKH.ToString("D4"))</strong></td>
-                        <td class="col-left col-truncate">@(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "(Khách vãng lai)" : customer.TaiKhoan)</td>
-                        <td class="col-left col-truncate"><strong>@customer.HoTen</strong></td>
-                        <td>@customer.Sdt</td>
-                        <td class="col-left col-truncate">@(string.IsNullOrWhiteSpace(customer.Email) ? "-" : customer.Email)</td>
-                        <td class="col-right"><span class="font-weight-bold" style="color: #ffc107; font-size: 14px;">@customer.DiemTichLuy</span> pts</td>
-                        <td class="col-center"><span class="badge @tierBadgeClass">@tierIcon @customer.HangTV</span></td>
+                    <tr class="customer-row" data-url="@Url.Action("Details", "KhachHang", new { area = "Admin", id = customer.MaKH })" tabindex="0" role="button" aria-label="Xem chi tiết khách hàng @customer.HoTen">
+                        <td class="customer-name-cell">
+                            <strong>@customer.HoTen</strong>
+                            <small>@(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "Khách vãng lai" : customer.TaiKhoan)</small>
+                        </td>
+                        <td class="customer-contact-cell">
+                            <span>@customer.Sdt</span>
+                            <small>@(string.IsNullOrWhiteSpace(customer.Email) ? "Chưa có email" : customer.Email)</small>
+                        </td>
+                        <td class="col-right"><span class="font-weight-bold">@customer.DiemTichLuy</span> pts</td>
+                        <td class="col-center"><span class="tier-label @tierBadgeClass">@customer.HangTV</span></td>
                         <td class="col-right"><span class="badge badge-secondary">@customer.TotalOrders đơn</span></td>
                         <td class="col-center">@customer.NgayTao.ToString("dd/MM/yyyy")</td>
                         <td class="col-center">
@@ -90,13 +120,18 @@
                                         @(customer.TrangThai ? "Khóa" : "Mở khóa")
                                     </button>
                                 </form>
+                                <form asp-area="Admin" asp-controller="KhachHang" asp-action="Delete" asp-route-id="@customer.MaKH" method="post"
+                                      onsubmit="return confirm('Xóa khách hàng @customer.HoTen? Chỉ khách hàng chưa có lịch sử mới được xóa.');">
+                                    @Html.AntiForgeryToken()
+                                    <button class="button button-small button-outline text-danger" type="submit">Xóa</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
                 }
                 @if (!Model.Customers.Any())
                 {
-                    <tr><td colspan="11" class="text-center py-4 muted-cell">Không tìm thấy khách hàng phù hợp.</td></tr>
+                    <tr><td colspan="8" class="text-center py-4 muted-cell">Không tìm thấy khách hàng phù hợp.</td></tr>
                 }
             </tbody>
         </table>
@@ -105,11 +140,13 @@
 
 <partial name="_Pagination" model="ViewBag.Pagination" />
 <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-hidden="true"></div>
+<div class="modal fade" id="customerDetailsModal" tabindex="-1" role="dialog" aria-hidden="true"></div>
 
 @section Scripts {
     <script>
         (function () {
             const modal = $("#customerModal");
+            const detailsModal = $("#customerDetailsModal");
 
             async function loadCustomerForm(url) {
                 const response = await fetch(url, {
@@ -120,12 +157,34 @@
             }
 
             document.addEventListener("click", async function (event) {
+                const row = event.target.closest(".customer-row");
+                if (row && !event.target.closest("a, button, form, input, select, textarea")) {
+                    try {
+                        const response = await fetch(row.dataset.url, {
+                            headers: { "X-Requested-With": "XMLHttpRequest" }
+                        });
+                        if (!response.ok) throw new Error("Không tải được hồ sơ khách hàng.");
+                        detailsModal.html(await response.text()).modal("show");
+                    } catch (error) {
+                        window.alert(error.message);
+                    }
+                    return;
+                }
                 const button = event.target.closest(".js-edit-customer, .js-create-customer");
                 if (!button) return;
                 try {
                     await loadCustomerForm(button.dataset.url);
                 } catch (error) {
                     window.alert(error.message);
+                }
+            });
+
+            document.addEventListener("keydown", function (event) {
+                const row = event.target.closest(".customer-row");
+                if (!row || event.target.closest("a, button, form, input, select, textarea")) return;
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    row.click();
                 }
             });
 
@@ -154,6 +213,7 @@
             });
 
             modal.on("hidden.bs.modal", function () { modal.empty(); });
+            detailsModal.on("hidden.bs.modal", function () { detailsModal.empty(); });
         })();
     </script>
 }

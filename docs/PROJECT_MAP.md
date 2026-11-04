@@ -10,26 +10,30 @@
 Coffee_Shop/
 ├── Areas/                                 # Phân hệ Quản trị (Admin Area)
 │   └── Admin/
-│       ├── Controllers/                   # 10 Controller nghiệp vụ Admin (1 file = 1 controller)
+│       ├── Controllers/                   # 13 Controller nghiệp vụ Admin (1 file = 1 controller)
 │       │   ├── AccountController.cs       # Đăng nhập / Đăng xuất trang quản trị
-│       │   ├── CustomerCareController.cs  # Chăm sóc khách hàng (Tab 1 Khảo sát, Tab 2 Hộp thư góp ý)
-│       │   ├── DashboardController.cs     # Bảng điều khiển thống kê doanh thu, đơn hàng
+│       │   ├── DashboardController.cs     # Thẻ tổng quan; thẻ bán hàng chỉ dành cho Admin
+│       │   ├── FeedbackController.cs      # Đánh giá sản phẩm và góp ý liên hệ
+│       │   ├── KhachHangController.cs     # Quản lý hồ sơ khách hàng
 │       │   ├── NhaCungCapController.cs    # Quản lý Nhà cung cấp & Phiếu nhập hàng
 │       │   ├── OrdersController.cs        # Quản lý đơn hàng, duyệt đơn, xác nhận thanh toán
 │       │   ├── PhieuNhapController.cs     # Lập & xem chi tiết phiếu nhập nguyên vật liệu
 │       │   ├── ProductsController.cs      # Quản lý thực đơn đồ uống, biến thể size M/L
+│       │   ├── StatisticsController.cs    # Báo cáo CRM theo thời gian
 │       │   ├── SurveysController.cs       # Điều hướng & xử lý đợt khảo sát khách hàng
 │       │   ├── TaiKhoanController.cs      # Quản lý tài khoản nhân viên & khách hàng
 │       │   └── VouchersController.cs      # Quản lý mã ưu đãi, voucher giảm giá
 │       └── Views/                         # Giao diện quản trị tương ứng từng Controller
 │           ├── Account/Login.cshtml
-│           ├── CustomerCare/Index.cshtml
 │           ├── Dashboard/Index.cshtml
+│           ├── Feedback/Index.cshtml
+│           ├── KhachHang/ (Index.cshtml, _CustomerDetails.cshtml)
 │           ├── NhaCungCap/Index.cshtml
 │           ├── Orders/ (Index.cshtml, Details.cshtml)
 │           ├── PhieuNhap/ (Index.cshtml, Create.cshtml, Details.cshtml)
 │           ├── Products/Index.cshtml
 │           ├── Shared/_AdminLayout.cshtml
+│           ├── Statistics/Index.cshtml
 │           ├── Surveys/Index.cshtml
 │           ├── TaiKhoan/Index.cshtml
 │           └── Vouchers/Index.cshtml
@@ -123,11 +127,14 @@ Coffee_Shop/
 
 | Chức Năng | Đường Dẫn (URL) | Controller & Action | View Hiển Thị | Ghi Chú Nghiệp Vụ |
 |---|---|---|---|---|
-| **Bảng điều khiển** | `/Admin/Dashboard` | `DashboardController.Index` | `Areas/Admin/Views/Dashboard/Index.cshtml` | Thống kê doanh thu, số đơn, biểu đồ |
+| **Bảng điều khiển** | `/Admin/Dashboard` | `DashboardController.Index` | `Areas/Admin/Views/Dashboard/Index.cshtml` | Chỉ có thẻ tóm tắt và đường dẫn thống kê; thẻ bán hàng chỉ dành cho Admin |
 | **Quản lý Đơn hàng** | `/Admin/Orders` | `OrdersController.Index` | `Areas/Admin/Views/Orders/Index.cshtml` | Mã `#HD0001` thứ tự, Hover pop-up, Xác nhận TT |
 | **Chi tiết đơn hàng** | `/Admin/Orders/Details/{id}` | `OrdersController.Details` | `Areas/Admin/Views/Orders/Details.cshtml` | Cập nhật tiến trình: Đang pha chế, Đang giao... |
 | **Quản lý Thực đơn** | `/Admin/Products` | `ProductsController.Index` | `Areas/Admin/Views/Products/Index.cshtml` | Bật/tắt món uống, quản lý giá từng size |
-| **Chăm sóc Khách hàng** | `/Admin/CustomerCare` | `CustomerCareController.Index` | `Areas/Admin/Views/CustomerCare/Index.cshtml` | Tab 1: Tạo đợt khảo sát; Tab 2: Hộp thư góp ý |
+| **Khách hàng** | `/Admin/KhachHang` | `KhachHangController.Index` | `Areas/Admin/Views/KhachHang/Index.cshtml` | Lọc hồ sơ, trạng thái, hạng thẻ, nhóm tuổi và sở thích |
+| **Thống kê CRM** | `/Admin/Statistics` | `StatisticsController.Index` | `Areas/Admin/Views/Statistics/Index.cshtml` | Ba tab khách hàng, hài lòng và khảo sát; lọc thời gian |
+| **Khảo sát** | `/Admin/Surveys` | `SurveysController.Index` | `Areas/Admin/Views/Surveys/Index.cshtml` | Quản lý khảo sát, tổng hợp và từng câu trả lời |
+| **Phản hồi** | `/Admin/Feedback` | `FeedbackController.Index` | `Areas/Admin/Views/Feedback/Index.cshtml` | Theo dõi trạng thái và trả lời đánh giá/góp ý |
 | **Nhà cung cấp & Kho** | `/Admin/NhaCungCap` | `NhaCungCapController.Index` | `Areas/Admin/Views/NhaCungCap/Index.cshtml` | Quản lý NCC & tích hợp xem phiếu nhập kho |
 | **Lập Phiếu nhập** | `/Admin/PhieuNhap/Create` | `PhieuNhapController.Create` | `Areas/Admin/Views/PhieuNhap/Create.cshtml` | Nhập nguyên vật liệu từ nhà cung cấp |
 | **Quản lý Vouchers** | `/Admin/Vouchers` | `VouchersController.Index` | `Areas/Admin/Views/Vouchers/Index.cshtml` | Tạo mã giảm giá %, số tiền, giới hạn dùng |

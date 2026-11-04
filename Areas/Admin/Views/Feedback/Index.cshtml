@@ -10,6 +10,12 @@
     </div>
 </div>
 
+<div class="feedback-summary-strip" aria-label="Tổng quan phản hồi">
+    <div><span>Điểm trung bình</span><strong>@(Model.AverageFeedbackRating?.ToString("0.0") ?? "—")/5</strong></div>
+    <div><span>Tổng đánh giá</span><strong>@Model.TotalFeedbackCount</strong></div>
+    <div><span>Chưa phản hồi</span><strong>@Model.PendingFeedbackCount</strong></div>
+</div>
+
 <div class="admin-tabs mb-3">
     <a class="admin-tab @(Model.Tab == "reviews" ? "active" : "")" asp-action="Index" asp-route-tab="reviews">
         Đánh giá sản phẩm <span class="tab-count">@Model.PendingFeedbackCount</span>
@@ -74,6 +80,7 @@
                         <th>ĐÁNH GIÁ</th>
                         <th>NỘI DUNG</th>
                         <th>NGÀY GỬI</th>
+                        <th>TRẠNG THÁI</th>
                         <th>PHẢN HỒI</th>
                     </tr>
                 </thead>
@@ -86,6 +93,12 @@
                             <td><span class="rating-stars">@(new string('★', feedback.DanhGia ?? 0))</span> <small>@(feedback.DanhGia?.ToString() ?? "—")/5</small></td>
                             <td style="white-space:pre-wrap">@feedback.NoiDung</td>
                             <td>@feedback.NgayGui.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @{
+                                    var answered = !string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri);
+                                }
+                                <span class="status @(answered ? "status-success" : "status-warning")"><i></i>@(answered ? "Đã phản hồi" : "Chưa phản hồi")</span>
+                            </td>
                             <td>
                                 @if (!string.IsNullOrWhiteSpace(feedback.PhanHoiQuanTri))
                                 {
@@ -105,7 +118,7 @@
                     }
                     @if (Model.Feedbacks.Count == 0)
                     {
-                        <tr><td colspan="6" class="text-center py-4 muted-cell">Không tìm thấy đánh giá phù hợp.</td></tr>
+                        <tr><td colspan="7" class="text-center py-4 muted-cell">Không tìm thấy đánh giá phù hợp.</td></tr>
                     }
                 </tbody>
             </table>

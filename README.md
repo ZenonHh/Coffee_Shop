@@ -12,14 +12,16 @@ Dự án Katinat Coffee được xây dựng và chuẩn hóa trên nền tảng
 c:\Xampp\htdocs\Coffee_Shop\
 ├── Areas/                               # Phân hệ Quản trị viên (Admin Area)
 │   └── Admin/
-│       ├── Controllers/                 # 10 Controller nghiệp vụ Admin (1 file = 1 controller)
+│       ├── Controllers/                 # 13 Controller nghiệp vụ Admin (1 file = 1 controller)
 │       │   ├── AccountController.cs     # Đăng nhập / Đăng xuất trang quản trị
-│       │   ├── CustomerCareController.cs# Chăm sóc khách hàng (Tab 1 Khảo sát, Tab 2 Hộp thư góp ý)
-│       │   ├── DashboardController.cs   # Thống kê doanh thu, số liệu kinh doanh
+│       │   ├── DashboardController.cs   # Thẻ tổng quan; thẻ bán hàng chỉ dành cho Admin
+│       │   ├── FeedbackController.cs    # Đánh giá sản phẩm và góp ý liên hệ
+│       │   ├── KhachHangController.cs   # Quản lý hồ sơ và tài khoản khách hàng
 │       │   ├── NhaCungCapController.cs  # Quản lý Nhà cung cấp & Phiếu nhập
 │       │   ├── OrdersController.cs      # Tra cứu, xác nhận thanh toán & duyệt đơn hàng
 │       │   ├── PhieuNhapController.cs   # Lập & xem chi tiết phiếu nhập kho
 │       │   ├── ProductsController.cs    # Quản lý thực đơn, biến thể size M/L & giá bán
+│       │   ├── StatisticsController.cs # Thống kê khách hàng, hài lòng và khảo sát
 │       │   ├── SurveysController.cs     # Điều hướng đợt khảo sát
 │       │   ├── TaiKhoanController.cs    # Phân quyền tài khoản nhân viên & khách hàng
 │       │   └── VouchersController.cs    # Quản lý mã ưu đãi, voucher giảm giá
@@ -107,7 +109,7 @@ Mở trình duyệt truy cập:
 3. **Thanh toán & Tự động xác nhận đơn**: Đơn hàng khi khách thanh toán/chuyển khoản sẽ ngay lập tức được xác nhận, mã đơn thứ tự chuẩn `#HD0001`, `#HD0002`... kèm popup xem nhanh khi rê chuột.
 4. **Chương trình Ưu đãi & Đổi điểm (`/Promotions`)**: Hiển thị ưu đãi hiện tại/sắp tới, giảm giá theo giá trị đơn, quyền lợi 4 hạng thành viên (Đồng, Bạc, Vàng, Kim Cương), cơ chế đổi điểm nhận voucher.
 5. **Khảo sát ý kiến tích điểm (`/Survey`)**: Khách hàng hoàn thành khảo sát được tích ngay **+50 điểm** vào tài khoản.
-6. **Chăm sóc khách hàng Admin (`/Admin/CustomerCare`)**: 2 tab điều hướng quản lý khảo sát và tiếp nhận hộp thư góp ý từ khách hàng.
+6. **CRM quản trị (`/Admin/KhachHang`, `/Admin/Statistics`)**: Quản lý hồ sơ khách hàng; thống kê khách hàng, mức độ hài lòng và tỷ lệ tham gia khảo sát theo kỳ.
 
 ## 5. Mobile App và REST API
 

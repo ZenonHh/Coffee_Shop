@@ -3156,3 +3156,376 @@ body {
     justify-content: flex-start !important;
   }
 }
+
+.page-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-overview .dashboard-card {
+  height: calc(100% - 1rem);
+  color: var(--ink);
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+
+.dashboard-overview .dashboard-card:hover {
+  color: var(--ink);
+  box-shadow: 0 8px 24px rgba(45, 35, 24, 0.11);
+  transform: translateY(-2px);
+}
+
+.customer-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+}
+
+.customer-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 0 20px 16px;
+}
+
+.customer-filter-form label {
+  flex: 1 1 140px;
+  min-width: 125px;
+  margin: 0;
+  color: #4a443d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.customer-filter-form .form-control {
+  min-height: 38px;
+  margin-top: 5px;
+  border-color: #ded7cf;
+  color: #322c26;
+}
+
+.customer-filter-search {
+  flex: 2 1 260px;
+}
+
+.customer-filter-search .form-control {
+  width: 100%;
+}
+
+.admin-table--customers {
+  min-width: 1050px;
+}
+
+.admin-table--customers td,
+.admin-table--customers th {
+  padding: 8px 10px;
+}
+
+.admin-table--customers .customer-row {
+  cursor: pointer;
+}
+
+.admin-table--customers .customer-row:focus {
+  outline: 2px solid #6f4e37;
+  outline-offset: -2px;
+}
+
+.admin-table--customers th:last-child,
+.admin-table--customers td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: #fff;
+  box-shadow: -7px 0 10px -9px rgba(40, 37, 31, 0.55);
+}
+
+.admin-table--customers th:last-child {
+  z-index: 3;
+  background: #f8f7f5;
+}
+
+.admin-table--customers .customer-row:hover td:last-child {
+  background: #f8f6f3;
+}
+
+.admin-table--customers .customer-name-cell,
+.admin-table--customers .customer-contact-cell {
+  min-width: 170px;
+  white-space: normal;
+}
+
+.customer-name-cell strong,
+.customer-name-cell small,
+.customer-contact-cell span,
+.customer-contact-cell small {
+  display: block;
+}
+
+.customer-name-cell small,
+.customer-contact-cell small {
+  margin-top: 3px;
+  color: #6b6258;
+  font-size: 11px;
+}
+
+.tier-label {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tier-bronze { color: #80512f; }
+.tier-silver { color: #525d68; }
+.tier-gold { color: #8a5a00; }
+.tier-diamond { color: #236078; }
+
+.feedback-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 8px 0 24px;
+}
+
+.feedback-summary-strip > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 62px;
+  padding: 12px 16px;
+  border: 1px solid #eee8e1;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.feedback-summary-strip span {
+  color: #62574c;
+  font-size: 12px;
+}
+
+.feedback-summary-strip strong {
+  color: var(--coffee-dark);
+  font-size: 20px;
+}
+
+.statistics-filter {
+  padding: 18px 20px;
+}
+
+.statistics-filter .form-group {
+  margin-bottom: 10px;
+}
+
+.statistics-filter label {
+  color: #4a443d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.statistics-filter .form-control {
+  margin-top: 5px;
+  border-color: #ded7cf;
+}
+
+.survey-state-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.survey-state-filter .form-control {
+  min-width: 175px;
+  min-height: 38px;
+  border-color: #ded7cf;
+}
+
+.statistics-panel {
+  padding: 20px;
+}
+
+.statistics-panel h2 {
+  margin-bottom: 8px;
+  color: #44372d;
+  font-size: 16px;
+}
+
+.statistics-bar-row {
+  margin-top: 14px;
+  color: #51483f;
+  font-size: 12px;
+}
+
+.statistics-bar-row strong {
+  color: #352d26;
+}
+
+.statistics-track {
+  height: 7px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: #eee7df;
+}
+
+.statistics-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--coffee);
+}
+
+.statistics-track > .statistics-rating-track {
+  background: #a56b11;
+}
+
+.statistics-product-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #efede9;
+}
+
+.statistics-product-row:last-child {
+  border-bottom: 0;
+}
+
+.statistics-product-row small {
+  color: #62574c;
+}
+
+.survey-answer-item + .survey-answer-item {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #efede9;
+}
+
+.survey-answer-item strong,
+.survey-answer-item span {
+  display: block;
+}
+
+.survey-answer-item span {
+  margin-top: 3px;
+  white-space: pre-wrap;
+}
+
+.customer-details-body section + section {
+  margin-top: 22px;
+}
+
+.customer-details-body h6 {
+  margin-bottom: 10px;
+  color: #44372d;
+  font-weight: 700;
+}
+
+.customer-detail-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.customer-detail-facts > div {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8f6f3;
+}
+
+.customer-detail-facts span,
+.customer-detail-facts strong {
+  display: block;
+}
+
+.customer-detail-facts span {
+  margin-bottom: 5px;
+  color: #62574c;
+  font-size: 11px;
+}
+
+.customer-detail-facts strong {
+  color: #352d26;
+}
+
+.customer-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.customer-detail-tags span {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #f3ece4;
+  color: #4d3528;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.customer-detail-list {
+  display: grid;
+  gap: 8px;
+}
+
+.customer-detail-list > div,
+.customer-detail-list article {
+  padding: 10px 12px;
+  border: 1px solid #efede9;
+  border-radius: 8px;
+}
+
+.customer-detail-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.customer-detail-list article small {
+  color: #62574c;
+}
+
+@media (max-width: 767.98px) {
+  .page-title-row {
+    align-items: flex-start;
+  }
+
+  .customer-filter-form {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .customer-filter-form > label,
+  .customer-filter-search {
+    flex-basis: calc(50% - 10px);
+  }
+
+  .feedback-summary-strip {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .feedback-summary-strip > div {
+    min-height: 52px;
+  }
+
+  .customer-detail-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .survey-state-filter {
+    width: 100%;
+  }
+
+  .survey-state-filter .form-control {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}

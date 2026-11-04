@@ -1,0 +1,93 @@
+@model CoffeeShop.Models.ViewModels.CustomerDetailsViewModel
+<div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h5 class="modal-title">@Model.HoTen</h5>
+                <small class="muted-cell">@(string.IsNullOrWhiteSpace(Model.TaiKhoan) ? "Khách vãng lai" : Model.TaiKhoan)</small>
+            </div>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body customer-details-body">
+            <div class="customer-detail-facts">
+                <div><span>Ngày sinh</span><strong>@(Model.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa khai báo")</strong></div>
+                <div><span>Liên hệ</span><strong>@Model.Sdt<br />@(Model.Email ?? "Chưa có email")</strong></div>
+                <div><span>Hạng thẻ</span><strong>@Model.HangTV · @Model.DiemTichLuy pts</strong></div>
+            </div>
+            <section>
+                <h6>Sở thích</h6>
+                @if (Model.Interests.Count == 0)
+                {
+                    <p class="muted-cell">Chưa có dữ liệu mua hàng để xác định sở thích.</p>
+                }
+                else
+                {
+                    <div class="customer-detail-tags">
+                        @foreach (var interest in Model.Interests)
+                        {
+                            <span>@interest</span>
+                        }
+                    </div>
+                }
+            </section>
+            <section>
+                <h6>Lịch sử đơn hàng</h6>
+                @if (Model.Orders.Count == 0)
+                {
+                    <p class="muted-cell">Chưa có đơn hàng.</p>
+                }
+                else
+                {
+                    <div class="customer-detail-list">
+                        @foreach (var order in Model.Orders)
+                        {
+                            <div><span>#@order.MaHD · @order.NgayTao.ToString("dd/MM/yyyy") · @order.TrangThai</span><strong>@order.TongTien.ToString("N0") đ</strong></div>
+                        }
+                    </div>
+                }
+            </section>
+            <section>
+                <h6>Phản hồi</h6>
+                @if (Model.Feedbacks.Count == 0)
+                {
+                    <p class="muted-cell">Chưa có phản hồi.</p>
+                }
+                else
+                {
+                    <div class="customer-detail-list">
+                        @foreach (var feedback in Model.Feedbacks)
+                        {
+                            <article>
+                                <div class="d-flex justify-content-between">
+                                    <strong>@(feedback.ProductName ?? "Đánh giá chung")</strong>
+                                    <small>@feedback.CreatedAt.ToString("dd/MM/yyyy") · @(feedback.Rating?.ToString() ?? "—")/5</small>
+                                </div>
+                                <p class="mb-1">@feedback.Content</p>
+                                @if (!string.IsNullOrWhiteSpace(feedback.AdminReply))
+                                {
+                                    <small class="muted-cell">Đã phản hồi: @feedback.AdminReply</small>
+                                }
+                            </article>
+                        }
+                    </div>
+                }
+            </section>
+            <section>
+                <h6>Khảo sát đã làm</h6>
+                @if (Model.Surveys.Count == 0)
+                {
+                    <p class="muted-cell mb-0">Chưa hoàn thành khảo sát nào.</p>
+                }
+                else
+                {
+                    <div class="customer-detail-list">
+                        @foreach (var survey in Model.Surveys)
+                        {
+                            <div><span>@survey.Title</span><small>@survey.CompletedAt.ToString("dd/MM/yyyy HH:mm")</small></div>
+                        }
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</div>

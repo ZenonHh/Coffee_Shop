@@ -4,6 +4,7 @@
     var editor = Model.Editor;
     var customers = Model.Customers;
     var selectedCustomers = editor.MaKH.ToHashSet();
+    var audienceInterests = customers.SelectMany(customer => customer.Interests).Distinct().OrderBy(item => item).ToList();
 }
 
 <div class="page-heading">
@@ -22,6 +23,16 @@
             <h2>Danh sách khảo sát</h2>
             <p>Khảo sát đã có câu trả lời sẽ khóa cấu trúc câu hỏi và đối tượng nhận.</p>
         </div>
+        <form asp-action="Index" method="get" class="survey-state-filter">
+            <label for="surveyState" class="sr-only">Lọc theo trạng thái khảo sát</label>
+            <select id="surveyState" name="state" class="form-control">
+                <option value="all" selected="@(Model.State == "all")">Tất cả trạng thái</option>
+                <option value="active" selected="@(Model.State == "active")">Đang mở</option>
+                <option value="draft" selected="@(Model.State == "draft")">Nháp</option>
+                <option value="ended" selected="@(Model.State == "ended")">Đã kết thúc</option>
+            </select>
+            <button type="submit" class="button button-outline">Lọc</button>
+        </form>
     </div>
     <div class="table-scroll">
         <table class="table table-hover mb-0">
@@ -41,6 +52,7 @@
                 {
                     var state = survey.NgayBatDau > DateTime.Now ? "Nháp" : survey.NgayKetThuc < DateTime.Now ? "Đã kết thúc" : "Đang mở";
                     var statusClass = state == "Đang mở" ? "status-success" : state == "Nháp" ? "status-warning" : "status-muted";
+                    var participation = survey.AudienceCount == 0 ? 0 : Math.Round(survey.AnswerCount * 100d / survey.AudienceCount, 1);
                     <tr>
                         <td>
                             <strong>@survey.TieuDe</strong>
@@ -49,15 +61,14 @@
                                 <small class="d-block muted-cell">@survey.MoTa</small>
                             }
                         </td>
-                        <td>@survey.NgayBatDau.ToString("dd/MM/yyyy HH:mm")<br />@survey.NgayKetThuc.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@survey.NgayBatDau.ToString("dd/MM") → @survey.NgayKetThuc.ToString("dd/MM/yyyy")</td>
                         <td><span class="status @statusClass"><i></i>@state</span></td>
                         <td>@survey.DoiTuong</td>
                         <td>@survey.QuestionCount</td>
-                        <td>@survey.AnswerCount</td>
+                        <td>@survey.AnswerCount/@survey.AudienceCount khách (@participation.ToString("0.#")%)</td>
                         <td>
                             <div class="table-actions">
-                                <a class="button button-small button-outline" asp-action="Index" asp-route-resultId="@survey.MaKhaoSat">Kết quả</a>
-                                <a asp-action="Statistics" asp-route-id="@survey.MaKhaoSat" class="btn btn-sm btn-outline-info">Thống kê</a>
+                                <a class="button button-small button-outline" asp-action="Index" asp-route-state="@Model.State" asp-route-resultId="@survey.MaKhaoSat" asp-route-resultTab="summary" asp-fragment="survey-result">Kết quả</a>
                                 @if (survey.HasResponses)
                                 {
                                     <button type="button" class="button button-small button-outline js-edit-survey"
@@ -66,12 +77,12 @@
                                             data-description="@survey.MoTa"
                                             data-start="@survey.NgayBatDau.ToString("yyyy-MM-ddTHH:mm")"
                                             data-end="@survey.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")"
-                                            data-toggle="modal" data-target="#editSurveyModal">Sửa thông tin</button>
+                                            data-toggle="modal" data-target="#editSurveyModal">Sửa</button>
                                     <span class="action-note">Đã khóa câu hỏi</span>
                                 }
                                 else
                                 {
-                                    <a class="button button-small button-outline" asp-action="Index" asp-route-editId="@survey.MaKhaoSat">Sửa khảo sát</a>
+                                    <a class="button button-small button-outline" asp-action="Index" asp-route-state="@Model.State" asp-route-editId="@survey.MaKhaoSat">Sửa</a>
                                 }
                                 <form asp-action="DeleteSurvey" method="post" onsubmit="return confirm('Xóa khảo sát này cùng toàn bộ câu trả lời?');">
                                     @Html.AntiForgeryToken()
@@ -94,7 +105,7 @@
 
 @if (Model.Results != null)
 {
-    <section class="panel mt-4">
+    <section class="panel mt-4" id="survey-result">
         <div class="panel-heading">
             <div>
                 <h2>Kết quả: @Model.Results.TieuDe</h2>
@@ -102,39 +113,78 @@
             </div>
             <a class="button button-small button-outline" asp-action="Index">Đóng kết quả</a>
         </div>
-        @foreach (var question in Model.Results.Questions)
+        <nav class="admin-tabs survey-result-tabs mt-3 mb-3" aria-label="Kết quả khảo sát">
+            <a class="admin-tab @(Model.ResultTab == "summary" ? "active" : "")"
+               asp-action="Index" asp-route-state="@Model.State" asp-route-resultId="@Model.Results.MaKhaoSat" asp-route-resultTab="summary" asp-fragment="survey-result">Tổng hợp</a>
+            <a class="admin-tab @(Model.ResultTab == "answers" ? "active" : "")"
+               asp-action="Index" asp-route-state="@Model.State" asp-route-resultId="@Model.Results.MaKhaoSat" asp-route-resultTab="answers" asp-fragment="survey-result">Từng câu trả lời</a>
+        </nav>
+        @if (Model.ResultTab == "summary")
         {
-            <div class="category-note mt-3">
-                <strong>@question.NoiDung</strong>
-                @if (question.Loai == "SAO")
-                {
-                    <p class="mb-0 mt-2">Điểm sao trung bình: @(question.AverageRating?.ToString("0.0") ?? "Chưa có đánh giá") / 5</p>
-                }
-                else if (question.Loai == "TU_LUAN")
-                {
-                    @if (question.TextAnswers.Count == 0)
+            @foreach (var question in Model.Results.Questions)
+            {
+                <div class="category-note mt-3">
+                    <strong>@question.NoiDung</strong>
+                    @if (question.Loai == "SAO")
                     {
-                        <p class="muted-cell mb-0 mt-2">Chưa có câu trả lời tự luận.</p>
+                        <p class="mb-0 mt-2">Điểm sao trung bình: @(question.AverageRating?.ToString("0.0") ?? "Chưa có đánh giá") / 5</p>
+                    }
+                    else if (question.Loai == "TU_LUAN")
+                    {
+                        @if (question.TextAnswers.Count == 0)
+                        {
+                            <p class="muted-cell mb-0 mt-2">Chưa có câu trả lời tự luận.</p>
+                        }
+                        else
+                        {
+                            <ul class="mt-2 mb-0">
+                                @foreach (var answer in question.TextAnswers)
+                                {
+                                    <li class="mb-2" style="white-space:pre-wrap">@answer</li>
+                                }
+                            </ul>
+                        }
                     }
                     else
                     {
-                        <ul class="mt-2 mb-0">
-                            @foreach (var answer in question.TextAnswers)
-                            {
-                                <li class="mb-2" style="white-space:pre-wrap">@answer</li>
-                            }
-                        </ul>
+                        @foreach (var option in question.Options)
+                        {
+                            <div class="d-flex justify-content-between mt-2">
+                                <span>@option.NoiDung</span><span>@option.Count lượt (@option.Percentage.ToString("0.#")%)</span>
+                            </div>
+                        }
                     }
-                }
-                else
-                {
-                    @foreach (var option in question.Options)
-                    {
-                        <div class="d-flex justify-content-between mt-2">
-                            <span>@option.NoiDung</span><span>@option.Count lượt (@option.Percentage.ToString("0.#")%)</span>
-                        </div>
-                    }
-                }
+                </div>
+            }
+        }
+        else if (Model.Results.Responses.Count == 0)
+        {
+            <p class="muted-cell mb-0">Chưa có câu trả lời.</p>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table class="data-table admin-data-table">
+                    <thead><tr><th>KHÁCH HÀNG</th><th>THỜI GIAN</th><th>CÂU TRẢ LỜI</th></tr></thead>
+                    <tbody>
+                        @foreach (var response in Model.Results.Responses)
+                        {
+                            <tr>
+                                <td><strong>@response.CustomerName</strong></td>
+                                <td>@response.CompletedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @foreach (var answer in response.Answers)
+                                    {
+                                        <div class="survey-answer-item">
+                                            <strong>@answer.Question</strong>
+                                            <span>@answer.Answer</span>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
     </section>
@@ -173,17 +223,42 @@
                         <textarea name="MoTa" rows="2" class="form-control">@editor.MoTa</textarea>
                     </label>
                     <div id="targetCustomerContainer" class="mb-3">
+                        <div class="form-row">
+                            <label class="col-md-6">Lọc theo nhóm tuổi
+                                <select id="audienceAgeFilter" class="form-control">
+                                    <option value="">Tất cả nhóm tuổi</option>
+                                    <option value="Dưới 18">Dưới 18</option>
+                                    <option value="18–24">18–24</option>
+                                    <option value="25–34">25–34</option>
+                                    <option value="35–44">35–44</option>
+                                    <option value="45 trở lên">45 trở lên</option>
+                                    <option value="missing">Chưa khai báo</option>
+                                </select>
+                            </label>
+                            <label class="col-md-6">Lọc theo sở thích
+                                <select id="audienceInterestFilter" class="form-control">
+                                    <option value="">Tất cả sở thích</option>
+                                    @foreach (var interest in audienceInterests)
+                                    {
+                                        <option value="@interest">@interest</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
                         <label>Khách hàng nhận khảo sát
                             <select name="MaKH" id="targetCustomers" class="form-control" multiple size="5">
                                 @foreach (var customer in customers)
                                 {
-                                    <option value="@customer.MaKH" selected="@selectedCustomers.Contains(customer.MaKH)">
+                                    <option value="@customer.MaKH"
+                                            data-age="@(customer.AgeGroup ?? "missing")"
+                                            data-interests="@string.Join("|", customer.Interests)"
+                                            selected="@selectedCustomers.Contains(customer.MaKH)">
                                         @customer.HoTen @(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "" : $"({customer.TaiKhoan})")
                                     </option>
                                 }
                             </select>
                         </label>
-                        <small class="muted-cell">Giữ Ctrl để chọn nhiều khách hàng.</small>
+                        <small class="muted-cell">Giữ Ctrl để chọn nhiều khách hàng. Bộ lọc chỉ thu hẹp danh sách hiển thị và không bỏ lựa chọn đã có.</small>
                     </div>
                     <div class="form-row">
                         <label class="col-md-6">Ngày giờ bắt đầu *
@@ -279,6 +354,8 @@
             const container = document.getElementById('questionsContainer');
             const customerContainer = document.getElementById('targetCustomerContainer');
             const customerSelect = document.getElementById('targetCustomers');
+            const audienceAgeFilter = document.getElementById('audienceAgeFilter');
+            const audienceInterestFilter = document.getElementById('audienceInterestFilter');
 
             function renumber() {
                 Array.from(container.querySelectorAll('.question-editor')).forEach((row, index) => {
@@ -309,6 +386,15 @@
                 customerContainer.style.display = selecting ? '' : 'none';
                 customerSelect.disabled = !selecting;
                 customerSelect.required = selecting;
+            }
+
+            function filterAudience() {
+                const age = audienceAgeFilter.value;
+                const interest = audienceInterestFilter.value;
+                Array.from(customerSelect.options).forEach(option => {
+                    const hasInterest = !interest || (option.dataset.interests || '').split('|').includes(interest);
+                    option.hidden = Boolean((age && option.dataset.age !== age) || !hasInterest);
+                });
             }
 
             function addOption(row) {
@@ -345,6 +431,8 @@
 
             document.getElementById('addQuestion').addEventListener('click', addQuestion);
             document.getElementById('audienceType').addEventListener('change', updateAudience);
+            audienceAgeFilter.addEventListener('change', filterAudience);
+            audienceInterestFilter.addEventListener('change', filterAudience);
             container.addEventListener('change', event => {
                 if (event.target.matches('.question-type')) {
                     const options = event.target.closest('.question-editor').querySelector('.question-options');
@@ -418,6 +506,7 @@
             }
 
             renumber();
+            filterAudience();
             updateAudience();
             @if (ViewBag.OpenCreateModal == true)
             {
