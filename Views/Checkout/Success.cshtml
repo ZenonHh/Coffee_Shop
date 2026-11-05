@@ -36,8 +36,24 @@
                         <p class="mb-1"><strong>Số điện thoại:</strong> @Model.SdtNguoiNhan</p>
                         <p class="mb-1"><strong>Địa chỉ giao:</strong> @Model.DiaChiGiao</p>
                         <p class="mb-1"><strong>Tổng thanh toán:</strong> <span class="text-warning font-weight-bold">@Model.TongTien.ToString("N0") đ</span></p>
+                        <p class="mb-1"><strong>Phương thức thanh toán:</strong> <span>@Model.PhuongThucThanhToan</span></p>
                         <p class="mb-0"><strong>Trạng thái:</strong> <span class="badge badge-success px-3 py-2" style="font-size: 13px;">✓ @Model.TrangThai</span></p>
                     </div>
+
+                    @if (Model.PhuongThucThanhToan.Contains("Chuyển khoản") || Model.PhuongThucThanhToan == "Transfer")
+                    {
+                        <div class="card bg-dark border border-warning text-white my-4 p-4 text-center">
+                            <h5 class="text-warning mb-3"><i class="fas fa-qrcode mr-2"></i>Mã QR Thanh Toán Chuyển Khoản</h5>
+                            <div class="mb-3">
+                                <img src="https://img.vietqr.io/image/MB-0909090909-compact2.png?amount=@((long)Model.TongTien)&addInfo=KATINAT%20HD@Model.MaHD&accountName=KATINAT%20COFFEE" 
+                                     alt="Mã QR Chuyển Khoản" 
+                                     style="max-width: 240px; border-radius: 8px; border: 2px solid #c49b63;" />
+                            </div>
+                            <p class="mb-1 text-light">Ngân hàng: <strong>MB Bank</strong> | Số tài khoản: <strong>0909090909</strong></p>
+                            <p class="mb-1 text-light">Chủ tài khoản: <strong>KATINAT COFFEE</strong></p>
+                            <p class="mb-0 text-muted small">Nội dung chuyển khoản: <strong>KATINAT HD@Model.MaHD</strong></p>
+                        </div>
+                    }
 
                     <div class="mt-4">
                         <a asp-controller="Shop" asp-action="Index" class="btn btn-primary py-3 px-4 mr-2">Tiếp tục mua sắm</a>

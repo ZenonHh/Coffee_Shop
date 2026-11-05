@@ -11,6 +11,31 @@ namespace CoffeeShop.Models.ViewModels
         public int PendingReviewCount { get; set; }
         public int PendingContactCount { get; set; }
         public int ActiveSurveyCount { get; set; }
+
+        public List<DashboardDailyRevenueViewModel> DailyRevenues { get; set; } = new();
+        public List<DashboardOrderStatusViewModel> OrderStatusesList { get; set; } = new();
+        public List<DashboardTopProductViewModel> TopSellingProducts { get; set; } = new();
+    }
+
+    public class DashboardDailyRevenueViewModel
+    {
+        public string Date { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+        public int OrderCount { get; set; }
+    }
+
+    public class DashboardOrderStatusViewModel
+    {
+        public string Status { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public string Color { get; set; } = string.Empty;
+    }
+
+    public class DashboardTopProductViewModel
+    {
+        public string ProductName { get; set; } = string.Empty;
+        public int QuantitySold { get; set; }
+        public decimal TotalAmount { get; set; }
     }
 
     public class CrmSegmentViewModel

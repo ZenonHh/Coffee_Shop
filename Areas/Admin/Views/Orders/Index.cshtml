@@ -83,6 +83,7 @@
                                                 </a>
                                             </div>
                                         </div>
+                                    </div>
                                 </td>
                                 <td>@order.HoTenNguoiNhan</td>
                                 <td>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
@@ -105,35 +106,44 @@
                                 <td><span class="badge order-status @BadgeClass(order.TrangThai)">@order.TrangThai</span></td>
                                 <td class="text-center text-nowrap">
                                     <div class="table-actions">
-                                        @if (order.TrangThai == "Chờ xác nhận"
-                                            && !order.PhuongThucThanhToan.Contains("Đã thanh toán")
-                                            && (order.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
-                                                || order.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase)))
+                                        @if (order.TrangThai == "Chờ xác nhận")
                                         {
-                                            <form asp-action="ConfirmPayment" method="post" class="d-inline" onsubmit="return confirm('Xác nhận khách đã thanh toán cho đơn hàng @orderCode?');">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="orderId" value="@order.MaHD" />
-                                                <button type="submit" class="btn btn-sm btn-success" title="Xác nhận khách đã thanh toán">✓ Đã thanh toán</button>
-                                            </form>
+                                            @if (!order.PhuongThucThanhToan.Contains("Đã thanh toán")
+                                                && (order.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
+                                                    || order.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase)))
+                                            {
+                                                <form asp-action="ConfirmPayment" method="post" class="d-inline" onsubmit="return confirm('Xác nhận khách đã chuyển khoản cho đơn hàng @orderCode?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="orderId" value="@order.MaHD" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-success mr-1" title="Xác nhận khách đã thanh toán chuyển khoản">✓ Đã thanh toán</button>
+                                                </form>
+                                            }
 
-                                            <form asp-action="ConfirmOrder" method="post" class="d-inline" onsubmit="return confirm('Xác nhận đơn hàng @orderCode?');">
+                                            <form asp-action="ConfirmOrder" method="post" class="d-inline" onsubmit="return confirm('Xác nhận duyệt đơn hàng @orderCode và chuyển sang pha chế?');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="orderId" value="@order.MaHD" />
-                                                <button type="submit" class="btn btn-sm btn-outline-success">Xác nhận</button>
+                                                <button type="submit" class="btn btn-sm btn-success font-weight-bold mr-1" title="Xác nhận đơn hàng"><i class="fas fa-check mr-1"></i>Xác nhận</button>
                                             </form>
                                         }
-                                        @if (order.TrangThai == "Đã xác nhận" || order.TrangThai == "Đang giao")
+                                        else if (order.TrangThai == "Đã xác nhận")
                                         {
-                                            var nextStatus = order.TrangThai == "Đã xác nhận" ? "Bắt đầu giao" : "Hoàn thành";
-                                            <form asp-action="AdvanceOrder" method="post" class="d-inline" onsubmit="return confirm('@nextStatus đơn hàng @orderCode?');">
+                                            <form asp-action="AdvanceOrder" method="post" class="d-inline" onsubmit="return confirm('Bắt đầu giao đơn hàng @orderCode?');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="orderId" value="@order.MaHD" />
-                                                <button type="submit" class="btn btn-sm btn-primary">@nextStatus</button>
+                                                <button type="submit" class="btn btn-sm btn-info mr-1" title="Bắt đầu giao hàng"><i class="fas fa-truck mr-1"></i>Giao hàng</button>
+                                            </form>
+                                        }
+                                        else if (order.TrangThai == "Đang giao")
+                                        {
+                                            <form asp-action="AdvanceOrder" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hoàn thành đơn hàng @orderCode?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="orderId" value="@order.MaHD" />
+                                                <button type="submit" class="btn btn-sm btn-primary font-weight-bold mr-1" title="Hoàn thành đơn hàng"><i class="fas fa-check-double mr-1"></i>Hoàn thành</button>
                                             </form>
                                         }
                                         @if (order.TrangThai == "Chờ xác nhận" || order.TrangThai == "Đã xác nhận")
                                         {
-                                            <button type="button" class="btn btn-sm btn-outline-danger js-cancel-order" data-order-id="@order.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger mr-1 js-cancel-order" data-order-id="@order.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
                                         }
                                         <a asp-action="Details" asp-route-id="@order.MaHD" class="btn btn-sm btn-outline-primary">Chi tiết</a>
                                     </div>

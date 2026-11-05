@@ -1,3 +1,6 @@
+USE CoffeeShopDb;
+GO
+
 SET XACT_ABORT ON;
 
 BEGIN TRY

@@ -10,11 +10,53 @@
         "Đã hủy" => "badge-danger",
         _ => "badge-secondary"
     };
+    var orderCode = $"#HD{Model.MaHD:D4}";
 }
 
 <div class="welcome-row page-title-row">
-    <div><div class="eyebrow">ĐƠN HÀNG #@Model.MaHD</div><h1>Chi tiết đơn hàng</h1><p class="page-subtitle">Đặt lúc @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p></div>
-    <a asp-action="Index" class="button button-outline"><i class="fas fa-arrow-left"></i> Quay lại danh sách</a>
+    <div><div class="eyebrow">ĐƠN HÀNG @orderCode</div><h1>Chi tiết đơn hàng</h1><p class="page-subtitle">Đặt lúc @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p></div>
+    <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="fas fa-arrow-left mr-1"></i> Quay lại danh sách</a>
+        @if (Model.TrangThai == "Chờ xác nhận")
+        {
+            @if (!Model.PhuongThucThanhToan.Contains("Đã thanh toán")
+                && (Model.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
+                    || Model.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase)))
+            {
+                <form asp-action="ConfirmPayment" method="post" class="d-inline" onsubmit="return confirm('Xác nhận khách đã chuyển khoản cho đơn hàng @orderCode?');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.MaHD" />
+                    <button type="submit" class="btn btn-outline-success font-weight-bold" title="Xác nhận khách đã chuyển khoản">✓ Đã thanh toán</button>
+                </form>
+            }
+
+            <form asp-action="ConfirmOrder" method="post" class="d-inline" onsubmit="return confirm('Xác nhận duyệt đơn hàng @orderCode và chuyển sang pha chế?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.MaHD" />
+                <button type="submit" class="btn btn-success font-weight-bold" title="Xác nhận đơn hàng"><i class="fas fa-check mr-1"></i> Xác nhận đơn</button>
+            </form>
+        }
+        else if (Model.TrangThai == "Đã xác nhận")
+        {
+            <form asp-action="AdvanceOrder" method="post" class="d-inline" onsubmit="return confirm('Bắt đầu giao đơn hàng @orderCode?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.MaHD" />
+                <button type="submit" class="btn btn-info font-weight-bold" title="Bắt đầu giao hàng"><i class="fas fa-truck mr-1"></i> Bắt đầu giao</button>
+            </form>
+        }
+        else if (Model.TrangThai == "Đang giao")
+        {
+            <form asp-action="AdvanceOrder" method="post" class="d-inline" onsubmit="return confirm('Xác nhận hoàn thành đơn hàng @orderCode?');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="orderId" value="@Model.MaHD" />
+                <button type="submit" class="btn btn-primary font-weight-bold" title="Hoàn thành đơn hàng"><i class="fas fa-check-double mr-1"></i> Hoàn thành đơn</button>
+            </form>
+        }
+        @if (Model.TrangThai == "Chờ xác nhận" || Model.TrangThai == "Đã xác nhận")
+        {
+            <button type="button" class="btn btn-outline-danger js-cancel-order" data-order-id="@Model.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
+        }
+    </div>
 </div>
 
 @if (Model.TrangThai == "Đã hủy")
@@ -39,7 +81,7 @@
             {
                 <p><strong>Ghi chú:</strong> @Model.GhiChu</p>
             }
-            <p><strong>Phương thức thanh toán:</strong> @(Model.PhuongThucThanhToan == "Transfer" ? "Chuyển khoản" : "COD")</p>
+            <p><strong>Phương thức thanh toán:</strong> @Model.PhuongThucThanhToan</p>
         </div>
     </section>
     <section class="panel">
@@ -88,3 +130,47 @@
         </table>
     </div>
 </section>
+
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" role="dialog" aria-labelledby="cancelOrderTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form asp-action="CancelOrder" method="post" id="cancelOrderForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="OrderId" id="cancelOrderId" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelOrderTitle">Hủy đơn hàng</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <label for="cancelReason">Lý do hủy <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="cancelReason" name="CancelReason" rows="4" maxlength="500" required></textarea>
+                    <small class="form-text text-muted">Bắt buộc nhập lý do; tối đa 500 ký tự.</small>
+                    <div class="invalid-feedback">Vui lòng nhập lý do hủy đơn.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger">Xác nhận hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            $('.js-cancel-order').on('click', function () {
+                $('#cancelOrderId').val($(this).data('order-id'));
+                $('#cancelReason').val('').removeClass('is-invalid');
+            });
+
+            $('#cancelOrderForm').on('submit', function (event) {
+                var reason = $('#cancelReason').val().trim();
+                if (!reason) {
+                    event.preventDefault();
+                    $('#cancelReason').addClass('is-invalid').trigger('focus');
+                }
+            });
+        });
+    </script>
+}

@@ -1,10 +1,18 @@
 @model CoffeeShop.Models.ViewModels.CrmStatisticsViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Thống kê";
     var fromDate = Model.FromDate.ToString("yyyy-MM-dd");
     var toDate = Model.ToDate.ToString("yyyy-MM-dd");
     var feedbackRate = Model.TotalCustomers == 0 ? 0
         : Model.RespondedCustomerCount * 100d / Model.TotalCustomers;
+
+    var ageGroupsJson = JsonSerializer.Serialize(Model.AgeGroups);
+    var loyaltyTiersJson = JsonSerializer.Serialize(Model.LoyaltyTiers);
+    var interestsJson = JsonSerializer.Serialize(Model.Interests);
+    var ratingsJson = JsonSerializer.Serialize(Model.Ratings);
+    var monthlyRatingsJson = JsonSerializer.Serialize(Model.MonthlyRatings);
+    var surveysJson = JsonSerializer.Serialize(Model.Surveys);
 }
 
 <div class="page-heading">
@@ -78,11 +86,48 @@ else
             </section>
         </div>
     </div>
+
+    <!-- Hàng biểu đồ hạng thành viên -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <section class="panel statistics-panel">
+                <h2><i class="fas fa-medal mr-2 text-warning"></i>Phân bố hạng thành viên (Loyalty Tiers)</h2>
+                <div class="row align-items-center mt-3">
+                    <div class="col-md-5 mb-3 mb-md-0">
+                        <div style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="loyaltyTiersChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        @if (Model.LoyaltyTiers.Count == 0)
+                        {
+                            <p class="muted-cell mb-0">Chưa có dữ liệu khách hàng.</p>
+                        }
+                        @foreach (var segment in Model.LoyaltyTiers)
+                        {
+                            <div class="statistics-bar-row mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>@segment.Label</strong>
+                                    <span>@segment.Count khách (@segment.Percentage.ToString("0.#")%)</span>
+                                </div>
+                                <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <div class="row">
+        <!-- Phân bố độ tuổi -->
         <div class="col-lg-6 mb-4">
             <section class="panel statistics-panel h-100">
-                <h2>Phân bố độ tuổi</h2>
+                <h2><i class="fas fa-birthday-cake mr-2 text-info"></i>Phân bố độ tuổi</h2>
                 <p class="muted-cell">Tính trên toàn bộ khách hàng; đã bao gồm người chưa khai báo ngày sinh.</p>
+                <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                    <canvas id="ageGroupsChart"></canvas>
+                </div>
                 @foreach (var segment in Model.AgeGroups)
                 {
                     <div class="statistics-bar-row">
@@ -92,34 +137,26 @@ else
                 }
             </section>
         </div>
+
+        <!-- Sở thích danh mục -->
         <div class="col-lg-6 mb-4">
             <section class="panel statistics-panel h-100">
-                <h2>Sở thích</h2>
+                <h2><i class="fas fa-heart mr-2 text-danger"></i>Sở thích món uống</h2>
                 <p class="muted-cell">Ước tính từ nhóm sản phẩm đã mua; số khách tính theo tổng @Model.TotalCustomers khách.</p>
                 @if (Model.Interests.Count == 0)
                 {
                     <p class="muted-cell mb-0">Chưa có đơn hoàn thành để thống kê sở thích.</p>
                 }
+                else
+                {
+                    <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="interestsChart"></canvas>
+                    </div>
+                }
                 @foreach (var segment in Model.Interests)
                 {
                     <div class="statistics-bar-row">
                         <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count/@Model.TotalCustomers khách</strong></div>
-                        <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
-                    </div>
-                }
-            </section>
-        </div>
-        <div class="col-12 mb-4">
-            <section class="panel statistics-panel">
-                <h2>Phân bố hạng thẻ</h2>
-                @if (Model.LoyaltyTiers.Count == 0)
-                {
-                    <p class="muted-cell mb-0">Chưa có dữ liệu khách hàng.</p>
-                }
-                @foreach (var segment in Model.LoyaltyTiers)
-                {
-                    <div class="statistics-bar-row">
-                        <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count (@segment.Percentage.ToString("0.#")%)</strong></div>
                         <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
                     </div>
                 }
@@ -153,9 +190,13 @@ else if (Model.Tab == "satisfaction")
         </div>
     </div>
     <div class="row">
+        <!-- Phân bố đánh giá 1-5 sao -->
         <div class="col-lg-6 mb-4">
             <section class="panel statistics-panel h-100">
-                <h2>Phân bố đánh giá</h2>
+                <h2><i class="fas fa-star mr-2 text-warning"></i>Phân bố đánh giá</h2>
+                <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                    <canvas id="ratingsChart"></canvas>
+                </div>
                 @foreach (var rating in Model.Ratings.OrderByDescending(item => item.Rating))
                 {
                     <div class="statistics-bar-row">
@@ -165,12 +206,20 @@ else if (Model.Tab == "satisfaction")
                 }
             </section>
         </div>
+
+        <!-- Xu hướng theo tháng -->
         <div class="col-lg-6 mb-4">
             <section class="panel statistics-panel h-100">
-                <h2>Xu hướng theo tháng</h2>
+                <h2><i class="fas fa-chart-line mr-2 text-success"></i>Xu hướng theo tháng</h2>
                 @if (Model.MonthlyRatings.Count == 0)
                 {
                     <p class="muted-cell mb-0">Chưa có đánh giá trong kỳ.</p>
+                }
+                else
+                {
+                    <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="monthlyRatingsChart"></canvas>
+                    </div>
                 }
                 @foreach (var month in Model.MonthlyRatings)
                 {
@@ -181,9 +230,11 @@ else if (Model.Tab == "satisfaction")
                 }
             </section>
         </div>
+
+        <!-- Sản phẩm được đánh giá cao -->
         <div class="col-lg-6 mb-4">
             <section class="panel statistics-panel h-100">
-                <h2>Sản phẩm được đánh giá cao</h2>
+                <h2><i class="fas fa-thumbs-up mr-2 text-success"></i>Sản phẩm được đánh giá cao</h2>
                 @if (Model.TopProducts.Count == 0) { <p class="muted-cell mb-0">Chưa có đánh giá theo sản phẩm.</p> }
                 @foreach (var product in Model.TopProducts)
                 {
@@ -191,9 +242,11 @@ else if (Model.Tab == "satisfaction")
                 }
             </section>
         </div>
+
+        <!-- Sản phẩm được đánh giá thấp -->
         <div class="col-lg-6 mb-4">
             <section class="panel statistics-panel h-100">
-                <h2>Sản phẩm được đánh giá thấp</h2>
+                <h2><i class="fas fa-exclamation-triangle mr-2 text-danger"></i>Sản phẩm cần cải thiện</h2>
                 @if (Model.LowestProducts.Count == 0) { <p class="muted-cell mb-0">Chưa có đánh giá theo sản phẩm.</p> }
                 @foreach (var product in Model.LowestProducts)
                 {
@@ -205,10 +258,22 @@ else if (Model.Tab == "satisfaction")
 }
 else
 {
+    <!-- Tab Khảo sát -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <section class="panel statistics-panel">
+                <h2><i class="fas fa-poll-h mr-2 text-primary"></i>Biểu đồ so sánh tỷ lệ tham gia khảo sát</h2>
+                <div class="my-3" style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="surveysChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </div>
+
     <section class="panel table-panel">
         <div class="panel-heading table-heading">
             <div>
-                <h2>Tỷ lệ tham gia khảo sát</h2>
+                <h2>Chi tiết đợt khảo sát</h2>
                 <p>Số lượt hoàn thành trong kỳ trên tổng số khách thuộc đối tượng nhận khảo sát.</p>
             </div>
         </div>
@@ -235,4 +300,253 @@ else
         </div>
     </section>
 }
+}
+
+<script type="application/json" id="stat-age-data">@Html.Raw(ageGroupsJson)</script>
+<script type="application/json" id="stat-loyalty-data">@Html.Raw(loyaltyTiersJson)</script>
+<script type="application/json" id="stat-interests-data">@Html.Raw(interestsJson)</script>
+<script type="application/json" id="stat-ratings-data">@Html.Raw(ratingsJson)</script>
+<script type="application/json" id="stat-monthly-data">@Html.Raw(monthlyRatingsJson)</script>
+<script type="application/json" id="stat-surveys-data">@Html.Raw(surveysJson)</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            if (typeof Chart === 'undefined') return;
+
+            var currentTab = '@Model.Tab';
+            var styles = getComputedStyle(document.documentElement);
+            var primary = '#6f4e37'; // Katinat coffee brown
+            var secondary = '#c49b63'; // Katinat gold
+            var ink = '#28251f';
+            var muted = '#8e8981';
+            var line = '#efede9';
+
+            Chart.defaults.font.family = "'DM Sans', sans-serif";
+            Chart.defaults.color = ink;
+
+            if (currentTab === 'customers') {
+                // 1. Phân bố hạng thẻ (Doughnut)
+                var loyaltyEl = document.getElementById('stat-loyalty-data');
+                var loyaltyData = loyaltyEl ? JSON.parse(loyaltyEl.textContent || '[]') : [];
+                var loyaltyCanvas = document.getElementById('loyaltyTiersChart');
+
+                if (loyaltyCanvas && loyaltyData.length > 0) {
+                    var tierColors = {
+                        'Đồng': '#b87333',
+                        'Bạc': '#a8a9ad',
+                        'Vàng': '#d4af37',
+                        'Kim Cương': '#0284c7'
+                    };
+                    var labels = loyaltyData.map(function(item) { return item.Label || 'Khác'; });
+                    var counts = loyaltyData.map(function(item) { return item.Count; });
+                    var bgColors = labels.map(function(lbl) { return tierColors[lbl] || '#6f4e37'; });
+
+                    new Chart(loyaltyCanvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: bgColors,
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            },
+                            cutout: '60%'
+                        }
+                    });
+                }
+
+                // 2. Phân bố độ tuổi (Bar)
+                var ageEl = document.getElementById('stat-age-data');
+                var ageData = ageEl ? JSON.parse(ageEl.textContent || '[]') : [];
+                var ageCanvas = document.getElementById('ageGroupsChart');
+
+                if (ageCanvas && ageData.length > 0) {
+                    new Chart(ageCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: ageData.map(function(i) { return i.Label; }),
+                            datasets: [{
+                                label: 'Số khách hàng',
+                                data: ageData.map(function(i) { return i.Count; }),
+                                backgroundColor: '#496eae',
+                                borderRadius: 4,
+                                maxBarThickness: 36
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // 3. Sở thích món uống (Horizontal Bar)
+                var interestEl = document.getElementById('stat-interests-data');
+                var interestData = interestEl ? JSON.parse(interestEl.textContent || '[]') : [];
+                var interestCanvas = document.getElementById('interestsChart');
+
+                if (interestCanvas && interestData.length > 0) {
+                    new Chart(interestCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: interestData.map(function(i) { return i.Label; }),
+                            datasets: [{
+                                label: 'Số khách quan tâm',
+                                data: interestData.map(function(i) { return i.Count; }),
+                                backgroundColor: '#23845b',
+                                borderRadius: 4,
+                                maxBarThickness: 24
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } },
+                                y: { grid: { display: false } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+            else if (currentTab === 'satisfaction') {
+                // 1. Phân bố đánh giá (Bar)
+                var ratingEl = document.getElementById('stat-ratings-data');
+                var ratingData = ratingEl ? JSON.parse(ratingEl.textContent || '[]') : [];
+                var ratingCanvas = document.getElementById('ratingsChart');
+
+                if (ratingCanvas && ratingData.length > 0) {
+                    var sortedRatings = ratingData.slice().sort(function(a, b) { return a.Rating - b.Rating; });
+                    var colors = ['#dc2626', '#ea580c', '#eab308', '#84cc16', '#16a34a'];
+
+                    new Chart(ratingCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: sortedRatings.map(function(i) { return i.Rating + ' sao'; }),
+                            datasets: [{
+                                label: 'Lượt đánh giá',
+                                data: sortedRatings.map(function(i) { return i.Count; }),
+                                backgroundColor: colors,
+                                borderRadius: 4,
+                                maxBarThickness: 40
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // 2. Xu hướng theo tháng (Line)
+                var monthlyEl = document.getElementById('stat-monthly-data');
+                var monthlyData = monthlyEl ? JSON.parse(monthlyEl.textContent || '[]') : [];
+                var monthlyCanvas = document.getElementById('monthlyRatingsChart');
+
+                if (monthlyCanvas && monthlyData.length > 0) {
+                    new Chart(monthlyCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: monthlyData.map(function(i) { return i.Month; }),
+                            datasets: [{
+                                label: 'Điểm trung bình (trên 5)',
+                                data: monthlyData.map(function(i) { return i.Average; }),
+                                borderColor: secondary,
+                                backgroundColor: 'rgba(196, 155, 99, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: secondary
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { min: 1, max: 5, grid: { color: line }, ticks: { stepSize: 1 } }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) { return ' Điểm: ' + ctx.parsed.y + ' / 5 sao'; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            else if (currentTab === 'surveys') {
+                // Biểu đồ khảo sát (Horizontal Bar)
+                var surveyEl = document.getElementById('stat-surveys-data');
+                var surveyData = surveyEl ? JSON.parse(surveyEl.textContent || '[]') : [];
+                var surveyCanvas = document.getElementById('surveysChart');
+
+                if (surveyCanvas && surveyData.length > 0) {
+                    new Chart(surveyCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: surveyData.map(function(i) { return i.Title; }),
+                            datasets: [{
+                                label: 'Tỷ lệ tham gia (%)',
+                                data: surveyData.map(function(i) { return i.Percentage; }),
+                                backgroundColor: '#6f4e37',
+                                borderRadius: 4,
+                                maxBarThickness: 28
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    grid: { color: line },
+                                    ticks: { callback: function(val) { return val + '%'; } }
+                                },
+                                y: { grid: { display: false } }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            var item = surveyData[ctx.dataIndex];
+                                            return ' ' + ctx.parsed.x + '% (' + item.ResponseCount + '/' + item.TargetCount + ' khách)';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        })();
+    </script>
 }

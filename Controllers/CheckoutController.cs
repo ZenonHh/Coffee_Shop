@@ -125,156 +125,165 @@ namespace CoffeeShop.Controllers
                 customerForOrder = await FindCurrentCustomerAsync(tracking: true, cancellationToken);
             var customerId = customerForOrder?.MaKH;
 
+            var order = new Order();
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-            foreach (var item in cart.Items)
+            try
             {
-                var validItem = await _context.Products.AnyAsync(product => product.MaSP == item.ProductId
-                    && product.TrangThai && product.MaLoaiSP != 9
-                    && product.Variants.Any(variant => variant.MaBienThe == item.VariantId && variant.TrangThai));
-                if (!validItem)
+                foreach (var item in cart.Items)
+                {
+                    var validItem = await _context.Products.AnyAsync(product => product.MaSP == item.ProductId
+                        && product.TrangThai && product.MaLoaiSP != 9
+                        && product.Variants.Any(variant => variant.MaBienThe == item.VariantId && variant.TrangThai));
+                    if (!validItem)
+                    {
+                        await transaction.RollbackAsync();
+                        ModelState.AddModelError(string.Empty, $"Món {item.ProductName} không còn khả dụng. Vui lòng cập nhật giỏ hàng.");
+                        model.Cart = cart;
+                        return View("Index", model);
+                    }
+                }
+
+                var toppingIds = cart.Items.SelectMany(item => item.SelectedToppingIds).Distinct().ToList();
+                var validToppingCount = await _context.Products.CountAsync(product => toppingIds.Contains(product.MaSP)
+                    && product.TrangThai && product.MaLoaiSP == 9);
+                if (validToppingCount != toppingIds.Count)
                 {
                     await transaction.RollbackAsync();
-                    ModelState.AddModelError(string.Empty, $"Món {item.ProductName} không còn khả dụng. Vui lòng cập nhật giỏ hàng.");
+                    ModelState.AddModelError(string.Empty, "Một topping đã chọn không còn khả dụng. Vui lòng cập nhật giỏ hàng.");
                     model.Cart = cart;
                     return View("Index", model);
                 }
-            }
 
-            var toppingIds = cart.Items.SelectMany(item => item.SelectedToppingIds).Distinct().ToList();
-            var validToppingCount = await _context.Products.CountAsync(product => toppingIds.Contains(product.MaSP)
-                && product.TrangThai && product.MaLoaiSP == 9);
-            if (validToppingCount != toppingIds.Count)
+                foreach (var requirement in GetStockRequirements(cart))
+                {
+                    var affected = await _context.Products
+                        .Where(p => p.MaSP == requirement.Key && p.TrangThai && p.SoLuongTon >= requirement.Value)
+                        .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.SoLuongTon, p => p.SoLuongTon - requirement.Value));
+                    if (affected == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        var productName = await _context.Products.Where(p => p.MaSP == requirement.Key).Select(p => p.TenSP).FirstOrDefaultAsync() ?? "Sản phẩm";
+                        ModelState.AddModelError(string.Empty, $"Món {productName} hiện không đủ số lượng trong kho.");
+                        model.Cart = cart;
+                        return View("Index", model);
+                    }
+                }
+
+                if (voucher != null)
+                {
+                    var currentTime = DateTime.Now;
+                    var affected = await _context.Vouchers
+                        .Where(v => v.MaVoucher == voucher.MaVoucher && v.TrangThai && v.SoLuongDaDung < v.SoLuongToiDa
+                            && (!v.NgayBatDau.HasValue || v.NgayBatDau <= currentTime)
+                            && (!v.NgayKetThuc.HasValue || v.NgayKetThuc >= currentTime)
+                            && cart.SubTotal >= v.DonToiThieu)
+                        .ExecuteUpdateAsync(setters => setters
+                            .SetProperty(v => v.SoLuongDaDung, v => v.SoLuongDaDung + 1)
+                            .SetProperty(v => v.TrangThai, v => v.SoLuongDaDung + 1 >= v.SoLuongToiDa ? false : v.TrangThai));
+                    if (affected == 0)
+                    {
+                        await transaction.RollbackAsync();
+                        ModelState.AddModelError(string.Empty, "Voucher vừa hết lượt sử dụng. Vui lòng kiểm tra lại đơn hàng.");
+                        model.Cart = cart;
+                        return View("Index", model);
+                    }
+                }
+
+                var isPaid = model.PaymentMethod == "Transfer";
+                order.MaKH = customerId;
+                order.MaVoucher = voucher?.MaVoucher;
+                order.LoaiDonHang = "Giao hàng";
+                order.TamTinh = (int)cart.SubTotal;
+                order.TienGiamGia = cart.DiscountAmount;
+                order.PhiGiao = (int)cart.ShippingFee;
+                order.TongTien = cart.GrandTotal;
+                order.TrangThai = OrderStatuses.WaitingForConfirmation;
+                order.PhuongThucThanhToan = isPaid ? "Chuyển khoản (Đã thanh toán)" : "COD";
+                order.NguoiXuLy = "Khách hàng đặt hàng trực tuyến";
+                order.NgayTao = DateTime.Now;
+                order.NgayCapNhat = DateTime.Now;
+                order.HoTenNguoiNhan = model.FullName;
+                order.SdtNguoiNhan = model.Phone;
+                order.DiaChiGiao = model.DeliveryAddress;
+                order.GhiChu = model.Note;
+
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
+
+                var orderDetails = cart.Items.Select(item => new OrderDetail
+                {
+                    MaHD = order.MaHD,
+                    MaSP = item.ProductId,
+                    MaBienThe = item.VariantId,
+                    SoLuong = item.Quantity,
+                    GiaBan = item.BasePrice,
+                    TienTopping = (int)item.ToppingPrice,
+                    ThanhTien = item.TotalPrice
+                }).ToList();
+                _context.OrderDetails.AddRange(orderDetails);
+                await _context.SaveChangesAsync();
+
+                foreach (var (item, orderDetail) in cart.Items.Zip(orderDetails))
+                {
+                    foreach (var toppingId in item.SelectedToppingIds.Distinct())
+                    {
+                        var toppingPrice = await _context.Products
+                            .Where(p => p.MaSP == toppingId)
+                            .Select(p => p.Variants.OrderBy(v => v.MaBienThe).Select(v => (decimal?)v.GiaBan).FirstOrDefault())
+                            .FirstOrDefaultAsync() ?? 10000m;
+                        _context.OrderDetailToppings.Add(new OrderDetailTopping
+                        {
+                            MaCTHD = orderDetail.MaCTHD,
+                            MaSP = toppingId,
+                            GiaBan = (int)toppingPrice
+                        });
+                    }
+                }
+
+                if (customerForOrder is not null)
+                {
+                    var pointsEarned = (int)(cart.GrandTotal / 10000m);
+                    customerForOrder.DiemTichLuy += pointsEarned;
+                    if (customerForOrder.DiemTichLuy >= 500) customerForOrder.HangTV = "Kim Cương";
+                    else if (customerForOrder.DiemTichLuy >= 200) customerForOrder.HangTV = "Vàng";
+                    else if (customerForOrder.DiemTichLuy >= 50) customerForOrder.HangTV = "Bạc";
+
+                    if (pointsEarned > 0)
+                    {
+                        _context.PointHistories.Add(new PointHistory
+                        {
+                            MaKH = customerForOrder.MaKH,
+                            MaHD = order.MaHD,
+                            DiemThayDoi = pointsEarned,
+                            LyDo = $"Tích điểm đơn hàng #{order.MaHD}",
+                            NgayThucHien = DateTime.Now
+                        });
+                    }
+
+                    if (model.SaveCustomerInfo)
+                    {
+                        customerForOrder.HoTen = model.FullName;
+                        customerForOrder.Sdt = model.Phone;
+                        customerForOrder.Email = model.Email;
+                        customerForOrder.DiaChi = model.DeliveryAddress;
+                        var account = await _context.Accounts.FirstOrDefaultAsync(
+                            item => item.TenDangNhap == customerForOrder.TaiKhoan, cancellationToken);
+                        if (account is not null)
+                            account.HoTen = model.FullName;
+                    }
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch (Exception)
             {
-                await transaction.RollbackAsync();
-                ModelState.AddModelError(string.Empty, "Một topping đã chọn không còn khả dụng. Vui lòng cập nhật giỏ hàng.");
+                await transaction.RollbackAsync(cancellationToken);
+                ModelState.AddModelError(string.Empty, "Có lỗi xảy ra trong quá trình xử lý đơn hàng. Vui lòng thử lại hoặc liên hệ hỗ trợ.");
                 model.Cart = cart;
                 return View("Index", model);
             }
 
-            foreach (var requirement in GetStockRequirements(cart))
-            {
-                var affected = await _context.Products
-                    .Where(p => p.MaSP == requirement.Key && p.TrangThai && p.SoLuongTon >= requirement.Value)
-                    .ExecuteUpdateAsync(setters => setters.SetProperty(p => p.SoLuongTon, p => p.SoLuongTon - requirement.Value));
-                if (affected == 0)
-                {
-                    await transaction.RollbackAsync();
-                    var productName = await _context.Products.Where(p => p.MaSP == requirement.Key).Select(p => p.TenSP).FirstOrDefaultAsync() ?? "Sản phẩm";
-                    ModelState.AddModelError(string.Empty, $"Món {productName} hiện không đủ số lượng trong kho.");
-                    model.Cart = cart;
-                    return View("Index", model);
-                }
-            }
-
-            if (voucher != null)
-            {
-                var currentTime = DateTime.Now;
-                var affected = await _context.Vouchers
-                    .Where(v => v.MaVoucher == voucher.MaVoucher && v.TrangThai && v.SoLuongDaDung < v.SoLuongToiDa
-                        && (!v.NgayBatDau.HasValue || v.NgayBatDau <= currentTime)
-                        && (!v.NgayKetThuc.HasValue || v.NgayKetThuc >= currentTime)
-                        && cart.SubTotal >= v.DonToiThieu)
-                    .ExecuteUpdateAsync(setters => setters
-                        .SetProperty(v => v.SoLuongDaDung, v => v.SoLuongDaDung + 1)
-                        .SetProperty(v => v.TrangThai, v => v.SoLuongDaDung + 1 >= v.SoLuongToiDa ? false : v.TrangThai));
-                if (affected == 0)
-                {
-                    await transaction.RollbackAsync();
-                    ModelState.AddModelError(string.Empty, "Voucher vừa hết lượt sử dụng. Vui lòng kiểm tra lại đơn hàng.");
-                    model.Cart = cart;
-                    return View("Index", model);
-                }
-            }
-
-            var isPaid = model.PaymentMethod == "Transfer";
-            var order = new Order
-            {
-                MaKH = customerId,
-                MaVoucher = voucher?.MaVoucher,
-                LoaiDonHang = "Giao hàng",
-                TamTinh = (int)cart.SubTotal,
-                TienGiamGia = cart.DiscountAmount,
-                PhiGiao = (int)cart.ShippingFee,
-                TongTien = cart.GrandTotal,
-                TrangThai = OrderStatuses.WaitingForConfirmation,
-                PhuongThucThanhToan = isPaid ? "Chuyển khoản (Đã thanh toán)" : "COD",
-                NguoiXuLy = "Khách hàng đặt hàng trực tuyến",
-                NgayTao = DateTime.Now,
-                NgayCapNhat = DateTime.Now,
-                HoTenNguoiNhan = model.FullName,
-                SdtNguoiNhan = model.Phone,
-                DiaChiGiao = model.DeliveryAddress,
-                GhiChu = model.Note
-            };
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            var orderDetails = cart.Items.Select(item => new OrderDetail
-            {
-                MaHD = order.MaHD,
-                MaSP = item.ProductId,
-                MaBienThe = item.VariantId,
-                SoLuong = item.Quantity,
-                GiaBan = item.BasePrice,
-                TienTopping = (int)item.ToppingPrice,
-                ThanhTien = item.TotalPrice
-            }).ToList();
-            _context.OrderDetails.AddRange(orderDetails);
-            await _context.SaveChangesAsync();
-
-            foreach (var (item, orderDetail) in cart.Items.Zip(orderDetails))
-            {
-                foreach (var toppingId in item.SelectedToppingIds.Distinct())
-                {
-                    var toppingPrice = await _context.Products
-                        .Where(p => p.MaSP == toppingId)
-                        .Select(p => p.Variants.OrderBy(v => v.MaBienThe).Select(v => (decimal?)v.GiaBan).FirstOrDefault())
-                        .FirstOrDefaultAsync() ?? 10000m;
-                    _context.OrderDetailToppings.Add(new OrderDetailTopping
-                    {
-                        MaCTHD = orderDetail.MaCTHD,
-                        MaSP = toppingId,
-                        GiaBan = (int)toppingPrice
-                    });
-                }
-            }
-
-            if (customerForOrder is not null)
-            {
-                var pointsEarned = (int)(cart.GrandTotal / 10000m);
-                customerForOrder.DiemTichLuy += pointsEarned;
-                if (customerForOrder.DiemTichLuy >= 500) customerForOrder.HangTV = "Kim Cương";
-                else if (customerForOrder.DiemTichLuy >= 200) customerForOrder.HangTV = "Vàng";
-                else if (customerForOrder.DiemTichLuy >= 50) customerForOrder.HangTV = "Bạc";
-
-                if (pointsEarned > 0)
-                {
-                    _context.PointHistories.Add(new PointHistory
-                    {
-                        MaKH = customerForOrder.MaKH,
-                        MaHD = order.MaHD,
-                        DiemThayDoi = pointsEarned,
-                        LyDo = $"Tích điểm đơn hàng #{order.MaHD}",
-                        NgayThucHien = DateTime.Now
-                    });
-                }
-
-                if (model.SaveCustomerInfo)
-                {
-                    customerForOrder.HoTen = model.FullName;
-                    customerForOrder.Sdt = model.Phone;
-                    customerForOrder.Email = model.Email;
-                    customerForOrder.DiaChi = model.DeliveryAddress;
-                    var account = await _context.Accounts.FirstOrDefaultAsync(
-                        item => item.TenDangNhap == customerForOrder.TaiKhoan, cancellationToken);
-                    if (account is not null)
-                        account.HoTen = model.FullName;
-                }
-            }
-
-            await _context.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
             await _cartStore.ClearCartAsync();
             return RedirectToAction(nameof(Success), new { id = order.MaHD });
         }

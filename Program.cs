@@ -15,13 +15,13 @@ var secondaryConnectionString = builder.Configuration.GetConnectionString("Secon
 builder.Services.AddDbContext<CoffeeShopDbContext>(options =>
     options.UseSqlServer(defaultConnectionString, sqlOptions =>
     {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(5),
-            errorNumbersToAdd: null);
 
         if (!string.IsNullOrWhiteSpace(secondaryConnectionString))
         {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorNumbersToAdd: null);
             sqlOptions.ExecutionStrategy(dependencies =>
                 new SqlServerFailoverExecutionStrategy(dependencies, secondaryConnectionString));
         }

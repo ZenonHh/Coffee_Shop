@@ -1,36 +1,40 @@
 @model CoffeeShop.Models.ViewModels.AdminDashboardViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Bảng điều khiển";
+    var dailyRevenueJson = JsonSerializer.Serialize(Model.DailyRevenues);
+    var orderStatusJson = JsonSerializer.Serialize(Model.OrderStatusesList);
+    var topProductsJson = JsonSerializer.Serialize(Model.TopSellingProducts);
 }
 
 <!-- Số liệu cần theo dõi -->
 <div class="row mb-4 dashboard-overview">
     @if (User.IsInRole("Admin"))
     {
-        <div class="col-md-3">
+        <div class="col-md-3 col-sm-6">
             <a asp-controller="Orders" asp-action="Index" asp-route-status="@CoffeeShop.Services.OrderStatuses.Completed" class="card stat-card dashboard-card dashboard-card-revenue p-3 mb-3 text-decoration-none">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-uppercase small mb-1">Tổng doanh thu</h6>
-                    <h3 class="font-weight-bold mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small mb-1">Tổng doanh thu</h6>
+                        <h3 class="font-weight-bold mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-2x opacity-50"></i>
                 </div>
-                <i class="fas fa-money-bill-wave fa-2x opacity-50"></i>
-            </div>
             </a>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-3 col-sm-6">
             <a asp-controller="Orders" asp-action="Index" asp-route-status="@CoffeeShop.Services.OrderStatuses.WaitingForConfirmation" class="card stat-card dashboard-card dashboard-card-orders p-3 mb-3 text-decoration-none">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="text-uppercase small mb-1">Đơn chờ xác nhận</h6>
-                    <h3 class="font-weight-bold mb-0">@Model.PendingOrderCount</h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small mb-1">Đơn chờ xác nhận</h6>
+                        <h3 class="font-weight-bold mb-0">@Model.PendingOrderCount</h3>
+                    </div>
+                    <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
                 </div>
-                <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
-            </div>
             </a>
         </div>
     }
-    <div class="col-md-3">
+    <div class="col-md-3 col-sm-6">
         <a asp-controller="KhachHang" asp-action="Index" class="card stat-card dashboard-card dashboard-card-customers p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -41,7 +45,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-sm-6">
         <a asp-controller="Feedback" asp-action="Index" asp-route-tab="reviews" asp-route-status="pending" class="card stat-card dashboard-card dashboard-card-feedback p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -52,7 +56,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-sm-6">
         <a asp-controller="Feedback" asp-action="Index" asp-route-tab="contacts" asp-route-status="pending" class="card stat-card dashboard-card dashboard-card-feedback p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -63,7 +67,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-3 col-sm-6">
         <a asp-controller="Surveys" asp-action="Index" asp-route-state="active" class="card stat-card dashboard-card dashboard-card-products p-3 mb-3 text-decoration-none">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -74,7 +78,347 @@
             </div>
         </a>
     </div>
-    <div class="col-12 d-flex justify-content-end mb-3">
-        <a asp-area="Admin" asp-controller="Statistics" asp-action="Index" class="button button-outline">Xem thống kê &rarr;</a>
-    </div>
 </div>
+
+@if (User.IsInRole("Admin"))
+{
+    <!-- Khu vực Biểu đồ Thống kê Dashboard -->
+    <div class="row mb-4">
+        <!-- Biểu đồ Doanh thu & Đơn hàng 7 ngày -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <div>
+                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-chart-line mr-2 text-warning"></i>Doanh thu & Số đơn hàng (7 ngày qua)
+                        </h5>
+                        <small class="text-muted">Theo dõi biến động dòng tiền và lượng đơn phát sinh</small>
+                    </div>
+                    <span class="badge badge-pill badge-light px-3 py-2 border">7 ngày gần nhất</span>
+                </div>
+                <div class="card-body">
+                    <div style="position: relative; height: 320px; width: 100%;">
+                        <canvas id="revenueOrdersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ Cơ cấu trạng thái đơn hàng -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent py-3 border-bottom">
+                    <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                        <i class="fas fa-chart-pie mr-2 text-info"></i>Trạng thái đơn hàng
+                    </h5>
+                    <small class="text-muted">Tỷ lệ các trạng thái trong hệ thống</small>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <div style="position: relative; height: 260px; width: 100%;">
+                        <canvas id="orderStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <!-- Biểu đồ Top sản phẩm bán chạy -->
+        <div class="col-lg-7 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <div>
+                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-coffee mr-2 text-success"></i>Top 5 Món uống bán chạy nhất
+                        </h5>
+                        <small class="text-muted">Dựa trên các đơn hàng đã hoàn thành</small>
+                    </div>
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-sm btn-outline-secondary">Xem kho món</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopSellingProducts.Any())
+                    {
+                        <div style="position: relative; height: 280px; width: 100%;">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3 text-secondary opacity-50"></i>
+                            <p class="mb-0">Chưa có đủ dữ liệu đơn hàng hoàn thành để xếp hạng món.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Thao tác nhanh & Báo cáo điều hành -->
+        <div class="col-lg-5 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent py-3 border-bottom">
+                    <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                        <i class="fas fa-bolt mr-2 text-warning"></i>Lối tắt nghiệp vụ & Báo cáo
+                    </h5>
+                    <small class="text-muted">Truy cập nhanh các phân hệ thống kê điều hành</small>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush mb-3">
+                        <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <i class="fas fa-receipt mr-2 text-primary"></i> <strong>Xử lý đơn hàng</strong>
+                                <div class="small text-muted">Kiểm tra và duyệt các đơn vừa đặt</div>
+                            </div>
+                            <span class="badge badge-warning badge-pill">@Model.PendingOrderCount chờ</span>
+                        </a>
+                        <a asp-area="Admin" asp-controller="Statistics" asp-action="Index" asp-route-tab="customers" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <i class="fas fa-user-friends mr-2 text-info"></i> <strong>Báo cáo Khách hàng & CRM</strong>
+                                <div class="small text-muted">Phân tích hạng thẻ, độ tuổi & sở thích</div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                        <a asp-area="Admin" asp-controller="Statistics" asp-action="Index" asp-route-tab="satisfaction" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <i class="fas fa-smile mr-2 text-success"></i> <strong>Chỉ số Hài lòng CSAT</strong>
+                                <div class="small text-muted">Phân bố đánh giá sao & xu hướng tháng</div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                        <a asp-area="Admin" asp-controller="Vouchers" asp-action="Index" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-0">
+                            <div>
+                                <i class="fas fa-tags mr-2 text-danger"></i> <strong>Quản lý Mã ưu đãi</strong>
+                                <div class="small text-muted">Tạo mới và phát hành Voucher khuyến mãi</div>
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </a>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <a asp-area="Admin" asp-controller="Statistics" asp-action="Index" class="btn btn-primary btn-sm px-3" style="background-color: var(--coffee, #6f4e37); border-color: var(--coffee, #6f4e37);">
+                            Mở Trung tâm Thống kê &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="application/json" id="dashboard-daily-revenue-data">@Html.Raw(dailyRevenueJson)</script>
+<script type="application/json" id="dashboard-order-status-data">@Html.Raw(orderStatusJson)</script>
+<script type="application/json" id="dashboard-top-products-data">@Html.Raw(topProductsJson)</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            if (typeof Chart === 'undefined') return;
+
+            var revenueDataEl = document.getElementById('dashboard-daily-revenue-data');
+            var statusDataEl = document.getElementById('dashboard-order-status-data');
+            var topProductsDataEl = document.getElementById('dashboard-top-products-data');
+
+            var dailyData = revenueDataEl ? JSON.parse(revenueDataEl.textContent || '[]') : [];
+            var statusData = statusDataEl ? JSON.parse(statusDataEl.textContent || '[]') : [];
+            var topProducts = topProductsDataEl ? JSON.parse(topProductsDataEl.textContent || '[]') : [];
+
+            var styles = getComputedStyle(document.documentElement);
+            var primary = '#6f4e37'; // Katinat coffee brown
+            var secondary = '#c49b63'; // Katinat gold
+            var ink = '#28251f';
+            var muted = '#8e8981';
+            var line = '#efede9';
+
+            Chart.defaults.font.family = "'DM Sans', sans-serif";
+            Chart.defaults.color = ink;
+
+            // 1. BIỂU ĐỒ DOANH THU & SỐ ĐƠN (COMBO CHART)
+            var revCanvas = document.getElementById('revenueOrdersChart');
+            if (revCanvas && dailyData.length > 0) {
+                var dates = dailyData.map(function (item) { return item.Date; });
+                var revenues = dailyData.map(function (item) { return item.Revenue; });
+                var orderCounts = dailyData.map(function (item) { return item.OrderCount; });
+
+                new Chart(revCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Doanh thu (VNĐ)',
+                                data: revenues,
+                                borderColor: secondary,
+                                backgroundColor: 'rgba(196, 155, 99, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.35,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: secondary,
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                yAxisID: 'y'
+                            },
+                            {
+                                type: 'bar',
+                                label: 'Số đơn hàng',
+                                data: orderCounts,
+                                backgroundColor: 'rgba(111, 78, 55, 0.45)',
+                                borderColor: primary,
+                                borderWidth: 1,
+                                borderRadius: 4,
+                                maxBarThickness: 32,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: ink }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                beginAtZero: true,
+                                grid: { color: line },
+                                ticks: {
+                                    color: muted,
+                                    callback: function (val) {
+                                        return (val >= 1000000 ? (val / 1000000).toFixed(1) + ' tr' : (val / 1000).toFixed(0) + ' k');
+                                    }
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                beginAtZero: true,
+                                grid: { drawOnChartArea: false },
+                                ticks: {
+                                    precision: 0,
+                                    color: primary
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        if (ctx.datasetIndex === 0) {
+                                            return ' Doanh thu: ' + Number(ctx.parsed.y).toLocaleString('vi-VN') + ' đ';
+                                        } else {
+                                            return ' Số đơn: ' + ctx.parsed.y + ' đơn';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 2. BIỂU ĐỒ TRẠNG THÁI ĐƠN HÀNG (DOUGHNUT)
+            var statusCanvas = document.getElementById('orderStatusChart');
+            if (statusCanvas && statusData.length > 0) {
+                var statusLabels = statusData.map(function (item) { return item.Status; });
+                var statusCounts = statusData.map(function (item) { return item.Count; });
+                var statusColors = statusData.map(function (item) { return item.Color || '#8e8981'; });
+
+                new Chart(statusCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusCounts,
+                            backgroundColor: statusColors,
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    font: { size: 12 }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        var total = statusCounts.reduce(function (a, b) { return a + b; }, 0);
+                                        var pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
+                                        return ' ' + ctx.label + ': ' + ctx.parsed + ' đơn (' + pct + '%)';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%'
+                    }
+                });
+            }
+
+            // 3. BIỂU ĐỒ TOP SẢN PHẨM BÁN CHẠY (HORIZONTAL BAR)
+            var topCanvas = document.getElementById('topProductsChart');
+            if (topCanvas && topProducts.length > 0) {
+                var productNames = topProducts.map(function (item) { return item.ProductName; });
+                var productQuantities = topProducts.map(function (item) { return item.QuantitySold; });
+
+                new Chart(topCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: productNames,
+                        datasets: [{
+                            label: 'Số ly đã bán',
+                            data: productQuantities,
+                            backgroundColor: '#c49b63',
+                            borderRadius: 6,
+                            maxBarThickness: 24
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                precision: 0,
+                                grid: { color: line },
+                                ticks: { precision: 0, color: muted }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: ink }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        var item = topProducts[ctx.dataIndex];
+                                        return ' Đã bán: ' + ctx.parsed.x + ' ly (Thu: ' + Number(item.TotalAmount).toLocaleString('vi-VN') + ' đ)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+}

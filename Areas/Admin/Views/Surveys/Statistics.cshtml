@@ -1,7 +1,26 @@
 @model CoffeeShop.Models.ViewModels.SurveyStatisticsViewModel
+@using System.Text.Json
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Thống kê khảo sát";
+
+    var chartQuestions = Model.Questions.Select((question, index) => new
+    {
+        CanvasId = $"survey-chart-{index}",
+        question.Type,
+        question.ResponseCount,
+        AverageRating = question.AverageRating,
+        Labels = question.Type == "SAO"
+            ? question.Ratings.Select(rating => $"{rating.Rating} sao").ToArray()
+            : question.Options.Select(option => option.Text).ToArray(),
+        Counts = question.Type == "SAO"
+            ? question.Ratings.Select(rating => rating.Count).ToArray()
+            : question.Options.Select(option => option.Count).ToArray(),
+        Percentages = question.Type == "SAO"
+            ? question.Ratings.Select(rating => Math.Round(rating.Percentage, 1)).ToArray()
+            : question.Options.Select(option => Math.Round(option.Percentage, 1)).ToArray()
+    }).ToArray();
+    var chartJson = JsonSerializer.Serialize(chartQuestions);
 }
 
 <div class="page-heading">
@@ -119,6 +138,16 @@
                             <span>/ 5</span>
                         }
                     </p>
+                    @if (question.ResponseCount > 0 && question.Ratings.Any(rating => rating.Count > 0))
+                    {
+                        <div class="survey-chart-wrap mb-4" data-survey-chart="@index">
+                            <canvas id="survey-chart-@index" aria-label="Biểu đồ phân bố đánh giá câu hỏi @(index + 1)" role="img"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="survey-no-chart mb-4">Chưa có dữ liệu</p>
+                    }
                     @foreach (var rating in question.Ratings)
                     {
                         <div class="mb-3">
@@ -141,6 +170,16 @@
                     @if (question.Options.Count == 0)
                     {
                         <p class="muted-cell mb-0">Câu hỏi chưa có phương án lựa chọn.</p>
+                    }
+                    else if (question.ResponseCount > 0 && question.Options.Any(option => option.Count > 0))
+                    {
+                        <div class="survey-chart-wrap mb-4" data-survey-chart="@index">
+                            <canvas id="survey-chart-@index" aria-label="Biểu đồ lựa chọn câu hỏi @(index + 1)" role="img"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="survey-no-chart mb-4">Chưa có dữ liệu</p>
                     }
                     @foreach (var option in question.Options)
                     {
@@ -200,4 +239,130 @@ else if (!Model.SelectedSurveyId.HasValue)
     <section class="panel">
         <p class="muted-cell mb-0">Chọn một khảo sát để xem các chỉ số và câu trả lời chi tiết.</p>
     </section>
+}
+
+<style>
+    .survey-chart-wrap {
+        position: relative;
+        height: 260px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .survey-no-chart {
+        color: var(--muted, #8e8981);
+        background: var(--canvas, #f8f7f5);
+        border: 1px dashed var(--line, #efede9);
+        border-radius: .25rem;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    @@media (max-width: 575.98px) {
+        .survey-chart-wrap {
+            height: 260px;
+        }
+    }
+</style>
+
+<script type="application/json" id="survey-statistics-chart-data">@Html.Raw(chartJson)</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            var dataElement = document.getElementById('survey-statistics-chart-data');
+            if (!dataElement || typeof Chart === 'undefined') {
+                return;
+            }
+
+            var questions = JSON.parse(dataElement.textContent);
+            var styles = getComputedStyle(document.documentElement);
+            var primary = styles.getPropertyValue('--admin-accent').trim() || styles.getPropertyValue('--coffee').trim() || '#6f4e37';
+            var secondary = styles.getPropertyValue('--blue').trim() || '#496eae';
+            var gridColor = styles.getPropertyValue('--line').trim() || '#efede9';
+            var textColor = styles.getPropertyValue('--ink').trim() || '#28251f';
+            var mutedColor = styles.getPropertyValue('--muted').trim() || '#8e8981';
+            var palette = [primary, secondary, '#23845b', '#a56b11', '#8d6e63', '#78909c', '#7e57c2', '#5c6bc0'];
+
+            Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+            Chart.defaults.color = textColor;
+
+            questions.forEach(function (question) {
+                var canvas = document.getElementById(question.CanvasId);
+                var hasData = question.Counts.some(function (count) { return count > 0; });
+                if (!canvas || !hasData) {
+                    return;
+                }
+
+                var isRating = question.Type === 'SAO';
+                var averageText = question.AverageRating === null
+                    ? ''
+                    : ' — Điểm trung bình: ' + Number(question.AverageRating).toFixed(1) + '/5';
+                var colors = isRating
+                    ? palette.slice(0, question.Labels.length)
+                    : question.Labels.map(function (_, index) { return palette[index % palette.length]; });
+
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: question.Labels,
+                        datasets: [{
+                            label: isRating ? 'Số lượt đánh giá' : 'Số lượt chọn',
+                            data: question.Counts,
+                            backgroundColor: colors,
+                            borderColor: colors,
+                            borderWidth: 0,
+                            borderRadius: 4,
+                            maxBarThickness: 48
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: isRating ? 'x' : 'y',
+                        scales: isRating ? {
+                            x: { grid: { display: false }, ticks: { color: textColor } },
+                            y: {
+                                beginAtZero: true,
+                                precision: 0,
+                                ticks: { precision: 0, color: mutedColor },
+                                grid: { color: gridColor }
+                            }
+                        } : {
+                            x: {
+                                beginAtZero: true,
+                                precision: 0,
+                                ticks: { precision: 0, color: mutedColor },
+                                grid: { color: gridColor }
+                            },
+                            y: { grid: { display: false }, ticks: { color: textColor, autoSkip: false } }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: isRating ? 'Phân bố mức đánh giá' + averageText : 'Số lượt theo phương án',
+                                color: textColor,
+                                font: { size: 14, weight: '600' }
+                            },
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        var count = context.parsed.x;
+                                        var percentage = question.Percentages[context.dataIndex];
+                                        if (isRating) {
+                                            count = context.parsed.y;
+                                        }
+                                        return ' ' + count + ' lượt (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
 }
