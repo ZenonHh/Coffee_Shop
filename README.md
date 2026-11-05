@@ -109,7 +109,9 @@ Mở trình duyệt truy cập:
 3. **Thanh toán & Tự động xác nhận đơn**: Đơn hàng khi khách thanh toán/chuyển khoản sẽ ngay lập tức được xác nhận, mã đơn thứ tự chuẩn `#HD0001`, `#HD0002`... kèm popup xem nhanh khi rê chuột.
 4. **Chương trình Ưu đãi & Đổi điểm (`/Promotions`)**: Hiển thị ưu đãi hiện tại/sắp tới, giảm giá theo giá trị đơn, quyền lợi 4 hạng thành viên (Đồng, Bạc, Vàng, Kim Cương), cơ chế đổi điểm nhận voucher.
 5. **Khảo sát ý kiến tích điểm (`/Survey`)**: Khách hàng hoàn thành khảo sát được tích ngay **+50 điểm** vào tài khoản.
-6. **CRM quản trị (`/Admin/KhachHang`, `/Admin/Statistics`)**: Quản lý hồ sơ khách hàng; thống kê khách hàng, mức độ hài lòng và tỷ lệ tham gia khảo sát theo kỳ.
+6. **CRM quản trị (`/Admin/KhachHang`, `/Admin/Statistics`)**: Quản lý hồ sơ khách hàng; thống kê khách hàng, mức độ hài lòng và tỷ lệ tham gia khảo sát theo kỳ; xuất báo cáo Excel/PDF và in theo bộ lọc đang chọn.
+
+> Xuất PDF sử dụng QuestPDF Community License, áp dụng cho cá nhân, tổ chức phi lợi nhuận, dự án mã nguồn mở và tổ chức có doanh thu hằng năm dưới 1 triệu USD. Tổ chức không thuộc nhóm này cần giấy phép thương mại QuestPDF.
 
 ## 5. Mobile App và REST API
 

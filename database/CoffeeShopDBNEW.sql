@@ -739,7 +739,7 @@ SET IDENTITY_INSERT [dbo].[giohang] OFF
 GO
 SET IDENTITY_INSERT [dbo].[hoadon] ON 
 
-INSERT [dbo].[hoadon] ([MaHD], [MaCaLam], [MaKH], [MaNV], [MaCTKM], [LoaiDonHang], [TongTien], [TienGiamGia], [TrangThai], [NgayTao], [PhiGiao], [HoTenNguoiNhan], [SdtNguoiNhan], [DiaChiGiao], [GhiChu], [TamTinh], [MaVoucher], [LyDoHuy], [NguoiXuLy], [NgayCapNhat], [PhuongThucThanhToan]) VALUES (2, NULL, 1, NULL, NULL, N'1', CAST(105000.00 AS Decimal(12, 2)), CAST(0.00 AS Decimal(12, 2)), N'Hoàn tất', CAST(N'2026-10-12T09:26:09.0000000' AS DateTime2), 0, N'nguyen van a', N'0909090909', N'120 yen lang thanh pho ha noi', NULL, 105000, NULL, NULL, NULL, NULL, N'COD')
+INSERT [dbo].[hoadon] ([MaHD], [MaCaLam], [MaKH], [MaNV], [MaCTKM], [LoaiDonHang], [TongTien], [TienGiamGia], [TrangThai], [NgayTao], [PhiGiao], [HoTenNguoiNhan], [SdtNguoiNhan], [DiaChiGiao], [GhiChu], [TamTinh], [MaVoucher], [LyDoHuy], [NguoiXuLy], [NgayCapNhat], [PhuongThucThanhToan]) VALUES (2, NULL, 1, 1, NULL, N'1', CAST(105000.00 AS Decimal(12, 2)), CAST(0.00 AS Decimal(12, 2)), N'Hoàn tất', CAST(N'2026-10-12T09:26:09.0000000' AS DateTime2), 0, N'nguyen van a', N'0909090909', N'120 yen lang thanh pho ha noi', NULL, 105000, NULL, NULL, NULL, NULL, N'COD')
 SET IDENTITY_INSERT [dbo].[hoadon] OFF
 GO
 SET IDENTITY_INSERT [dbo].[khachhang] ON 

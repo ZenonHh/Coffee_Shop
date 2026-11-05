@@ -16,6 +16,7 @@ Chỉ cần chạy **1 file duy nhất**: [`CoffeeShopDBNEW.sql`](CoffeeShopDBNE
 - Đã gộp toàn bộ **33 bảng**, quan hệ khóa ngoại (Foreign Keys), biến thể size M/L, giỏ hàng, vouchers, liên hệ, quản lý kho, tài khoản admin/nhân viên và 48 sản phẩm mẫu đầy đủ.
 - Tự động tạo `CoffeeShopDb` nếu chưa có mà không bị lỗi đường dẫn cố định.
 - Chạy được nhiều lần (idempotent) mà không bị xung đột khóa hoặc bảng đã tồn tại.
+- Hóa đơn hoàn tất mẫu được gán cho nhân viên quản lý để minh họa báo cáo doanh thu theo nhân viên.
 
 Cách chạy:
 1. Mở SQL Server Management Studio (SSMS) hoặc Azure Data Studio.

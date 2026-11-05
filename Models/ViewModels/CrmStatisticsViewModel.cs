@@ -8,6 +8,8 @@ public sealed class CrmStatisticsViewModel
     public DateTime ToDate { get; set; }
     public bool RangeIsValid { get; set; }
     public int FinanceYear { get; set; }
+    public string FinancePeriod { get; set; } = "quarter";
+    public string FinanceTotalLabel => FinancePeriod == "year" ? "Tổng kỳ" : "Tổng năm";
     public int TotalCustomers { get; set; }
     public int NewCustomers { get; set; }
     public int RatedFeedbackCount { get; set; }
@@ -26,15 +28,15 @@ public sealed class CrmStatisticsViewModel
     public int CompletedInvoiceCount { get; set; }
     public decimal TotalApprovedPurchases { get; set; }
     public decimal RevenueMinusPurchases { get; set; }
-    public List<QuarterFinanceViewModel> QuarterlyFinance { get; set; } = new();
+    public List<FinancePeriodViewModel> FinancialPeriods { get; set; } = new();
     public List<int> StaffReportYears { get; set; } = new();
     public List<StaffRevenueViewModel> StaffRevenue { get; set; } = new();
     public List<ProductQuarterRevenueViewModel> ProductQuarterRevenue { get; set; } = new();
 }
 
-public sealed class QuarterFinanceViewModel
+public sealed class FinancePeriodViewModel
 {
-    public int Quarter { get; set; }
+    public string Label { get; set; } = string.Empty;
     public decimal Revenue { get; set; }
     public decimal Purchases { get; set; }
     public decimal Difference => Revenue - Purchases;
