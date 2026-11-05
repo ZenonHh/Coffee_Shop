@@ -153,6 +153,16 @@ IF COL_LENGTH(N'dbo.hoadon', N'NgayCapNhat') IS NULL
 IF COL_LENGTH(N'dbo.hoadon', N'PhuongThucThanhToan') IS NULL
     ALTER TABLE dbo.[hoadon] ADD [PhuongThucThanhToan] NVARCHAR(50) NOT NULL CONSTRAINT [DF_hoadon_PhuongThucThanhToan] DEFAULT (N'COD');
 
+IF COL_LENGTH(N'dbo.hoadon', N'MaNV') IS NULL
+    ALTER TABLE dbo.[hoadon] ADD [MaNV] INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_HoaDon_MaNV' AND object_id = OBJECT_ID(N'dbo.hoadon'))
+    CREATE INDEX [IX_HoaDon_MaNV] ON dbo.[hoadon] ([MaNV]);
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_HoaDon_NhanVien_MaNV')
+    ALTER TABLE dbo.[hoadon] ADD CONSTRAINT [FK_HoaDon_NhanVien_MaNV]
+        FOREIGN KEY ([MaNV]) REFERENCES dbo.[nhanvien] ([MaNV]);
+
 IF NOT EXISTS
 (
     SELECT 1

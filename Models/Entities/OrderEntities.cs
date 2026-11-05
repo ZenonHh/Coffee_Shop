@@ -75,6 +75,8 @@ namespace CoffeeShop.Models.Entities
 
         public DateTime? NgayCapNhat { get; set; }
 
+        public int? MaNV { get; set; }
+
         [MaxLength(50)]
         public string PhuongThucThanhToan { get; set; } = "COD";
 
@@ -99,6 +101,9 @@ namespace CoffeeShop.Models.Entities
 
         [ForeignKey("MaVoucher")]
         public virtual Voucher? Voucher { get; set; }
+
+        [ForeignKey("MaNV")]
+        public virtual StaffMember? StaffMember { get; set; }
 
         public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }

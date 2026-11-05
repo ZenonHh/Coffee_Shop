@@ -23,11 +23,13 @@ public class StatisticsController : Controller
         string tab = "customers",
         string period = "30days",
         DateTime? fromDate = null,
-        DateTime? toDate = null)
+        DateTime? toDate = null,
+        int? year = null)
     {
-        tab = tab is "satisfaction" or "surveys" ? tab : "customers";
+        tab = tab is "satisfaction" or "surveys" or "finance" ? tab : "customers";
         period = period is "quarter" or "year" or "custom" ? period : "30days";
         var today = DateTime.Today;
+        var financeYear = year ?? today.Year;
         var start = period switch
         {
             "quarter" => new DateTime(today.Year, ((today.Month - 1) / 3 * 3) + 1, 1),
@@ -41,9 +43,12 @@ public class StatisticsController : Controller
             Tab = tab,
             Period = period,
             FromDate = start,
-            ToDate = end
+            ToDate = end,
+            FinanceYear = financeYear
         };
 
+        if (tab == "finance" && (financeYear < 2000 || financeYear > today.Year))
+            ModelState.AddModelError(nameof(year), $"Năm phải nằm trong khoảng 2000–{today.Year}.");
         if (period == "custom" && (!fromDate.HasValue || !toDate.HasValue))
             ModelState.AddModelError(nameof(fromDate), "Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.");
         if (start > end)
@@ -54,6 +59,13 @@ public class StatisticsController : Controller
             return View(model);
         }
         model.RangeIsValid = true;
+
+        if (tab == "finance")
+        {
+            await PopulateFinancialStatisticsAsync(model, financeYear);
+            ViewData["Title"] = "Thống kê";
+            return View(model);
+        }
 
         var endExclusive = end.AddDays(1);
         model.TotalCustomers = await _context.Customers.CountAsync();
@@ -193,5 +205,106 @@ public class StatisticsController : Controller
 
         ViewData["Title"] = "Thống kê";
         return View(model);
+    }
+
+    private async Task PopulateFinancialStatisticsAsync(CrmStatisticsViewModel model, int year)
+    {
+        var yearStart = new DateTime(year, 1, 1);
+        var yearEnd = yearStart.AddYears(1);
+        var completedOrders = _context.Orders.AsNoTracking()
+            .Where(order =>
+                (order.TrangThai == OrderStatuses.Completed || order.TrangThai == OrderStatuses.LegacyCompleted)
+                && order.NgayTao >= yearStart
+                && order.NgayTao < yearEnd);
+
+        model.CompletedInvoiceCount = await completedOrders.CountAsync();
+        model.TotalCompletedRevenue = await completedOrders
+            .SumAsync(order => (decimal?)order.TongTien) ?? 0m;
+
+        var revenueByQuarter = await completedOrders
+            .GroupBy(order => ((order.NgayTao.Month - 1) / 3) + 1)
+            .Select(group => new { Quarter = group.Key, Amount = group.Sum(order => order.TongTien) })
+            .ToDictionaryAsync(item => item.Quarter, item => item.Amount);
+
+        var approvedPurchases = _context.Purchases.AsNoTracking()
+            .Where(purchase => purchase.TrangThai == "Đã duyệt"
+                && (purchase.NgayDuyet ?? purchase.NgayNhap) >= yearStart
+                && (purchase.NgayDuyet ?? purchase.NgayNhap) < yearEnd);
+        var purchasesByQuarter = await approvedPurchases
+            .GroupBy(purchase => ((((purchase.NgayDuyet ?? purchase.NgayNhap)!.Value.Month - 1) / 3) + 1))
+            .Select(group => new { Quarter = group.Key, Amount = group.Sum(purchase => purchase.TongTien ?? 0m) })
+            .ToDictionaryAsync(item => item.Quarter, item => item.Amount);
+
+        model.QuarterlyFinance = Enumerable.Range(1, 4)
+            .Select(quarter => new QuarterFinanceViewModel
+            {
+                Quarter = quarter,
+                Revenue = revenueByQuarter.GetValueOrDefault(quarter),
+                Purchases = purchasesByQuarter.GetValueOrDefault(quarter)
+            })
+            .ToList();
+        model.TotalApprovedPurchases = model.QuarterlyFinance.Sum(item => item.Purchases);
+        model.RevenueMinusPurchases = model.TotalCompletedRevenue - model.TotalApprovedPurchases;
+
+        var firstStaffReportYear = Math.Max(2000, year - 2);
+        model.StaffReportYears = Enumerable.Range(firstStaffReportYear, year - firstStaffReportYear + 1).ToList();
+        var staffSales = await _context.Orders.AsNoTracking()
+            .Where(order => order.MaNV.HasValue
+                && (order.TrangThai == OrderStatuses.Completed || order.TrangThai == OrderStatuses.LegacyCompleted)
+                && order.NgayTao >= new DateTime(model.StaffReportYears[0], 1, 1)
+                && order.NgayTao < yearEnd)
+            .GroupBy(order => new { StaffId = order.MaNV!.Value, order.NgayTao.Year })
+            .Select(group => new
+            {
+                group.Key.StaffId,
+                group.Key.Year,
+                Revenue = group.Sum(order => order.TongTien)
+            })
+            .ToListAsync();
+        var staffRevenueLookup = staffSales.ToDictionary(
+            item => (item.StaffId, item.Year),
+            item => item.Revenue);
+        var staffMembers = await _context.StaffMembers.AsNoTracking()
+            .OrderBy(staff => staff.HoVaDem)
+            .ThenBy(staff => staff.Ten)
+            .Select(staff => new { staff.MaNV, staff.HoVaDem, staff.Ten })
+            .ToListAsync();
+        model.StaffRevenue = staffMembers.Select(staff => new StaffRevenueViewModel
+        {
+            Name = $"{staff.HoVaDem} {staff.Ten}",
+            RevenueByYear = model.StaffReportYears.ToDictionary(
+                reportYear => reportYear,
+                reportYear => staffRevenueLookup.GetValueOrDefault((staff.MaNV, reportYear)))
+        }).ToList();
+
+        var productSales = await _context.OrderDetails.AsNoTracking()
+            .Where(detail => detail.Order != null
+                && (detail.Order.TrangThai == OrderStatuses.Completed || detail.Order.TrangThai == OrderStatuses.LegacyCompleted)
+                && detail.Order.NgayTao >= yearStart
+                && detail.Order.NgayTao < yearEnd
+                && detail.Product != null)
+            .GroupBy(detail => new
+            {
+                detail.MaSP,
+                Name = detail.Product!.TenSP,
+                Quarter = ((detail.Order!.NgayTao.Month - 1) / 3) + 1
+            })
+            .Select(group => new
+            {
+                group.Key.MaSP,
+                group.Key.Name,
+                group.Key.Quarter,
+                Revenue = group.Sum(detail => detail.ThanhTien)
+            })
+            .ToListAsync();
+        model.ProductQuarterRevenue = productSales
+            .GroupBy(item => new { item.MaSP, item.Name })
+            .OrderBy(group => group.Key.Name)
+            .Select(group => new ProductQuarterRevenueViewModel
+            {
+                Name = group.Key.Name,
+                RevenueByQuarter = group.ToDictionary(item => item.Quarter, item => item.Revenue)
+            })
+            .ToList();
     }
 }

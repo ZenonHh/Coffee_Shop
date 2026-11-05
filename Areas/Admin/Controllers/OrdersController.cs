@@ -13,11 +13,16 @@ namespace CoffeeShop.Areas.Admin.Controllers
     {
         private readonly CoffeeShopDbContext _context;
         private readonly OrderManagementService _orderManagement;
+        private readonly StaffMemberResolver _staffMemberResolver;
 
-        public OrdersController(CoffeeShopDbContext context, OrderManagementService orderManagement)
+        public OrdersController(
+            CoffeeShopDbContext context,
+            OrderManagementService orderManagement,
+            StaffMemberResolver staffMemberResolver)
         {
             _context = context;
             _orderManagement = orderManagement;
+            _staffMemberResolver = staffMemberResolver;
         }
 
         public async Task<IActionResult> Index(string? status, int page = 1)
@@ -145,7 +150,11 @@ namespace CoffeeShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmOrder(int orderId)
         {
-            var result = await _orderManagement.ConfirmAsync(orderId, User.Identity?.Name);
+            if (!int.TryParse(User.FindFirst("AccountId")?.Value, out var accountId))
+                return Forbid();
+
+            var employee = await _staffMemberResolver.EnsureForAccountAsync(accountId);
+            var result = await _orderManagement.ConfirmAsync(orderId, User.Identity?.Name, employee.MaNV);
             SetOperationMessage(result, orderId, "xác nhận");
             return RedirectToAction(nameof(Index));
         }
@@ -154,7 +163,11 @@ namespace CoffeeShop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AdvanceOrder(int orderId)
         {
-            var result = await _orderManagement.AdvanceAsync(orderId, User.Identity?.Name);
+            if (!int.TryParse(User.FindFirst("AccountId")?.Value, out var accountId))
+                return Forbid();
+
+            var employee = await _staffMemberResolver.EnsureForAccountAsync(accountId);
+            var result = await _orderManagement.AdvanceAsync(orderId, User.Identity?.Name, employee.MaNV);
             SetOperationMessage(result, orderId, "cập nhật trạng thái");
             return RedirectToAction(nameof(Index));
         }

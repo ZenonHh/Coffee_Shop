@@ -128,6 +128,12 @@ namespace CoffeeShop.Data
                 .HasForeignKey(o => o.MaVoucher)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.StaffMember)
+                .WithMany()
+                .HasForeignKey(o => o.MaNV)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<SurveyAudienceCustomer>()
                 .HasKey(target => new { target.MaKhaoSat, target.MaKH });
 

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Models.Entities;
 using CoffeeShop.Models.ViewModels;
+using CoffeeShop.Services;
 
 namespace CoffeeShop.Areas.Admin.Controllers;
 
@@ -13,8 +14,13 @@ namespace CoffeeShop.Areas.Admin.Controllers;
 public class PhieuNhapController : Controller
 {
     private readonly CoffeeShopDbContext _context;
+    private readonly StaffMemberResolver _staffMemberResolver;
 
-    public PhieuNhapController(CoffeeShopDbContext context) => _context = context;
+    public PhieuNhapController(CoffeeShopDbContext context, StaffMemberResolver staffMemberResolver)
+    {
+        _context = context;
+        _staffMemberResolver = staffMemberResolver;
+    }
 
     public IActionResult Index(int page = 1)
     {
@@ -62,11 +68,13 @@ public class PhieuNhapController : Controller
             return View(model);
         }
 
-        var (employeeId, _) = await EnsureCurrentEmployeeAsync();
+        if (!int.TryParse(User.FindFirstValue("AccountId"), out var accountId))
+            throw new InvalidOperationException("Tài khoản nội bộ không hợp lệ.");
+        var employee = await _staffMemberResolver.EnsureForAccountAsync(accountId);
         var purchase = new Purchase
         {
             MaNCC = model.MaNCC,
-            MaNV = employeeId,
+            MaNV = employee.MaNV,
             NgayNhap = DateTime.Now,
             NguoiLap = User.Identity?.Name ?? string.Empty,
             GhiChu = string.IsNullOrWhiteSpace(model.GhiChu) ? null : model.GhiChu.Trim(),
@@ -210,39 +218,4 @@ public class PhieuNhapController : Controller
             .FirstOrDefaultAsync();
     }
 
-    private async Task<(int EmployeeId, string RoleName)> EnsureCurrentEmployeeAsync()
-    {
-        if (!int.TryParse(User.FindFirstValue("AccountId"), out var accountId))
-            throw new InvalidOperationException("Tài khoản nội bộ không hợp lệ.");
-
-        var account = await _context.Accounts.AsNoTracking()
-            .Where(value => value.MaTaiKhoan == accountId && value.TrangThai)
-            .Select(value => new { value.HoTen, RoleName = value.Role!.TenVaiTro })
-            .FirstOrDefaultAsync();
-        if (account == null)
-            throw new InvalidOperationException("Không tìm thấy tài khoản nội bộ đang hoạt động.");
-
-        var fullName = account.HoTen.Trim();
-        var separator = fullName.LastIndexOf(' ');
-        var givenName = separator >= 0 ? fullName[(separator + 1)..] : "NV";
-        var familyName = separator >= 0 ? fullName[..separator].Trim() : fullName;
-        givenName = givenName.Length > 20 ? givenName[..20] : givenName;
-        familyName = string.IsNullOrWhiteSpace(familyName) ? "Nhân viên" : familyName;
-        familyName = familyName.Length > 50 ? familyName[..50] : familyName;
-
-        var employee = await _context.StaffMembers.FirstOrDefaultAsync(value => value.HoVaDem == familyName && value.Ten == givenName);
-        if (employee == null)
-        {
-            employee = new StaffMember
-            {
-                HoVaDem = familyName,
-                Ten = givenName,
-                ChucVu = account.RoleName
-            };
-            _context.StaffMembers.Add(employee);
-            await _context.SaveChangesAsync();
-        }
-
-        return (employee.MaNV, account.RoleName);
-    }
 }

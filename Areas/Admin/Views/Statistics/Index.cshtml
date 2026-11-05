@@ -13,40 +13,58 @@
     var ratingsJson = JsonSerializer.Serialize(Model.Ratings);
     var monthlyRatingsJson = JsonSerializer.Serialize(Model.MonthlyRatings);
     var surveysJson = JsonSerializer.Serialize(Model.Surveys);
+    var currentYear = DateTime.Today.Year;
 }
 
 <div class="page-heading">
     <div>
         <h1>Thống kê</h1>
-        <p>Tổng hợp khách hàng, mức độ hài lòng và kết quả tham gia khảo sát.</p>
+        <p>@(Model.Tab == "finance" ? "Tổng hợp doanh thu hóa đơn, chi phí nhập hàng và doanh thu theo nhân viên, sản phẩm." : "Tổng hợp khách hàng, mức độ hài lòng và kết quả tham gia khảo sát.")</p>
     </div>
 </div>
 
 <section class="panel statistics-filter mb-4">
-    <form asp-action="Index" method="get" class="form-row align-items-end">
-        <input type="hidden" name="tab" value="@Model.Tab" />
-        <div class="form-group col-lg-3 col-md-4">
-            <label for="period">Khoảng thời gian</label>
-            <select id="period" name="period" class="form-control">
-                <option value="30days" selected="@(Model.Period == "30days")">30 ngày gần nhất</option>
-                <option value="quarter" selected="@(Model.Period == "quarter")">Quý hiện tại</option>
-                <option value="year" selected="@(Model.Period == "year")">Năm hiện tại</option>
-                <option value="custom" selected="@(Model.Period == "custom")">Tùy chọn</option>
-            </select>
-        </div>
-        <div class="form-group col-lg-3 col-md-4">
-            <label for="fromDate">Từ ngày</label>
-            <input id="fromDate" name="fromDate" type="date" class="form-control" value="@fromDate" />
-        </div>
-        <div class="form-group col-lg-3 col-md-4">
-            <label for="toDate">Đến ngày</label>
-            <input id="toDate" name="toDate" type="date" class="form-control" value="@toDate" />
-        </div>
-        <div class="form-group col-lg-3">
-            <button type="submit" class="button button-primary">Áp dụng</button>
-        </div>
-    </form>
-    <p class="muted-cell mb-0">Dữ liệu theo kỳ: @Model.FromDate.ToString("dd/MM/yyyy") – @Model.ToDate.ToString("dd/MM/yyyy")</p>
+    @if (Model.Tab == "finance")
+    {
+        <form asp-action="Index" method="get" class="form-row align-items-end">
+            <input type="hidden" name="tab" value="finance" />
+            <div class="form-group col-md-4">
+                <label for="year">Năm thống kê</label>
+                <input id="year" name="year" type="number" class="form-control" min="2000" max="@currentYear" value="@Model.FinanceYear" />
+            </div>
+            <div class="form-group col-md-3">
+                <button type="submit" class="button button-primary">Áp dụng</button>
+            </div>
+        </form>
+        <p class="muted-cell mb-0">Báo cáo năm @Model.FinanceYear</p>
+    }
+    else
+    {
+        <form asp-action="Index" method="get" class="form-row align-items-end">
+            <input type="hidden" name="tab" value="@Model.Tab" />
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="period">Khoảng thời gian</label>
+                <select id="period" name="period" class="form-control">
+                    <option value="30days" selected="@(Model.Period == "30days")">30 ngày gần nhất</option>
+                    <option value="quarter" selected="@(Model.Period == "quarter")">Quý hiện tại</option>
+                    <option value="year" selected="@(Model.Period == "year")">Năm hiện tại</option>
+                    <option value="custom" selected="@(Model.Period == "custom")">Tùy chọn</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="fromDate">Từ ngày</label>
+                <input id="fromDate" name="fromDate" type="date" class="form-control" value="@fromDate" />
+            </div>
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="toDate">Đến ngày</label>
+                <input id="toDate" name="toDate" type="date" class="form-control" value="@toDate" />
+            </div>
+            <div class="form-group col-lg-3">
+                <button type="submit" class="button button-primary">Áp dụng</button>
+            </div>
+        </form>
+        <p class="muted-cell mb-0">Dữ liệu theo kỳ: @Model.FromDate.ToString("dd/MM/yyyy") – @Model.ToDate.ToString("dd/MM/yyyy")</p>
+    }
     @if (!ViewData.ModelState.IsValid)
     {
         <div asp-validation-summary="All" class="alert alert-danger mt-3 mb-0"></div>
@@ -55,11 +73,13 @@
 
 @if (!Model.RangeIsValid)
 {
-    <section class="panel"><p class="muted-cell mb-0">Hãy chọn khoảng ngày hợp lệ để xem báo cáo.</p></section>
+    <section class="panel"><p class="muted-cell mb-0">@(Model.Tab == "finance" ? "Hãy chọn năm hợp lệ để xem báo cáo." : "Hãy chọn khoảng ngày hợp lệ để xem báo cáo.")</p></section>
 }
 else
 {
 <nav class="admin-tabs statistics-tabs mb-4" aria-label="Các báo cáo">
+    <a class="admin-tab @(Model.Tab == "finance" ? "active" : "")"
+       asp-action="Index" asp-route-tab="finance" asp-route-year="@Model.FinanceYear">Doanh thu</a>
     <a class="admin-tab @(Model.Tab == "customers" ? "active" : "")"
        asp-action="Index" asp-route-tab="customers" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khách hàng</a>
     <a class="admin-tab @(Model.Tab == "satisfaction" ? "active" : "")"
@@ -68,7 +88,152 @@ else
        asp-action="Index" asp-route-tab="surveys" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khảo sát</a>
 </nav>
 
-@if (Model.Tab == "customers")
+@if (Model.Tab == "finance")
+{
+    <div class="row mb-3">
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">DOANH THU HÓA ĐƠN HOÀN THÀNH</div>
+                <div class="stat-value">@Model.TotalCompletedRevenue.ToString("N0") ₫</div>
+                <div class="stat-foot">@Model.CompletedInvoiceCount hóa đơn trong năm @Model.FinanceYear</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">CHI PHÍ PHIẾU NHẬP ĐÃ DUYỆT</div>
+                <div class="stat-value">@Model.TotalApprovedPurchases.ToString("N0") ₫</div>
+                <div class="stat-foot">Tính theo ngày duyệt phiếu nhập</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">CHÊNH LỆCH THU - CHI NHẬP HÀNG</div>
+                <div class="stat-value">@Model.RevenueMinusPurchases.ToString("N0") ₫</div>
+                <div class="stat-foot">Doanh thu trừ chi phí nhập hàng</div>
+            </section>
+        </div>
+    </div>
+
+    <section class="panel table-panel mb-4">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Doanh thu, chi phí và chênh lệch theo quý</h2>
+                <p>Chỉ tính hóa đơn hoàn thành và phiếu nhập đã duyệt.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead><tr><th>Chỉ tiêu</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Tổng năm</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <th>Doanh thu</th>
+                        @foreach (var quarter in Model.QuarterlyFinance) { <td>@quarter.Revenue.ToString("N0") ₫</td> }
+                        <td><strong>@Model.TotalCompletedRevenue.ToString("N0") ₫</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Chi phí nhập hàng</th>
+                        @foreach (var quarter in Model.QuarterlyFinance) { <td>@quarter.Purchases.ToString("N0") ₫</td> }
+                        <td><strong>@Model.TotalApprovedPurchases.ToString("N0") ₫</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Chênh lệch thu - chi</th>
+                        @foreach (var quarter in Model.QuarterlyFinance) { <td>@quarter.Difference.ToString("N0") ₫</td> }
+                        <td><strong>@Model.RevenueMinusPurchases.ToString("N0") ₫</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="muted-cell mt-3 mb-0">Đây là chênh lệch giữa doanh thu hóa đơn và tiền nhập hàng, chưa phải lợi nhuận kế toán (chưa trừ các chi phí vận hành khác).</p>
+    </section>
+
+    <section class="panel table-panel mb-4">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Doanh thu theo nhân viên và năm</h2>
+                <p>Ghi nhận nhân viên đầu tiên xác nhận đơn hàng; các hóa đơn chưa được gán nhân viên không tính vào bảng này.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead>
+                    <tr><th>Nhân viên</th>@foreach (var reportYear in Model.StaffReportYears) { <th>@reportYear</th> }<th>Tổng</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var staff in Model.StaffRevenue)
+                    {
+                        <tr>
+                            <th>@staff.Name</th>
+                            @foreach (var reportYear in Model.StaffReportYears)
+                            {
+                                <td>@staff.RevenueByYear.GetValueOrDefault(reportYear).ToString("N0") ₫</td>
+                            }
+                            <td><strong>@staff.Total.ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                    @if (Model.StaffRevenue.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có dữ liệu nhân viên.</td></tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <th>Tổng nhân viên</th>
+                            @foreach (var reportYear in Model.StaffReportYears)
+                            {
+                                <td><strong>@Model.StaffRevenue.Sum(staff => staff.RevenueByYear.GetValueOrDefault(reportYear)).ToString("N0") ₫</strong></td>
+                            }
+                            <td><strong>@Model.StaffRevenue.Sum(staff => staff.Total).ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="panel table-panel mb-4">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Doanh thu theo sản phẩm và quý</h2>
+                <p>Tính theo thành tiền chi tiết sản phẩm của hóa đơn hoàn thành trong năm @Model.FinanceYear.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead><tr><th>Sản phẩm</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Tổng năm</th></tr></thead>
+                <tbody>
+                    @foreach (var product in Model.ProductQuarterRevenue)
+                    {
+                        <tr>
+                            <th>@product.Name</th>
+                            @for (var quarter = 1; quarter <= 4; quarter++)
+                            {
+                                <td>@product.RevenueByQuarter.GetValueOrDefault(quarter).ToString("N0") ₫</td>
+                            }
+                            <td><strong>@product.Total.ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                    @if (Model.ProductQuarterRevenue.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-center py-4 muted-cell">Chưa có hóa đơn hoàn thành trong năm này.</td></tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <th>Tổng sản phẩm</th>
+                            @for (var quarter = 1; quarter <= 4; quarter++)
+                            {
+                                <td><strong>@Model.ProductQuarterRevenue.Sum(product => product.RevenueByQuarter.GetValueOrDefault(quarter)).ToString("N0") ₫</strong></td>
+                            }
+                            <td><strong>@Model.ProductQuarterRevenue.Sum(product => product.Total).ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="muted-cell mt-3 mb-0">Thành tiền theo sản phẩm chưa phân bổ giảm giá hóa đơn và phí giao hàng.</p>
+    </section>
+}
+else if (Model.Tab == "customers")
 {
     <div class="row mb-3">
         <div class="col-md-6 mb-3">

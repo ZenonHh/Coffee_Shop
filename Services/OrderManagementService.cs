@@ -40,7 +40,7 @@ namespace CoffeeShop.Services
             _context = context;
         }
 
-        public async Task<OrderOperationResult> ConfirmAsync(int orderId, string? processedBy)
+        public async Task<OrderOperationResult> ConfirmAsync(int orderId, string? processedBy, int staffId)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             var order = await _context.Orders.SingleOrDefaultAsync(o => o.MaHD == orderId);
@@ -56,13 +56,14 @@ namespace CoffeeShop.Services
 
             order.TrangThai = OrderStatuses.Confirmed;
             order.NguoiXuLy = processedBy;
+            order.MaNV ??= staffId;
             order.NgayCapNhat = DateTime.Now;
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             return OrderOperationResult.Success;
         }
 
-        public async Task<OrderOperationResult> AdvanceAsync(int orderId, string? processedBy)
+        public async Task<OrderOperationResult> AdvanceAsync(int orderId, string? processedBy, int staffId)
         {
             await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             var order = await _context.Orders.SingleOrDefaultAsync(o => o.MaHD == orderId);
@@ -84,6 +85,7 @@ namespace CoffeeShop.Services
 
             order.TrangThai = nextStatus;
             order.NguoiXuLy = processedBy;
+            order.MaNV ??= staffId;
             order.NgayCapNhat = DateTime.Now;
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();

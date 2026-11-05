@@ -7,6 +7,7 @@ public sealed class CrmStatisticsViewModel
     public DateTime FromDate { get; set; }
     public DateTime ToDate { get; set; }
     public bool RangeIsValid { get; set; }
+    public int FinanceYear { get; set; }
     public int TotalCustomers { get; set; }
     public int NewCustomers { get; set; }
     public int RatedFeedbackCount { get; set; }
@@ -21,6 +22,36 @@ public sealed class CrmStatisticsViewModel
     public List<CrmProductRatingViewModel> LowestProducts { get; set; } = new();
     public List<CrmMonthlyRatingViewModel> MonthlyRatings { get; set; } = new();
     public List<CrmSurveyParticipationViewModel> Surveys { get; set; } = new();
+    public decimal TotalCompletedRevenue { get; set; }
+    public int CompletedInvoiceCount { get; set; }
+    public decimal TotalApprovedPurchases { get; set; }
+    public decimal RevenueMinusPurchases { get; set; }
+    public List<QuarterFinanceViewModel> QuarterlyFinance { get; set; } = new();
+    public List<int> StaffReportYears { get; set; } = new();
+    public List<StaffRevenueViewModel> StaffRevenue { get; set; } = new();
+    public List<ProductQuarterRevenueViewModel> ProductQuarterRevenue { get; set; } = new();
+}
+
+public sealed class QuarterFinanceViewModel
+{
+    public int Quarter { get; set; }
+    public decimal Revenue { get; set; }
+    public decimal Purchases { get; set; }
+    public decimal Difference => Revenue - Purchases;
+}
+
+public sealed class StaffRevenueViewModel
+{
+    public string Name { get; set; } = string.Empty;
+    public Dictionary<int, decimal> RevenueByYear { get; set; } = new();
+    public decimal Total => RevenueByYear.Values.Sum();
+}
+
+public sealed class ProductQuarterRevenueViewModel
+{
+    public string Name { get; set; } = string.Empty;
+    public Dictionary<int, decimal> RevenueByQuarter { get; set; } = new();
+    public decimal Total => RevenueByQuarter.Values.Sum();
 }
 
 public sealed class CrmRatingViewModel

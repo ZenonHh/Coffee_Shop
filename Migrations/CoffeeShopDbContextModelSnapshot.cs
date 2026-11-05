@@ -299,6 +299,9 @@ namespace CoffeeShop.Migrations
                     b.Property<int?>("MaKH")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MaNV")
+                        .HasColumnType("int");
+
                     b.Property<int?>("MaVoucher")
                         .HasColumnType("int");
 
@@ -342,6 +345,8 @@ namespace CoffeeShop.Migrations
                     b.HasKey("MaHD");
 
                     b.HasIndex("MaKH");
+
+                    b.HasIndex("MaNV");
 
                     b.HasIndex("MaVoucher");
 
@@ -928,7 +933,14 @@ namespace CoffeeShop.Migrations
                         .HasForeignKey("MaVoucher")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("CoffeeShop.Models.Entities.StaffMember", "StaffMember")
+                        .WithMany()
+                        .HasForeignKey("MaNV")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Customer");
+
+                    b.Navigation("StaffMember");
 
                     b.Navigation("Voucher");
                 });
