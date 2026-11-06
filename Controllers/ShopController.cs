@@ -98,6 +98,23 @@ namespace CoffeeShop.Controllers
                             && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
                         .Select(variant => (decimal?)variant.GiaBan)
                         .Min(),
+                    SelectedVariantId = product.Variants
+                        .Where(variant => variant.TrangThai
+                            && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
+                        .OrderBy(variant => variant.GiaBan)
+                        .ThenBy(variant => variant.MaBienThe)
+                        .Select(variant => (int?)variant.MaBienThe)
+                        .FirstOrDefault(),
+                    Variants = product.Variants
+                        .Where(variant => variant.TrangThai)
+                        .OrderBy(variant => variant.MaBienThe)
+                        .Select(variant => new ProductVariantOptionViewModel
+                        {
+                            MaBienThe = variant.MaBienThe,
+                            KichCo = variant.KichCo,
+                            GiaBan = variant.GiaBan
+                        })
+                        .ToList(),
                     SoLuongTon = product.SoLuongTon,
                     SoLuongDaBan = _context.OrderDetails
                         .Where(detail => detail.MaSP == product.MaSP

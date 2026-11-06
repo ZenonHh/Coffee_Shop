@@ -62,23 +62,50 @@ namespace CoffeeShop.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddToCart(int productId, int variantId, List<int>? toppingIds, int quantity = 1)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToCart(
+            int productId,
+            int variantId,
+            List<int>? toppingIds,
+            int quantity = 1,
+            string? returnUrl = null)
         {
+            var isAjaxRequest = string.Equals(
+                Request.Headers["X-Requested-With"],
+                "XMLHttpRequest",
+                StringComparison.OrdinalIgnoreCase);
+            returnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : Url.Action("Index", "Shop");
+
             if (User.Identity?.IsAuthenticated != true)
             {
-                var returnUrl = Url.Action("Detail", "Shop", new { id = productId });
+                var loginUrl = Url.Action("Login", "Account", new { returnUrl });
+                if (!isAjaxRequest)
+                {
+                    return Redirect(loginUrl!);
+                }
+
                 return Json(new
                 {
                     success = false,
                     message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.",
-                    loginUrl = Url.Action("Login", "Account", new { returnUrl })
+                    loginUrl
                 });
             }
 
             quantity = Math.Clamp(quantity, 1, 50);
             var product = await _context.Products.FirstOrDefaultAsync(p => p.MaSP == productId && p.TrangThai && p.SoLuongTon > 0 && p.MaLoaiSP != 9);
             var variant = await _context.ProductVariants.FirstOrDefaultAsync(v => v.MaBienThe == variantId && v.MaSP == productId && v.TrangThai);
-            if (product == null || variant == null) return Json(new { success = false, message = "Sản phẩm hoặc biến thể không tồn tại." });
+            if (product == null || variant == null)
+            {
+                const string invalidProductMessage = "Sản phẩm hoặc biến thể không tồn tại hoặc đã hết hàng.";
+                if (!isAjaxRequest)
+                {
+                    TempData["ErrorMessage"] = invalidProductMessage;
+                    return RedirectToAction("Index", "Shop");
+                }
+
+                return Json(new { success = false, message = invalidProductMessage });
+            }
 
             toppingIds = (toppingIds ?? new List<int>()).Distinct().ToList();
             var toppings = await _context.Products.AsNoTracking()
@@ -94,7 +121,16 @@ namespace CoffeeShop.Controllers
                 })
                 .ToListAsync();
             if (toppings.Count != toppingIds.Count)
-                return Json(new { success = false, message = "Một topping đã chọn hiện không đủ số lượng trong kho." });
+            {
+                const string toppingFailureMessage = "Một topping đã chọn hiện không đủ số lượng trong kho.";
+                if (!isAjaxRequest)
+                {
+                    TempData["ErrorMessage"] = toppingFailureMessage;
+                    return RedirectToAction("Index", "Shop");
+                }
+
+                return Json(new { success = false, message = toppingFailureMessage });
+            }
             var toppingPrice = toppings.Sum(top => top.GiaBan ?? 10000m);
             var cart = await _cartStore.GetCartAsync();
             var newItem = new CartItemViewModel
@@ -109,7 +145,20 @@ namespace CoffeeShop.Controllers
             else cart.Items.Add(newItem);
             await RefreshDiscounts(cart);
             await _cartStore.SaveCartAsync(cart);
-            return Json(new { success = true, message = $"Đã thêm {product.TenSP} vào giỏ hàng!", cartCount = cart.Items.Count, cartTotal = cart.GrandTotal });
+            var message = $"Đã thêm {product.TenSP} vào giỏ hàng!";
+            if (!isAjaxRequest)
+            {
+                TempData["SuccessMessage"] = "Đã thêm món vào giỏ hàng thành công!";
+                return RedirectToAction("Index", "Shop");
+            }
+
+            return Json(new
+            {
+                success = true,
+                message,
+                cartCount = cart.Items.Sum(item => item.Quantity),
+                cartTotal = cart.GrandTotal
+            });
         }
 
         [HttpPost]
@@ -124,7 +173,7 @@ namespace CoffeeShop.Controllers
             }
             await RefreshDiscounts(cart);
             await _cartStore.SaveCartAsync(cart);
-            return Json(new { success = true, cartCount = cart.Items.Count, subTotal = cart.SubTotal, automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal, itemTotal = item?.TotalPrice ?? 0, voucherCode = cart.VoucherCode });
+            return Json(new { success = true, cartCount = cart.Items.Sum(cartItem => cartItem.Quantity), subTotal = cart.SubTotal, automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal, itemTotal = item?.TotalPrice ?? 0, voucherCode = cart.VoucherCode });
         }
 
         [HttpPost]
@@ -169,7 +218,7 @@ namespace CoffeeShop.Controllers
         public async Task<IActionResult> GetCartCount()
         {
             var cart = await _cartStore.GetCartAsync();
-            return Json(new { count = cart.Items.Count });
+            return Json(new { count = cart.Items.Sum(item => item.Quantity) });
         }
     }
 }

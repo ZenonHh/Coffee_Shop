@@ -54,7 +54,7 @@
                 </div>
 
                 <p class="price mb-3">
-                    <span id="displayPrice" style="color: #c49b63; font-size: 28px; font-weight: 700;">0 đ</span>
+                    <span id="displayPrice" style="color: #c49b63; font-size: 28px; font-weight: 700;">@(Model.Variants.Any() ? $"{Model.Variants[0].GiaBan:N0} đ" : "Liên hệ")</span>
                 </p>
 
                 @if (isOutOfStock)
@@ -71,8 +71,10 @@
                 }
 
                 <!-- Form tùy chọn đặt món -->
-                <form id="addToCartForm" class="mt-3">
+                <form id="addToCartForm" class="mt-3" asp-controller="Cart" asp-action="AddToCart" method="post" asp-antiforgery="false">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" name="productId" value="@Model.Product.MaSP" />
+                    <input type="hidden" name="returnUrl" value="@Url.Action("Detail", "Shop", new { id = Model.Product.MaSP })" />
 
                     <!-- 1. Chọn Kích cỡ (Size) -->
                     <div class="form-group mb-4">
@@ -136,6 +138,13 @@
                             <button type="button" id="btnOutOfStockAlert" class="btn py-3 px-5 font-weight-bold" 
                                     style="border-radius: 30px; background: #554e48 !important; border: 1px solid #776e66 !important; color: #ffffff !important; cursor: not-allowed; opacity: 1 !important;">
                                 <i class="icon-ban mr-2"></i> Hết hàng
+                            </button>
+                        }
+                        else if (!Model.Variants.Any())
+                        {
+                            <button type="button" class="btn py-3 px-5 font-weight-bold" disabled
+                                    style="border-radius: 30px; background: #554e48 !important; border: 1px solid #776e66 !important; color: #ffffff !important; cursor: not-allowed;">
+                                Chưa có giá bán
                             </button>
                         }
                         else if (User.Identity?.IsAuthenticated != true)
@@ -360,10 +369,13 @@
                 success: function(res) {
                     if (res.success) {
                         $('#addToCartAlert').removeClass('d-none alert-danger').addClass('alert-success').text(res.message);
-                        if (typeof updateCartBadge === "function") {
-                            updateCartBadge();
-                        }
+                        window.sessionStorage.setItem('cartSuccessMessage', res.message);
+                        window.location.href = '@Url.Action("Index", "Shop")';
                     } else {
+                        if (res.loginUrl) {
+                            window.location.href = res.loginUrl;
+                            return;
+                        }
                         $('#addToCartAlert').removeClass('d-none alert-success').addClass('alert-danger').text(res.message);
                     }
                 },

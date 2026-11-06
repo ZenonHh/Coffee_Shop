@@ -46,6 +46,8 @@ namespace CoffeeShop.Models.ViewModels
         public string? HinhAnh { get; set; }
         public string TenLoaiSP { get; set; } = string.Empty;
         public decimal? GiaBan { get; set; }
+        public int? SelectedVariantId { get; set; }
+        public List<ProductVariantOptionViewModel> Variants { get; set; } = new();
         public int SoLuongTon { get; set; }
         public int SoLuongDaBan { get; set; }
         public double? DiemDanhGia { get; set; }

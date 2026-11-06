@@ -144,9 +144,18 @@
             </div>
         </form>
 
+        @if (TempData["SuccessMessage"] is string successMessage)
+        {
+            <div class="alert alert-success" role="status">@successMessage</div>
+        }
+        @if (TempData["ErrorMessage"] is string errorMessage)
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
         <div id="shopFilterError" class="alert alert-danger d-none" role="alert">
             Không thể tải danh sách món. Vui lòng thử lại.
         </div>
+        <div id="shopCartNotice" class="shop-cart-notice d-none" role="status" aria-live="polite"></div>
         <div id="shopProductGrid" aria-live="polite" aria-busy="false">
             @await Html.PartialAsync("_ProductGrid", Model)
         </div>
@@ -162,7 +171,6 @@
         transform: translateY(-5px);
         box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
     }
-
     #shopProductGrid {
         transition: opacity 180ms ease;
     }
@@ -225,9 +233,72 @@
             var activeFiltersContainer = document.getElementById('shopActiveFilters');
             var clearFiltersButton = document.getElementById('clearShopFilters');
             var productCount = document.getElementById('shopProductCount');
+            var cartNotice = document.getElementById('shopCartNotice');
             var activeRequest = null;
             var searchTimer = null;
             var lastFocusedElement = null;
+
+            function showCartNotice(message, isSuccess) {
+                cartNotice.textContent = message;
+                cartNotice.classList.toggle('is-error', !isSuccess);
+                cartNotice.classList.remove('d-none');
+                window.clearTimeout(cartNotice.hideTimer);
+                cartNotice.hideTimer = window.setTimeout(function() {
+                    cartNotice.classList.add('d-none');
+                }, 4000);
+            }
+
+            var pendingCartMessage = window.sessionStorage.getItem('cartSuccessMessage');
+            if (pendingCartMessage) {
+                window.sessionStorage.removeItem('cartSuccessMessage');
+                showCartNotice(pendingCartMessage, true);
+            }
+
+            document.addEventListener('change', function(event) {
+                if (!event.target.matches('.shop-card-cart-form input[name="variantId"][type="radio"]')) return;
+                var form = event.target.closest('.shop-card-cart-form');
+                var price = Number(event.target.dataset.price);
+                form.querySelector('.shop-card-current-price').textContent =
+                    price.toLocaleString('vi-VN') + ' đ';
+            });
+
+            document.addEventListener('submit', async function(event) {
+                var form = event.target.closest('.shop-card-cart-form');
+                if (!form) return;
+                event.preventDefault();
+
+                var submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton.disabled) return;
+                submitButton.disabled = true;
+
+                try {
+                    var response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: new FormData(form)
+                    });
+                    var result = await response.json();
+                    if (result.loginUrl) {
+                        window.location.href = result.loginUrl;
+                        return;
+                    }
+                    if (!response.ok || !result.success) {
+                        showCartNotice(result.message || 'Không thể thêm món vào giỏ hàng.', false);
+                        return;
+                    }
+
+                    var badge = document.getElementById('cartBadgeCount');
+                    if (badge && result.cartCount !== undefined) {
+                        badge.textContent = result.cartCount;
+                    }
+                    showCartNotice(result.message, true);
+                } catch (error) {
+                    console.error(error);
+                    showCartNotice('Lỗi kết nối khi thêm món vào giỏ hàng.', false);
+                } finally {
+                    submitButton.disabled = false;
+                }
+            });
 
             function getActiveFilters() {
                 var priceRange = searchForm.querySelector('[name="priceRange"]:checked').value;

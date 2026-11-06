@@ -9,6 +9,8 @@
         foreach (var product in Model.Products)
         {
             var isOutOfStock = product.SoLuongTon <= 0;
+            var selectedVariant = product.Variants.FirstOrDefault(variant => variant.MaBienThe == product.SelectedVariantId)
+                ?? product.Variants.FirstOrDefault();
             var imageUrl = Url.Content("~/picture/" + (product.HinhAnh ?? string.Empty));
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex shop-product-card ftco-animate">
                 <div class="menu-entry w-100 d-flex flex-column">
@@ -27,15 +29,53 @@
                     <div class="text text-center pt-3 d-flex flex-column flex-grow-1">
                         <h3 class="shop-product-name mb-1"><a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP">@product.TenSP</a></h3>
                         <p class="text-muted small mb-2">@product.TenLoaiSP</p>
-                        <p class="price mt-auto mb-3"><span>@(product.GiaBan?.ToString("N0") ?? "Liên hệ") đ</span></p>
-                        @if (isOutOfStock)
-                        {
-                            <button type="button" class="btn btn-secondary btn-sm disabled-stock-btn" data-name="@product.TenSP" aria-disabled="true">Hết hàng</button>
-                        }
-                        else
-                        {
-                            <a asp-controller="Shop" asp-action="Detail" asp-route-id="@product.MaSP" class="btn btn-primary btn-outline-primary btn-sm">Chọn mua</a>
-                        }
+                        <form class="shop-card-cart-form mt-auto" asp-controller="Cart" asp-action="AddToCart" method="post" asp-antiforgery="false">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@product.MaSP" />
+                            <input type="hidden" name="quantity" value="1" />
+                            <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Shop")" />
+                            @if (product.Variants.Any())
+                            {
+                                <fieldset class="shop-card-size-options mb-2">
+                                    <legend class="sr-only">Chọn kích cỡ cho @product.TenSP</legend>
+                                    @foreach (var variant in product.Variants)
+                                    {
+                                        var isSelected = variant.MaBienThe == selectedVariant?.MaBienThe;
+                                        <label class="shop-card-size-option">
+                                            <input type="radio" name="variantId" value="@variant.MaBienThe"
+                                                   data-price="@variant.GiaBan" checked="@isSelected" />
+                                            <span>@variant.KichCo</span>
+                                        </label>
+                                    }
+                                </fieldset>
+                            }
+                            else
+                            {
+                                <input type="hidden" name="variantId" value="0" />
+                                <span class="shop-card-standard-size mb-2">Tiêu chuẩn</span>
+                            }
+                            <p class="price shop-card-price mb-3">
+                                <span class="shop-card-current-price">@(selectedVariant == null ? "Liên hệ" : selectedVariant.GiaBan.ToString("N0") + " đ")</span>
+                            </p>
+                            <button type="submit"
+                                    class="btn btn-primary btn-outline-primary btn-sm shop-card-add-button"
+                                    disabled="@(isOutOfStock || selectedVariant == null)"
+                                    aria-label="@(isOutOfStock ? $"Món {product.TenSP} hết hàng" : selectedVariant == null ? $"Món {product.TenSP} chưa có giá bán" : $"Thêm {product.TenSP} vào giỏ hàng")">
+                                @if (isOutOfStock)
+                                {
+                                    <span>Hết hàng</span>
+                                }
+                                else if (selectedVariant == null)
+                                {
+                                    <span>Chưa có giá</span>
+                                }
+                                else
+                                {
+                                    <i class="icon-shopping_cart mr-1" aria-hidden="true"></i>
+                                    <span>Thêm vào giỏ</span>
+                                }
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
