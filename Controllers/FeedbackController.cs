@@ -35,12 +35,13 @@ namespace CoffeeShop.Controllers
             // Kiểm tra bắt buộc đăng nhập để đánh giá
             if (User.Identity?.IsAuthenticated != true)
             {
-                TempData["Error"] = "Vui lòng đăng nhập tài khoản khách hàng để đánh giá sản phẩm.";
+                const string prompt = "Vui lòng đăng nhập tài khoản khách hàng để đánh giá sản phẩm.";
+                TempData["Error"] = prompt;
                 if (productId.HasValue)
                 {
-                    return RedirectToAction("Login", "Account", new { returnUrl = $"/Shop/Detail/{productId.Value}#reviews" });
+                    return RedirectToAction("Login", "Account", new { returnUrl = $"/Shop/Detail/{productId.Value}#reviews", message = prompt });
                 }
-                return RedirectToAction("Login", "Account", new { returnUrl = "/Feedback" });
+                return RedirectToAction("Login", "Account", new { returnUrl = "/Feedback", message = prompt });
             }
 
             var username = User.Identity.Name;

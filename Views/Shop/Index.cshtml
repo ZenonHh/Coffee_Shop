@@ -239,7 +239,8 @@
             var lastFocusedElement = null;
 
             function showCartNotice(message, isSuccess) {
-                cartNotice.textContent = message;
+                var prefix = isSuccess ? '' : '⚠️ ';
+                cartNotice.textContent = prefix + message;
                 cartNotice.classList.toggle('is-error', !isSuccess);
                 cartNotice.classList.remove('d-none');
                 window.clearTimeout(cartNotice.hideTimer);
@@ -279,7 +280,8 @@
                     });
                     var result = await response.json();
                     if (result.loginUrl) {
-                        window.location.href = result.loginUrl;
+                        var noticeMessage = result.message || 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.';
+                        showCartNotice(noticeMessage, false);
                         return;
                     }
                     if (!response.ok || !result.success) {

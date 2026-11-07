@@ -287,7 +287,10 @@
                         <div class="pt-3 border-top" style="border-color: rgba(255,255,255,0.08) !important;">
                             @if (Model.CurrentCustomer == null)
                             {
-                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="/Promotions#redeem" class="btn btn-outline-primary btn-block btn-sm py-2">
+                                <a asp-controller="Account" asp-action="Login" 
+                                   asp-route-returnUrl="/Promotions#redeem" 
+                                   asp-route-message="Vui lòng đăng nhập tài khoản để đổi điểm lấy ưu đãi." 
+                                   class="btn btn-outline-primary btn-block btn-sm py-2">
                                     Đăng nhập để đổi
                                 </a>
                             }

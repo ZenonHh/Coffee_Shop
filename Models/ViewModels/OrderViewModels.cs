@@ -6,6 +6,7 @@ namespace CoffeeShop.Models.ViewModels
     {
         public List<OrderListItemViewModel> Orders { get; set; } = new();
         public string? SelectedStatus { get; set; }
+        public OrderDetailViewModel? SelectedOrder { get; set; }
         public PaginationViewModel Pagination { get; set; } = new();
     }
 

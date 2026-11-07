@@ -78,16 +78,18 @@ namespace CoffeeShop.Controllers
 
             if (User.Identity?.IsAuthenticated != true)
             {
-                var loginUrl = Url.Action("Login", "Account", new { returnUrl });
+                const string loginPrompt = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.";
+                var loginUrl = Url.Action("Login", "Account", new { returnUrl, message = loginPrompt });
                 if (!isAjaxRequest)
                 {
+                    TempData["WarningMessage"] = loginPrompt;
                     return Redirect(loginUrl!);
                 }
 
                 return Json(new
                 {
                     success = false,
-                    message = "Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.",
+                    message = loginPrompt,
                     loginUrl
                 });
             }

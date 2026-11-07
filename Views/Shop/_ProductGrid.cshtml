@@ -12,6 +12,10 @@
             var selectedVariant = product.Variants.FirstOrDefault(variant => variant.MaBienThe == product.SelectedVariantId)
                 ?? product.Variants.FirstOrDefault();
             var imageUrl = Url.Content("~/picture/" + (product.HinhAnh ?? string.Empty));
+            var isBanhNgot = string.Equals(product.TenLoaiSP, "Bánh Ngọt", StringComparison.OrdinalIgnoreCase)
+                || product.TenLoaiSP.Contains("Bánh", StringComparison.OrdinalIgnoreCase);
+            var hasOnlyDefaultVariant = product.Variants.All(v => string.Equals(v.KichCo, "Mặc định", StringComparison.OrdinalIgnoreCase));
+            var showSizeOptions = product.Variants.Any() && !isBanhNgot && !hasOnlyDefaultVariant;
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4 d-flex shop-product-card ftco-animate">
                 <div class="menu-entry w-100 d-flex flex-column">
                     <div class="shop-product-image-frame position-relative">
@@ -34,7 +38,7 @@
                             <input type="hidden" name="productId" value="@product.MaSP" />
                             <input type="hidden" name="quantity" value="1" />
                             <input type="hidden" name="returnUrl" value="@Url.Action("Index", "Shop")" />
-                            @if (product.Variants.Any())
+                            @if (showSizeOptions)
                             {
                                 <fieldset class="shop-card-size-options mb-2">
                                     <legend class="sr-only">Chọn kích cỡ cho @product.TenSP</legend>
@@ -51,8 +55,7 @@
                             }
                             else
                             {
-                                <input type="hidden" name="variantId" value="0" />
-                                <span class="shop-card-standard-size mb-2">Tiêu chuẩn</span>
+                                <input type="hidden" name="variantId" value="@(selectedVariant?.MaBienThe ?? product.Variants.FirstOrDefault()?.MaBienThe ?? 0)" />
                             }
                             <p class="price shop-card-price mb-3">
                                 <span class="shop-card-current-price">@(selectedVariant == null ? "Liên hệ" : selectedVariant.GiaBan.ToString("N0") + " đ")</span>

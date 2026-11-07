@@ -8,6 +8,7 @@
 
 <section class="ftco-section product-detail-page">
     <div class="container">
+        <div id="shopCartNotice" class="shop-cart-notice d-none" role="status" aria-live="polite"></div>
         <nav class="product-detail-breadcrumb mb-4" aria-label="Điều hướng">
             <a asp-controller="Home" asp-action="Index">Trang chủ</a>
             <span aria-hidden="true"> / </span>
@@ -151,6 +152,7 @@
                         {
                             <a asp-controller="Account" asp-action="Login"
                                asp-route-returnUrl="@Url.Action("Detail", "Shop", new { id = Model.Product.MaSP })"
+                               asp-route-message="Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng."
                                class="btn btn-primary py-3 px-5 font-weight-bold"
                                style="border-radius: 30px; background: #c49b63 !important; border-color: #c49b63 !important; color: #000000 !important;">
                                 <i class="icon-person mr-2"></i> Đăng nhập để thêm vào giỏ hàng
@@ -231,7 +233,10 @@
                                 <p class="text-muted small mb-4" style="line-height: 1.5;">
                                     Quý khách vui lòng đăng nhập tài khoản khách hàng để gửi nhận xét và chấm điểm cho món uống này.
                                 </p>
-                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@($"/Shop/Detail/{Model.Product.MaSP}#reviews")" class="btn btn-primary btn-block py-2 font-weight-bold" style="border-radius: 6px;">
+                                <a asp-controller="Account" asp-action="Login" 
+                                   asp-route-returnUrl="@($"/Shop/Detail/{Model.Product.MaSP}#reviews")" 
+                                   asp-route-message="Vui lòng đăng nhập tài khoản khách hàng để đánh giá sản phẩm." 
+                                   class="btn btn-primary btn-block py-2 font-weight-bold" style="border-radius: 6px;">
                                     Đăng Nhập Ngay
                                 </a>
                                 <p class="mt-3 mb-0 small text-muted">
@@ -368,21 +373,70 @@
                 data: formData,
                 success: function(res) {
                     if (res.success) {
-                        $('#addToCartAlert').removeClass('d-none alert-danger').addClass('alert-success').text(res.message);
+                        $('#addToCartAlert').removeClass('d-none alert-danger alert-warning').addClass('alert-success').text(res.message);
                         window.sessionStorage.setItem('cartSuccessMessage', res.message);
                         window.location.href = '@Url.Action("Index", "Shop")';
                     } else {
                         if (res.loginUrl) {
-                            window.location.href = res.loginUrl;
+                            var msg = res.message || 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.';
+                            $('#addToCartAlert').removeClass('d-none alert-success alert-danger').addClass('alert-warning').text('⚠️ ' + msg);
                             return;
                         }
-                        $('#addToCartAlert').removeClass('d-none alert-success').addClass('alert-danger').text(res.message);
+                        $('#addToCartAlert').removeClass('d-none alert-success alert-warning').addClass('alert-danger').text(res.message);
                     }
                 },
                 error: function() {
-                    $('#addToCartAlert').removeClass('d-none alert-success').addClass('alert-danger').text('Lỗi kết nối khi thêm vào giỏ hàng.');
+                    $('#addToCartAlert').removeClass('d-none alert-success alert-warning').addClass('alert-danger').text('Lỗi kết nối khi thêm vào giỏ hàng.');
                 }
             });
+        });
+
+        function showRelatedCartNotice(message, isSuccess) {
+            var cartNotice = document.getElementById('shopCartNotice');
+            if (!cartNotice) return;
+            var prefix = isSuccess ? '' : '⚠️ ';
+            cartNotice.textContent = prefix + message;
+            cartNotice.classList.toggle('is-error', !isSuccess);
+            cartNotice.classList.remove('d-none');
+            window.clearTimeout(cartNotice.hideTimer);
+            cartNotice.hideTimer = window.setTimeout(function() {
+                cartNotice.classList.add('d-none');
+            }, 4000);
+        }
+
+        $(document).on('submit', '.shop-card-cart-form', async function(e) {
+            e.preventDefault();
+            var form = this;
+            var submitBtn = $(form).find('button[type="submit"]');
+            if (submitBtn.prop('disabled')) return;
+            submitBtn.prop('disabled', true);
+            try {
+                var response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(form)
+                });
+                var result = await response.json();
+                if (result.loginUrl) {
+                    var msg = result.message || 'Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng.';
+                    showRelatedCartNotice(msg, false);
+                    return;
+                }
+                if (!response.ok || !result.success) {
+                    showRelatedCartNotice(result.message || 'Không thể thêm món vào giỏ hàng.', false);
+                    return;
+                }
+                var badge = document.getElementById('cartBadgeCount');
+                if (badge && result.cartCount !== undefined) {
+                    badge.textContent = result.cartCount;
+                }
+                showRelatedCartNotice(result.message, true);
+            } catch (err) {
+                console.error(err);
+                showRelatedCartNotice('Lỗi kết nối khi thêm món vào giỏ hàng.', false);
+            } finally {
+                submitBtn.prop('disabled', false);
+            }
         });
     });
 </script>

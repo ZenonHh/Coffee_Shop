@@ -29,6 +29,24 @@
                         <p>Chào mừng bạn quay trở lại Katinat Coffee</p>
                     </div>
 
+                    @{
+                        var loginNotice = (string?)(TempData["WarningMessage"] ?? TempData["Error"] ?? TempData["ErrorMessage"]);
+                    }
+                    @if (!string.IsNullOrWhiteSpace(loginNotice))
+                    {
+                        <div class="alert alert-warning text-center" role="alert" style="background: rgba(255, 193, 7, 0.15); border: 1px solid #ffc107; color: #ffc107; border-radius: 8px;">
+                            <i class="icon-warning mr-2"></i>
+                            @loginNotice
+                        </div>
+                    }
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success text-center" role="alert" style="border-radius: 8px;">
+                            <i class="icon-check mr-2"></i>
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
                     @if (!ViewData.ModelState.IsValid)
                     {
                         <div class="alert alert-danger">
@@ -63,3 +81,7 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

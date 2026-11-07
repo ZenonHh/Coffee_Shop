@@ -192,8 +192,9 @@ namespace CoffeeShop.Controllers
         {
             if (User.Identity?.IsAuthenticated != true)
             {
-                TempData["Error"] = "Vui lòng đăng nhập tài khoản để đổi điểm lấy ưu đãi.";
-                return RedirectToAction("Login", "Account", new { returnUrl = "/Promotions#redeem" });
+                const string prompt = "Vui lòng đăng nhập tài khoản để đổi điểm lấy ưu đãi.";
+                TempData["Error"] = prompt;
+                return RedirectToAction("Login", "Account", new { returnUrl = "/Promotions#redeem", message = prompt });
             }
 
             var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == User.Identity.Name);

@@ -25,7 +25,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
             _staffMemberResolver = staffMemberResolver;
         }
 
-        public async Task<IActionResult> Index(string? status, int page = 1)
+        public async Task<IActionResult> Index(string? status, int page = 1, int? selectedOrderId = null)
         {
             const int pageSize = 10;
             status = status == null ? null : OrderStatuses.Canonicalize(status);
@@ -75,18 +75,63 @@ namespace CoffeeShop.Areas.Admin.Controllers
             {
                 order.TrangThai = OrderStatuses.Canonicalize(order.TrangThai);
             }
+
+            var selectedOrder = viewModel.Orders.FirstOrDefault(order => order.MaHD == selectedOrderId)
+                ?? viewModel.Orders.FirstOrDefault();
+            if (selectedOrder != null)
+            {
+                viewModel.SelectedOrder = await _context.Orders
+                    .AsNoTracking()
+                    .Where(item => item.MaHD == selectedOrder.MaHD)
+                    .Select(item => new OrderDetailViewModel
+                    {
+                        MaHD = item.MaHD,
+                        NgayTao = item.NgayTao,
+                        TrangThai = item.TrangThai,
+                        PhuongThucThanhToan = item.PhuongThucThanhToan,
+                        NguoiXuLy = item.NguoiXuLy,
+                        NgayCapNhat = item.NgayCapNhat,
+                        LyDoHuy = item.LyDoHuy,
+                        HoTenNguoiNhan = item.HoTenNguoiNhan,
+                        SdtNguoiNhan = item.SdtNguoiNhan,
+                        EmailKhachHang = item.Customer != null ? item.Customer.Email : null,
+                        DiaChiGiao = item.DiaChiGiao,
+                        GhiChu = item.GhiChu,
+                        TamTinh = item.TamTinh,
+                        TienGiamGia = item.TienGiamGia,
+                        PhiGiao = item.PhiGiao,
+                        TongTien = item.TongTien,
+                        Details = item.OrderDetails.Select(detail => new OrderDetailLineViewModel
+                        {
+                            TenSP = detail.Product!.TenSP,
+                            KichCo = detail.Variant!.KichCo,
+                            SoLuong = detail.SoLuong,
+                            GiaBan = detail.GiaBan,
+                            ThanhTien = detail.ThanhTien,
+                            Toppings = detail.Toppings
+                                .Select(topping => topping.ToppingProduct!.TenSP)
+                                .ToList()
+                        }).ToList()
+                    })
+                    .SingleOrDefaultAsync();
+                if (viewModel.SelectedOrder != null)
+                {
+                    viewModel.SelectedOrder.TrangThai = OrderStatuses.Canonicalize(viewModel.SelectedOrder.TrangThai);
+                }
+            }
+
             return View(viewModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConfirmPayment(int orderId)
+        public async Task<IActionResult> ConfirmPayment(int orderId, int? selectedOrderId = null, string? status = null, int page = 1)
         {
             var order = await _context.Orders.FindAsync(orderId);
             if (order == null)
             {
                 TempData["Error"] = $"Không tìm thấy đơn hàng #{orderId}.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToIndex(selectedOrderId, status, page);
             }
 
             var isTransfer = order.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
@@ -95,7 +140,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
                 || order.PhuongThucThanhToan.Contains("Đã thanh toán", StringComparison.OrdinalIgnoreCase))
             {
                 TempData["Error"] = "Chỉ có thể xác nhận khoản chuyển khoản chưa thanh toán của đơn đang chờ xác nhận.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToIndex(selectedOrderId, status, page);
             }
 
             order.PhuongThucThanhToan = "Chuyển khoản (Đã thanh toán)";
@@ -103,7 +148,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
             order.NgayCapNhat = DateTime.Now;
             await _context.SaveChangesAsync();
             TempData["Success"] = $"Đã xác nhận thanh toán cho đơn hàng #HD{order.MaHD:D4}. Trạng thái đơn vẫn chờ xác nhận.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToIndex(selectedOrderId, status, page);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -148,7 +193,7 @@ namespace CoffeeShop.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConfirmOrder(int orderId)
+        public async Task<IActionResult> ConfirmOrder(int orderId, int? selectedOrderId = null, string? status = null, int page = 1)
         {
             if (!int.TryParse(User.FindFirst("AccountId")?.Value, out var accountId))
                 return Forbid();
@@ -156,12 +201,12 @@ namespace CoffeeShop.Areas.Admin.Controllers
             var employee = await _staffMemberResolver.EnsureForAccountAsync(accountId);
             var result = await _orderManagement.ConfirmAsync(orderId, User.Identity?.Name, employee.MaNV);
             SetOperationMessage(result, orderId, "xác nhận");
-            return RedirectToAction(nameof(Index));
+            return RedirectToIndex(selectedOrderId, status, page);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AdvanceOrder(int orderId)
+        public async Task<IActionResult> AdvanceOrder(int orderId, int? selectedOrderId = null, string? status = null, int page = 1)
         {
             if (!int.TryParse(User.FindFirst("AccountId")?.Value, out var accountId))
                 return Forbid();
@@ -169,28 +214,37 @@ namespace CoffeeShop.Areas.Admin.Controllers
             var employee = await _staffMemberResolver.EnsureForAccountAsync(accountId);
             var result = await _orderManagement.AdvanceAsync(orderId, User.Identity?.Name, employee.MaNV);
             SetOperationMessage(result, orderId, "cập nhật trạng thái");
-            return RedirectToAction(nameof(Index));
+            return RedirectToIndex(selectedOrderId, status, page);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelOrder(CancelOrderRequestModel request)
+        public async Task<IActionResult> CancelOrder(
+            CancelOrderRequestModel request,
+            int? selectedOrderId = null,
+            string? status = null,
+            int page = 1)
         {
             if (string.IsNullOrWhiteSpace(request.CancelReason) || request.CancelReason.Trim().Length > 500)
             {
                 TempData["Error"] = "Vui lòng nhập lý do hủy đơn (tối đa 500 ký tự).";
-                return RedirectToAction(nameof(Index));
+                return RedirectToIndex(selectedOrderId, status, page);
             }
 
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Thông tin yêu cầu hủy đơn không hợp lệ.";
-                return RedirectToAction(nameof(Index));
+                return RedirectToIndex(selectedOrderId, status, page);
             }
 
             var result = await _orderManagement.CancelAsync(request.OrderId, request.CancelReason, User.Identity?.Name);
             SetOperationMessage(result, request.OrderId, "hủy");
-            return RedirectToAction(nameof(Index));
+            return RedirectToIndex(selectedOrderId, status, page);
+        }
+
+        private IActionResult RedirectToIndex(int? selectedOrderId, string? status, int page)
+        {
+            return RedirectToAction(nameof(Index), new { selectedOrderId, status, page });
         }
 
         private void SetOperationMessage(OrderOperationResult result, int orderId, string operation)

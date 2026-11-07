@@ -32,7 +32,7 @@ namespace CoffeeShop.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login(string? returnUrl)
+        public IActionResult Login(string? returnUrl, string? message = null)
         {
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -42,6 +42,11 @@ namespace CoffeeShop.Controllers
                 }
 
                 return RedirectToAction("Index", "Home");
+            }
+
+            if (!string.IsNullOrWhiteSpace(message) && TempData["WarningMessage"] == null)
+            {
+                TempData["WarningMessage"] = message;
             }
 
             return View(new LoginViewModel { ReturnUrl = returnUrl });
