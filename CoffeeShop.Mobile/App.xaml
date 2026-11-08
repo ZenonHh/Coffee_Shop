@@ -6,39 +6,8 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <Style TargetType="ContentPage">
-                <Setter Property="BackgroundColor" Value="{StaticResource AppBackground}" />
-            </Style>
-            <Style TargetType="Label">
-                <Setter Property="TextColor" Value="{StaticResource CoffeeText}" />
-            </Style>
-            <Style TargetType="Button">
-                <Setter Property="BackgroundColor" Value="{StaticResource CoffeeAccent}" />
-                <Setter Property="TextColor" Value="{StaticResource CoffeeBackground}" />
-                <Setter Property="CornerRadius" Value="14" />
-                <Setter Property="Padding" Value="16,12" />
-                <Setter Property="FontAttributes" Value="Bold" />
-            </Style>
-            <Style TargetType="Entry">
-                <Setter Property="TextColor" Value="{StaticResource CoffeeText}" />
-                <Setter Property="PlaceholderColor" Value="{StaticResource CoffeeMuted}" />
-                <Setter Property="BackgroundColor" Value="{StaticResource CoffeeSurface}" />
-            </Style>
-            <Style TargetType="Editor">
-                <Setter Property="TextColor" Value="{StaticResource CoffeeText}" />
-                <Setter Property="PlaceholderColor" Value="{StaticResource CoffeeMuted}" />
-                <Setter Property="BackgroundColor" Value="{StaticResource CoffeeSurface}" />
-            </Style>
-            <Style TargetType="Picker">
-                <Setter Property="TextColor" Value="{StaticResource CoffeeText}" />
-                <Setter Property="TitleColor" Value="{StaticResource CoffeeMuted}" />
-                <Setter Property="BackgroundColor" Value="{StaticResource CoffeeSurface}" />
-            </Style>
-            <Style TargetType="SearchBar">
-                <Setter Property="TextColor" Value="{StaticResource CoffeeText}" />
-                <Setter Property="PlaceholderColor" Value="{StaticResource CoffeeMuted}" />
-            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

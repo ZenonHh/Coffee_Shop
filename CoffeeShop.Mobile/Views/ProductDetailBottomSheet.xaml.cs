@@ -18,10 +18,47 @@ public partial class ProductDetailBottomSheet : Popup
         SheetContent.HeightRequest = DeviceDisplay.MainDisplayInfo.Height / density * 0.86;
     }
 
-    private void OnSizeChecked(object? sender, CheckedChangedEventArgs e)
+    private void OnSugarOptionClicked(object? sender, EventArgs e)
     {
-        if (e.Value && sender is RadioButton { BindingContext: ProductVariantSelection variant })
-            _viewModel.SelectVariantCommand.Execute(variant);
+        if (sender is Button { CommandParameter: string value })
+        {
+            _viewModel.SugarLevel = value;
+            SyncOptionChips(SugarOptionsLayout, value);
+        }
+    }
+
+    private void OnIceOptionClicked(object? sender, EventArgs e)
+    {
+        if (sender is Button { CommandParameter: string value })
+        {
+            _viewModel.IceLevel = value;
+            SyncOptionChips(IceOptionsLayout, value);
+        }
+    }
+
+    private void OnOptionChipsLoaded(object? sender, EventArgs e)
+    {
+        if (ReferenceEquals(sender, SugarOptionsLayout))
+            SyncOptionChips(SugarOptionsLayout, _viewModel.SugarLevel);
+        else if (ReferenceEquals(sender, IceOptionsLayout))
+            SyncOptionChips(IceOptionsLayout, _viewModel.IceLevel);
+    }
+
+    private static void SyncOptionChips(HorizontalStackLayout layout, string selectedValue)
+    {
+        foreach (var chip in layout.Children.OfType<Button>())
+        {
+            var isSelected = chip.CommandParameter as string == selectedValue;
+            chip.BackgroundColor = isSelected
+                ? (Color)Application.Current!.Resources["Accent"]
+                : (Color)Application.Current!.Resources["CardSurface"];
+            chip.TextColor = isSelected
+                ? (Color)Application.Current!.Resources["Background"]
+                : (Color)Application.Current!.Resources["TextPrimary"];
+            chip.BorderColor = isSelected
+                ? (Color)Application.Current!.Resources["Accent"]
+                : (Color)Application.Current!.Resources["BorderColor"];
+        }
     }
 
     private void OnAddClicked(object? sender, EventArgs e)
