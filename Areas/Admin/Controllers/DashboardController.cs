@@ -9,7 +9,7 @@ using CoffeeShop.Services;
 namespace CoffeeShop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Staff,NhanVien")]
+    [Authorize(Roles = "Admin,Staff,NhanVien,CRM")]
     public class DashboardController : Controller
     {
         private readonly CoffeeShopDbContext _context;
@@ -21,6 +21,11 @@ namespace CoffeeShop.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var now = DateTime.Now;
+            var today = DateTime.Today;
+            var sevenDaysAgo = today.AddDays(-6);
+            var tomorrow = today.AddDays(1);
+            var thirtyDaysAgo = today.AddDays(-29);
             var viewModel = new AdminDashboardViewModel
             {
                 TotalCustomerCount = await _context.Customers.CountAsync(),
@@ -28,8 +33,72 @@ namespace CoffeeShop.Areas.Admin.Controllers
                     feedback.PhanHoiQuanTri == null || feedback.PhanHoiQuanTri == ""),
                 PendingContactCount = await _context.ContactMessages.CountAsync(message => message.TrangThai == "Chưa xử lý"),
                 ActiveSurveyCount = await _context.Surveys.CountAsync(survey =>
-                    survey.NgayBatDau <= DateTime.Now && survey.NgayKetThuc >= DateTime.Now)
+                    survey.NgayBatDau <= now && survey.NgayKetThuc >= now)
             };
+
+            var customerRegistrations = await _context.Customers.AsNoTracking()
+                .Where(customer => customer.NgayTao >= sevenDaysAgo && customer.NgayTao < tomorrow)
+                .Select(customer => customer.NgayTao)
+                .ToListAsync();
+            for (var date = sevenDaysAgo; date <= today; date = date.AddDays(1))
+            {
+                var currentDate = date.Date;
+                viewModel.CustomerTrend.Add(new DashboardCustomerTrendViewModel
+                {
+                    Date = date.ToString("dd/MM"),
+                    CustomerCount = customerRegistrations.Count(registration => registration.Date == currentDate)
+                });
+            }
+
+            var recentRatings = await _context.Feedbacks.AsNoTracking()
+                .Where(feedback => feedback.NgayGui >= thirtyDaysAgo
+                    && feedback.NgayGui < tomorrow
+                    && feedback.DanhGia.HasValue)
+                .GroupBy(feedback => feedback.DanhGia!.Value)
+                .Select(group => new
+                {
+                    Rating = group.Key,
+                    Count = group.Count(),
+                    Average = group.Average(feedback => feedback.DanhGia!.Value)
+                })
+                .ToListAsync();
+            viewModel.SatisfactionResponseCount = recentRatings.Sum(item => item.Count);
+            viewModel.AverageSatisfaction = viewModel.SatisfactionResponseCount == 0
+                ? null
+                : (decimal)(recentRatings.Sum(item => item.Average * item.Count)
+                    / viewModel.SatisfactionResponseCount);
+            viewModel.SatisfactionRatings = Enumerable.Range(1, 5)
+                .Select(rating => new DashboardRatingViewModel
+                {
+                    Rating = rating,
+                    Count = recentRatings.FirstOrDefault(item => item.Rating == rating)?.Count ?? 0
+                })
+                .ToList();
+
+            var activeSurveyData = await _context.Surveys.AsNoTracking()
+                .Where(survey => survey.NgayBatDau <= now && survey.NgayKetThuc >= now)
+                .OrderByDescending(survey => survey.NgayKetThuc)
+                .Select(survey => new
+                {
+                    survey.TieuDe,
+                    TargetCount = survey.DoiTuong == "TatCa"
+                        ? _context.Customers.Count()
+                        : survey.AudienceCustomers.Count(),
+                    ResponseCount = survey.Responses.Count()
+                })
+                .ToListAsync();
+            viewModel.SurveyParticipation = activeSurveyData
+                .Take(5)
+                .Select(survey => new DashboardSurveyParticipationViewModel
+                {
+                    Title = survey.TieuDe,
+                    TargetCount = survey.TargetCount,
+                    ResponseCount = survey.ResponseCount,
+                    Percentage = survey.TargetCount == 0
+                        ? 0
+                        : Math.Round(survey.ResponseCount * 100d / survey.TargetCount, 1)
+                })
+                .ToList();
 
             if (User.IsInRole("Admin"))
             {
@@ -41,10 +110,6 @@ namespace CoffeeShop.Areas.Admin.Controllers
                     order.TrangThai == OrderStatuses.WaitingForConfirmation);
 
                 // Thống kê doanh thu & đơn hàng 7 ngày gần nhất
-                var today = DateTime.Today;
-                var sevenDaysAgo = today.AddDays(-6);
-                var tomorrow = today.AddDays(1);
-
                 var recentOrders = await _context.Orders.AsNoTracking()
                     .Where(order => order.NgayTao >= sevenDaysAgo && order.NgayTao < tomorrow)
                     .Select(order => new { order.NgayTao, order.TongTien, order.TrangThai })

@@ -480,6 +480,9 @@ INSERT INTO dbo.[vaitro] ([MaVaiTro], [TenVaiTro], [MoTa]) VALUES
 (4, N'Admin', N'Quản trị hệ thống');
 SET IDENTITY_INSERT dbo.[vaitro] OFF;
 GO
+IF NOT EXISTS (SELECT 1 FROM dbo.[vaitro] WHERE [TenVaiTro] = N'CRM')
+    INSERT INTO dbo.[vaitro] ([TenVaiTro], [MoTa]) VALUES (N'CRM', N'Nhân viên chăm sóc khách hàng và CRM');
+GO
 SET IDENTITY_INSERT dbo.[bienthesanpham] ON;
 INSERT INTO dbo.[bienthesanpham] ([MaBienThe], [MaSP], [KichCo], [GiaBan], [TrangThai]) VALUES
 (1, 1, N'M', 29000.00, 1),

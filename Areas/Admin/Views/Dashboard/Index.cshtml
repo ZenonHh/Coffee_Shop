@@ -5,6 +5,9 @@
     var dailyRevenueJson = JsonSerializer.Serialize(Model.DailyRevenues);
     var orderStatusJson = JsonSerializer.Serialize(Model.OrderStatusesList);
     var topProductsJson = JsonSerializer.Serialize(Model.TopSellingProducts);
+    var customerTrendJson = JsonSerializer.Serialize(Model.CustomerTrend);
+    var satisfactionRatingsJson = JsonSerializer.Serialize(Model.SatisfactionRatings);
+    var surveyParticipationJson = JsonSerializer.Serialize(Model.SurveyParticipation);
 }
 
 <!-- Số liệu cần theo dõi -->
@@ -203,10 +206,84 @@
         </div>
     </div>
 }
+else
+{
+    <div class="row dashboard-crm-charts">
+        <div class="col-lg-7 mb-4">
+            <section class="dashboard-chart-card h-100">
+                <div class="dashboard-chart-heading">
+                    <div>
+                        <h2><i class="fas fa-user-plus" aria-hidden="true"></i> Khách hàng mới</h2>
+                        <p>Lượng khách đăng ký trong 7 ngày gần nhất</p>
+                    </div>
+                    <span class="dashboard-chart-period">7 ngày</span>
+                </div>
+                <div class="dashboard-chart-body">
+                    <canvas id="customerTrendChart" aria-label="Biểu đồ khách hàng mới trong 7 ngày gần nhất"></canvas>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <section class="dashboard-chart-card h-100">
+                <div class="dashboard-chart-heading">
+                    <div>
+                        <h2><i class="fas fa-star" aria-hidden="true"></i> Mức độ hài lòng</h2>
+                        <p>Phân bố đánh giá trong 30 ngày gần nhất</p>
+                    </div>
+                    <strong class="dashboard-satisfaction-score">
+                        @(Model.AverageSatisfaction.HasValue ? Model.AverageSatisfaction.Value.ToString("0.0") : "—")
+                        <small>/ 5</small>
+                    </strong>
+                </div>
+                @if (Model.SatisfactionResponseCount > 0)
+                {
+                    <div class="dashboard-chart-body dashboard-chart-body-doughnut">
+                        <canvas id="satisfactionChart" aria-label="Biểu đồ phân bố đánh giá hài lòng"></canvas>
+                    </div>
+                    <p class="dashboard-chart-footnote">@Model.SatisfactionResponseCount lượt đánh giá</p>
+                }
+                else
+                {
+                    <div class="dashboard-chart-empty">
+                        <i class="far fa-comment-dots" aria-hidden="true"></i>
+                        <span>Chưa có đánh giá trong 30 ngày gần nhất.</span>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-12 mb-4">
+            <section class="dashboard-chart-card">
+                <div class="dashboard-chart-heading">
+                    <div>
+                        <h2><i class="fas fa-poll" aria-hidden="true"></i> Hiệu quả khảo sát</h2>
+                        <p>Tỷ lệ khách hàng hoàn thành các khảo sát đang mở</p>
+                    </div>
+                    <a asp-area="Admin" asp-controller="Surveys" asp-action="Index" class="dashboard-chart-link">Quản lý khảo sát <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                </div>
+                @if (Model.SurveyParticipation.Any())
+                {
+                    <div class="dashboard-chart-body dashboard-chart-body-surveys" style="height:@Math.Max(220, Model.SurveyParticipation.Count * 58)px">
+                        <canvas id="surveyParticipationChart" aria-label="Biểu đồ tỷ lệ tham gia khảo sát đang mở"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="dashboard-chart-empty dashboard-chart-empty-compact">
+                        <i class="far fa-clipboard" aria-hidden="true"></i>
+                        <span>Hiện chưa có khảo sát nào đang mở.</span>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+}
 
 <script type="application/json" id="dashboard-daily-revenue-data">@Html.Raw(dailyRevenueJson)</script>
 <script type="application/json" id="dashboard-order-status-data">@Html.Raw(orderStatusJson)</script>
 <script type="application/json" id="dashboard-top-products-data">@Html.Raw(topProductsJson)</script>
+<script type="application/json" id="dashboard-customer-trend-data">@Html.Raw(customerTrendJson)</script>
+<script type="application/json" id="dashboard-satisfaction-data">@Html.Raw(satisfactionRatingsJson)</script>
+<script type="application/json" id="dashboard-survey-participation-data">@Html.Raw(surveyParticipationJson)</script>
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -217,12 +294,17 @@
             var revenueDataEl = document.getElementById('dashboard-daily-revenue-data');
             var statusDataEl = document.getElementById('dashboard-order-status-data');
             var topProductsDataEl = document.getElementById('dashboard-top-products-data');
+            var customerTrendDataEl = document.getElementById('dashboard-customer-trend-data');
+            var satisfactionDataEl = document.getElementById('dashboard-satisfaction-data');
+            var surveyParticipationDataEl = document.getElementById('dashboard-survey-participation-data');
 
             var dailyData = revenueDataEl ? JSON.parse(revenueDataEl.textContent || '[]') : [];
             var statusData = statusDataEl ? JSON.parse(statusDataEl.textContent || '[]') : [];
             var topProducts = topProductsDataEl ? JSON.parse(topProductsDataEl.textContent || '[]') : [];
+            var customerTrend = customerTrendDataEl ? JSON.parse(customerTrendDataEl.textContent || '[]') : [];
+            var satisfactionRatings = satisfactionDataEl ? JSON.parse(satisfactionDataEl.textContent || '[]') : [];
+            var surveyParticipation = surveyParticipationDataEl ? JSON.parse(surveyParticipationDataEl.textContent || '[]') : [];
 
-            var styles = getComputedStyle(document.documentElement);
             var primary = '#6f4e37'; // Katinat coffee brown
             var secondary = '#c49b63'; // Katinat gold
             var ink = '#28251f';
@@ -231,6 +313,122 @@
 
             Chart.defaults.font.family = "'DM Sans', sans-serif";
             Chart.defaults.color = ink;
+
+            var customerTrendCanvas = document.getElementById('customerTrendChart');
+            if (customerTrendCanvas && customerTrend.length > 0) {
+                new Chart(customerTrendCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: customerTrend.map(function (item) { return item.Date; }),
+                        datasets: [{
+                            label: 'Khách hàng mới',
+                            data: customerTrend.map(function (item) { return item.CustomerCount; }),
+                            borderColor: primary,
+                            backgroundColor: 'rgba(196, 155, 99, 0.18)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: secondary,
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 },
+                                grid: { color: line }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) { return ' ' + ctx.parsed.y + ' khách hàng mới'; }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var satisfactionCanvas = document.getElementById('satisfactionChart');
+            if (satisfactionCanvas && satisfactionRatings.length > 0) {
+                new Chart(satisfactionCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: satisfactionRatings.map(function (item) { return item.Rating + ' sao'; }),
+                        datasets: [{
+                            data: satisfactionRatings.map(function (item) { return item.Count; }),
+                            backgroundColor: ['#c97a67', '#dca578', '#e3c36f', '#9bb58b', '#5f997c'],
+                            borderColor: '#fff',
+                            borderWidth: 3,
+                            hoverOffset: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { usePointStyle: true, pointStyle: 'circle', padding: 18 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var surveyParticipationCanvas = document.getElementById('surveyParticipationChart');
+            if (surveyParticipationCanvas && surveyParticipation.length > 0) {
+                new Chart(surveyParticipationCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: surveyParticipation.map(function (item) { return item.Title; }),
+                        datasets: [{
+                            label: 'Đã hoàn thành',
+                            data: surveyParticipation.map(function (item) { return item.ResponseCount; }),
+                            backgroundColor: secondary,
+                            borderRadius: 5,
+                            barThickness: 18
+                        }, {
+                            label: 'Chưa hoàn thành',
+                            data: surveyParticipation.map(function (item) { return Math.max(item.TargetCount - item.ResponseCount, 0); }),
+                            backgroundColor: '#eee8e2',
+                            borderRadius: 5,
+                            barThickness: 18
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { stacked: true, beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } },
+                            y: { stacked: true, grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle' } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        var survey = surveyParticipation[ctx.dataIndex];
+                                        return ' ' + ctx.dataset.label + ': ' + ctx.parsed.x
+                                            + (ctx.datasetIndex === 0 ? ' (' + survey.Percentage + '%)' : '');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             // 1. BIỂU ĐỒ DOANH THU & SỐ ĐƠN (COMBO CHART)
             var revCanvas = document.getElementById('revenueOrdersChart');

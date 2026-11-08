@@ -120,8 +120,11 @@
 else
 {
 <nav class="admin-tabs statistics-tabs mb-4" aria-label="Các báo cáo">
-    <a class="admin-tab @(Model.Tab == "finance" ? "active" : "")"
-       asp-action="Index" asp-route-tab="finance" asp-route-year="@Model.FinanceYear" asp-route-financePeriod="@Model.FinancePeriod">Doanh thu</a>
+    @if (!User.IsInRole("CRM"))
+    {
+        <a class="admin-tab @(Model.Tab == "finance" ? "active" : "")"
+           asp-action="Index" asp-route-tab="finance" asp-route-year="@Model.FinanceYear" asp-route-financePeriod="@Model.FinancePeriod">Doanh thu</a>
+    }
     <a class="admin-tab @(Model.Tab == "customers" ? "active" : "")"
        asp-action="Index" asp-route-tab="customers" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khách hàng</a>
     <a class="admin-tab @(Model.Tab == "satisfaction" ? "active" : "")"

@@ -19,8 +19,7 @@ public class TaiKhoanController : Controller
     public async Task<IActionResult> Index(int internalPage = 1)
     {
         const int pageSize = 10;
-        var internalCount = await _context.Accounts.CountAsync(account =>
-            account.MaVaiTro == 1 || account.MaVaiTro == 2 || account.MaVaiTro == 3 || account.MaVaiTro == 4);
+        var internalCount = await GetInternalAccounts().CountAsync();
         internalPage = Math.Clamp(internalPage, 1, Math.Max(1, (int)Math.Ceiling(internalCount / (double)pageSize)));
         ViewBag.Roles = await GetRolesAsync();
         var model = new AdminAccountIndexViewModel
@@ -39,9 +38,8 @@ public class TaiKhoanController : Controller
         return View(model);
     }
 
-    private async Task<List<InternalAccountListItemViewModel>> GetAccountsAsync(int page, int pageSize) => await _context.Accounts
+    private async Task<List<InternalAccountListItemViewModel>> GetAccountsAsync(int page, int pageSize) => await GetInternalAccounts()
         .AsNoTracking()
-        .Where(account => account.MaVaiTro == 1 || account.MaVaiTro == 2 || account.MaVaiTro == 3 || account.MaVaiTro == 4)
         .OrderBy(account => account.MaVaiTro)
         .ThenBy(account => account.TenDangNhap)
         .Skip((page - 1) * pageSize)
@@ -75,8 +73,7 @@ public class TaiKhoanController : Controller
             ViewBag.OpenInternalModal = true;
             ViewBag.Roles = await GetRolesAsync();
             const int pageSize = 10;
-            var internalCount = await _context.Accounts.CountAsync(account =>
-                account.MaVaiTro == 1 || account.MaVaiTro == 2 || account.MaVaiTro == 3 || account.MaVaiTro == 4);
+            var internalCount = await GetInternalAccounts().CountAsync();
             var indexModel = new AdminAccountIndexViewModel
             {
                 InternalAccounts = await GetAccountsAsync(1, pageSize),
@@ -136,7 +133,7 @@ public class TaiKhoanController : Controller
         if (account == null) return NotFound();
 
         var targetRole = await _context.Roles.SingleOrDefaultAsync(role => role.MaVaiTro == maVaiTro);
-        if (targetRole == null || !IsInternalRole(targetRole))
+        if (targetRole == null || !IsInternalRole(targetRole.TenVaiTro))
         {
             TempData["Error"] = "Vai trò được chọn không hợp lệ.";
             return RedirectToAction(nameof(Index), new { tab = "internal" });
@@ -211,25 +208,33 @@ public class TaiKhoanController : Controller
     }
 
     private async Task<List<RoleOptionViewModel>> GetRolesAsync() => await _context.Roles.AsNoTracking()
-        .Where(role => role.MaVaiTro >= 1 && role.MaVaiTro <= 4)
+        .Where(role => role.TenVaiTro == "Admin"
+            || role.TenVaiTro == "Staff"
+            || role.TenVaiTro == "NhanVien"
+            || role.TenVaiTro == "CRM"
+            || role.TenVaiTro == "QuanLy"
+            || role.TenVaiTro == "Manager")
         .OrderBy(role => role.MaVaiTro)
         .Select(role => new RoleOptionViewModel { MaVaiTro = role.MaVaiTro, TenVaiTro = role.TenVaiTro })
-        .Where(role => role.TenVaiTro != "Customer"
-            && role.TenVaiTro != "Khách hàng"
-            && role.TenVaiTro != "KhachHang")
         .ToListAsync();
 
     private async Task<bool> IsInternalRoleAsync(int roleId)
     {
         var role = await _context.Roles.AsNoTracking().SingleOrDefaultAsync(item => item.MaVaiTro == roleId);
-        return role != null && IsInternalRole(role);
+        return role != null && IsInternalRole(role.TenVaiTro);
     }
 
-    private static bool IsInternalRole(Role role) =>
-        role.MaVaiTro >= 1 && role.MaVaiTro <= 4
-        && role.TenVaiTro != "Customer"
-        && role.TenVaiTro != "Khách hàng"
-        && role.TenVaiTro != "KhachHang";
+    private IQueryable<Account> GetInternalAccounts() => _context.Accounts
+        .Where(account => account.Role != null
+            && (account.Role.TenVaiTro == "Admin"
+                || account.Role.TenVaiTro == "Staff"
+                || account.Role.TenVaiTro == "NhanVien"
+                || account.Role.TenVaiTro == "CRM"
+                || account.Role.TenVaiTro == "QuanLy"
+                || account.Role.TenVaiTro == "Manager"));
+
+    private static bool IsInternalRole(string? roleName) =>
+        roleName is "Admin" or "Staff" or "NhanVien" or "CRM" or "QuanLy" or "Manager";
 
     private static bool IsAdminRole(string? roleName) =>
         string.Equals(roleName, "Admin", StringComparison.OrdinalIgnoreCase);

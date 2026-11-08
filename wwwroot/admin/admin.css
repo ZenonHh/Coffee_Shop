@@ -3422,6 +3422,150 @@ body {
   transform: translateY(-2px);
 }
 
+.dashboard-crm-charts {
+  margin-top: 8px;
+}
+
+.dashboard-chart-card {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #eee6de;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(45, 35, 24, 0.045);
+}
+
+.dashboard-chart-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px 12px;
+}
+
+.dashboard-chart-heading h2 {
+  margin: 0;
+  color: #342b24;
+  font-family: "Manrope", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.dashboard-chart-heading h2 i {
+  margin-right: 7px;
+  color: var(--coffee);
+}
+
+.dashboard-chart-heading p {
+  margin: 6px 0 0;
+  color: #8e8981;
+  font-size: 12px;
+}
+
+.dashboard-chart-period {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  border-radius: 20px;
+  background: #f7f1eb;
+  color: #765a43;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dashboard-chart-body {
+  position: relative;
+  height: 270px;
+  padding: 10px 20px 20px;
+}
+
+.dashboard-chart-body-doughnut {
+  height: 230px;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.dashboard-chart-body-surveys {
+  min-height: 220px;
+  padding: 6px 24px 22px;
+}
+
+.dashboard-satisfaction-score {
+  flex: 0 0 auto;
+  color: #725036;
+  font-family: "Manrope", sans-serif;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.dashboard-satisfaction-score small {
+  color: #a69b90;
+  font-family: "DM Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.dashboard-chart-footnote {
+  margin: 0 0 16px;
+  color: #8e8981;
+  font-size: 12px;
+  text-align: center;
+}
+
+.dashboard-chart-empty {
+  display: flex;
+  min-height: 240px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: #93877c;
+  font-size: 13px;
+  text-align: center;
+}
+
+.dashboard-chart-empty i {
+  color: #c6b5a4;
+  font-size: 27px;
+}
+
+.dashboard-chart-empty-compact {
+  min-height: 140px;
+  flex-direction: row;
+}
+
+.dashboard-chart-link {
+  flex: 0 0 auto;
+  color: var(--coffee);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dashboard-chart-link:hover {
+  color: var(--coffee-dark);
+  text-decoration: none;
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-chart-heading {
+    padding: 18px 16px 10px;
+  }
+
+  .dashboard-chart-body {
+    height: 240px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .dashboard-chart-body-doughnut {
+    height: 220px;
+  }
+
+  .dashboard-chart-body-surveys {
+    padding: 6px 14px 18px;
+  }
+}
+
 .customer-list-heading {
   display: flex;
   align-items: center;

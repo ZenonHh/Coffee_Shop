@@ -200,6 +200,9 @@ BEGIN
     SET IDENTITY_INSERT dbo.[vaitro] OFF;
 END;
 
+IF NOT EXISTS (SELECT 1 FROM dbo.[vaitro] WHERE [TenVaiTro] = N'CRM')
+    INSERT INTO dbo.[vaitro] ([TenVaiTro], [MoTa]) VALUES (N'CRM', N'Nhân viên chăm sóc khách hàng và CRM');
+
 -- Cap nhat tai khoan admin len vai tro 4 neu dang o vai tro 1
 UPDATE dbo.[taikhoan] SET [MaVaiTro] = 4 WHERE [TenDangNhap] = 'admin' AND [MaVaiTro] = 1;
 

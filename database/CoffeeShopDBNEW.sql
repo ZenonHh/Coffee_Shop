@@ -839,6 +839,9 @@ INSERT [dbo].[vaitro] ([MaVaiTro], [TenVaiTro], [MoTa]) VALUES (3, N'NhanVien', 
 INSERT [dbo].[vaitro] ([MaVaiTro], [TenVaiTro], [MoTa]) VALUES (4, N'Admin', N'Quản trị hệ thống')
 SET IDENTITY_INSERT [dbo].[vaitro] OFF
 GO
+IF NOT EXISTS (SELECT 1 FROM [dbo].[vaitro] WHERE [TenVaiTro] = N'CRM')
+    INSERT [dbo].[vaitro] ([TenVaiTro], [MoTa]) VALUES (N'CRM', N'Nhân viên chăm sóc khách hàng và CRM')
+GO
 SET ANSI_PADDING ON
 GO
 /****** Object:  Index [UQ_chitietgiohang_uq_dong]    Script Date: 28/10/2026 2:36:00 CH ******/

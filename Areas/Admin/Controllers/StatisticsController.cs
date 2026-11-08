@@ -10,7 +10,7 @@ namespace CoffeeShop.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("Admin/[controller]")]
-[Authorize(Roles = "Admin,Staff,NhanVien")]
+[Authorize(Roles = "Admin,Staff,NhanVien,CRM")]
 public class StatisticsController : Controller
 {
     private readonly CoffeeShopDbContext _context;
@@ -28,6 +28,8 @@ public class StatisticsController : Controller
         string financePeriod = "quarter")
     {
         tab = tab is "satisfaction" or "surveys" or "finance" ? tab : "customers";
+        if (User.IsInRole("CRM") && string.Equals(tab, "finance", StringComparison.OrdinalIgnoreCase))
+            return Forbid();
         period = period is "quarter" or "year" or "custom" ? period : "30days";
         financePeriod = financePeriod is "month" or "year" ? financePeriod : "quarter";
         var today = DateTime.Today;
@@ -219,6 +221,8 @@ public class StatisticsController : Controller
         int? year = null,
         string financePeriod = "quarter")
     {
+        if (User.IsInRole("CRM") && string.Equals(tab, "finance", StringComparison.OrdinalIgnoreCase))
+            return Forbid();
         var model = await GetExportModelAsync(tab, period, fromDate, toDate, year, financePeriod);
         if (model == null)
             return BadRequest("Bộ lọc báo cáo không hợp lệ.");
@@ -238,6 +242,8 @@ public class StatisticsController : Controller
         int? year = null,
         string financePeriod = "quarter")
     {
+        if (User.IsInRole("CRM") && string.Equals(tab, "finance", StringComparison.OrdinalIgnoreCase))
+            return Forbid();
         var model = await GetExportModelAsync(tab, period, fromDate, toDate, year, financePeriod);
         if (model == null)
             return BadRequest("Bộ lọc báo cáo không hợp lệ.");

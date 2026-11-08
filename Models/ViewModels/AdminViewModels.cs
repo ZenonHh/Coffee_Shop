@@ -15,6 +15,31 @@ namespace CoffeeShop.Models.ViewModels
         public List<DashboardDailyRevenueViewModel> DailyRevenues { get; set; } = new();
         public List<DashboardOrderStatusViewModel> OrderStatusesList { get; set; } = new();
         public List<DashboardTopProductViewModel> TopSellingProducts { get; set; } = new();
+        public List<DashboardCustomerTrendViewModel> CustomerTrend { get; set; } = new();
+        public List<DashboardRatingViewModel> SatisfactionRatings { get; set; } = new();
+        public decimal? AverageSatisfaction { get; set; }
+        public int SatisfactionResponseCount { get; set; }
+        public List<DashboardSurveyParticipationViewModel> SurveyParticipation { get; set; } = new();
+    }
+
+    public class DashboardCustomerTrendViewModel
+    {
+        public string Date { get; set; } = string.Empty;
+        public int CustomerCount { get; set; }
+    }
+
+    public class DashboardRatingViewModel
+    {
+        public int Rating { get; set; }
+        public int Count { get; set; }
+    }
+
+    public class DashboardSurveyParticipationViewModel
+    {
+        public string Title { get; set; } = string.Empty;
+        public int TargetCount { get; set; }
+        public int ResponseCount { get; set; }
+        public double Percentage { get; set; }
     }
 
     public class DashboardDailyRevenueViewModel
@@ -137,7 +162,7 @@ namespace CoffeeShop.Models.ViewModels
         [Required, StringLength(100)]
         public string HoTen { get; set; } = string.Empty;
 
-        [Range(1, 4)]
+        [Range(1, int.MaxValue)]
         public int MaVaiTro { get; set; } = 3;
 
         [Required, MinLength(8), StringLength(72)]

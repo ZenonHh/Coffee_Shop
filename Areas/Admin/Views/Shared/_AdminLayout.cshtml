@@ -4,9 +4,13 @@
     var controller = ViewContext.RouteData.Values["controller"]?.ToString();
     var action = ViewContext.RouteData.Values["action"]?.ToString();
     var currentTitle = ViewData["Title"]?.ToString() ?? "Quản trị";
-    var pendingContactCount = await AdminDb.ContactMessages.CountAsync(message => message.TrangThai == "Chưa xử lý");
-    var pendingReviewCount = await AdminDb.Feedbacks.CountAsync(feedback => feedback.PhanHoiQuanTri == null || feedback.PhanHoiQuanTri == "");
+    var isCrm = User.IsInRole("CRM");
+    var pendingContactCount = isCrm ? 0 : await AdminDb.ContactMessages.CountAsync(message => message.TrangThai == "Chưa xử lý");
+    var pendingReviewCount = isCrm ? 0 : await AdminDb.Feedbacks.CountAsync(feedback => feedback.PhanHoiQuanTri == null || feedback.PhanHoiQuanTri == "");
     var pendingFeedbackCount = pendingContactCount + pendingReviewCount;
+    var roleLabel = User.IsInRole("Admin") ? "Quản trị hệ thống"
+        : isCrm ? "Nhân viên CRM"
+        : "Nhân viên";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -21,37 +25,40 @@
     {
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" />
     }
-    <link rel="stylesheet" href="~/admin/admin.css?v=20261107-1" />
+    <link rel="stylesheet" href="~/admin/admin.css?v=20261108-1" />
 </head>
 <body>
 <div class="admin-shell">
     <aside class="sidebar" id="sidebar">
-        <a class="brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" aria-label="Katinat Coffee Admin">
+        <a class="brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index" aria-label="Katinat Coffee">
             <span class="brand-mark">K</span>
-            <span class="brand-copy">Katinat<small>Coffee · ADMIN</small></span>
+            <span class="brand-copy">Katinat<small>Coffee · @(isCrm ? "CRM" : "ADMIN")</small></span>
         </a>
 
         <div class="side-caption">MENU CHÍNH</div>
         <nav class="side-nav" aria-label="Điều hướng quản trị">
-            @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("NhanVien"))
+            @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("NhanVien") || isCrm)
             {
                 <a class="side-link @(controller == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
                     <span class="side-icon" aria-hidden="true">◫</span><span>Tổng quan</span>
                 </a>
             }
-            <a class="side-link @(controller == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">▣</span><span>Đơn hàng</span>
-            </a>
-            <a class="side-link @(controller == "Products" ? "active" : "")" asp-area="Admin" asp-controller="Products" asp-action="Index">
-                <span class="side-icon" aria-hidden="true">▤</span><span>Sản phẩm</span>
-            </a>
+            @if (!isCrm)
+            {
+                <a class="side-link @(controller == "Orders" ? "active" : "")" asp-area="Admin" asp-controller="Orders" asp-action="Index">
+                    <span class="side-icon" aria-hidden="true">▣</span><span>Đơn hàng</span>
+                </a>
+                <a class="side-link @(controller == "Products" ? "active" : "")" asp-area="Admin" asp-controller="Products" asp-action="Index">
+                    <span class="side-icon" aria-hidden="true">▤</span><span>Sản phẩm</span>
+                </a>
+            }
             @if (User.IsInRole("Admin"))
             {
                 <a class="side-link @(controller == "NhaCungCap" || controller == "PhieuNhap" ? "active" : "")" asp-area="Admin" asp-controller="NhaCungCap" asp-action="Index">
                     <span class="side-icon" aria-hidden="true"><i class="fas fa-building"></i></span><span>Nhà cung cấp</span>
                 </a>
             }
-            @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("NhanVien"))
+            @if (User.IsInRole("Admin") || User.IsInRole("Staff") || User.IsInRole("NhanVien") || isCrm)
             {
                 <a class="side-link @(controller == "KhachHang" ? "active" : "")" asp-area="Admin" asp-controller="KhachHang" asp-action="Index">
                     <span class="side-icon" aria-hidden="true"><i class="fas fa-users"></i></span><span>Khách hàng</span>
@@ -84,10 +91,13 @@
             }
         </nav>
 
-        <div class="side-caption side-caption-spaced">HỆ THỐNG</div>
-        <a class="side-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
-            <span class="side-icon" aria-hidden="true">↗</span><span>Xem cửa hàng</span>
-        </a>
+        @if (!isCrm)
+        {
+            <div class="side-caption side-caption-spaced">HỆ THỐNG</div>
+            <a class="side-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                <span class="side-icon" aria-hidden="true">↗</span><span>Xem cửa hàng</span>
+            </a>
+        }
 
         <div class="sidebar-bottom">
             @if (!User.IsInRole("Admin"))
@@ -105,7 +115,7 @@
                 <div class="avatar avatar-admin">AD</div>
                 <div class="profile-copy">
                     <strong>@(User.Identity?.Name ?? "Quản trị viên")</strong>
-                    <span>Quản trị hệ thống</span>
+                    <span>@roleLabel</span>
                 </div>
                 <span class="profile-dots" aria-hidden="true">···</span>
             </div>

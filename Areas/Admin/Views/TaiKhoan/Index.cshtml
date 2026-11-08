@@ -6,6 +6,7 @@
     string RoleLabel(string name) => name switch
     {
         "Admin" => "Quản trị viên",
+        "CRM" => "Nhân viên CRM",
         "NhanVien" or "Staff" => "Nhân viên",
         "QuanLy" or "Manager" => "Quản lý",
         _ => name
@@ -13,7 +14,7 @@
     string RoleBadgeClass(string name) => name switch
     {
         "Admin" => "role-badge-admin",
-        "NhanVien" or "Staff" => "role-badge-staff",
+        "NhanVien" or "Staff" or "CRM" => "role-badge-staff",
         _ => "role-badge-other"
     };
 }
@@ -22,7 +23,7 @@
     <div>
         <div class="eyebrow">HỆ THỐNG &amp; CRM</div>
         <h1>Tài khoản</h1>
-        <p class="page-subtitle">Quản lý tài khoản quản trị viên, quản lý và nhân viên.</p>
+        <p class="page-subtitle">Quản lý tài khoản quản trị viên, quản lý, nhân viên và nhân viên CRM.</p>
     </div>
 </div>
 

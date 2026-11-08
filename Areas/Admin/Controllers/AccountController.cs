@@ -23,9 +23,10 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl)
     {
-        if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Admin") || User.IsInRole("NhanVien") || User.IsInRole("Staff")))
+        if (User.Identity?.IsAuthenticated == true
+            && (User.IsInRole("Admin") || User.IsInRole("NhanVien") || User.IsInRole("Staff") || User.IsInRole("CRM")))
         {
-            return User.IsInRole("Admin")
+            return User.IsInRole("Admin") || User.IsInRole("CRM")
                 ? RedirectToAction("Index", "Dashboard")
                 : RedirectToAction("Index", "Orders");
         }
@@ -49,7 +50,8 @@ public class AccountController : Controller
             .Include(a => a.Role)
             .FirstOrDefaultAsync(a => a.TenDangNhap == username && a.TrangThai);
 
-        var isStaff = account != null && account.MaVaiTro is 1 or 2 or 3 or 4;
+        var roleName = account?.Role?.TenVaiTro;
+        var isStaff = IsInternalRole(roleName);
         var passwordValid = account != null && VerifyPassword(password, account.MatKhau);
         if (!isStaff || !passwordValid)
         {
@@ -64,7 +66,13 @@ public class AccountController : Controller
         }
 
         await HttpContext.SignOutAsync("AdminCookie");
-        var roleName = account.MaVaiTro is 1 or 4 ? "Admin" : account.MaVaiTro == 2 ? "Staff" : "NhanVien";
+        roleName = roleName switch
+        {
+            "Admin" => "Admin",
+            "Staff" => "Staff",
+            "CRM" => "CRM",
+            _ => "NhanVien"
+        };
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, account!.TenDangNhap),
@@ -85,10 +93,13 @@ public class AccountController : Controller
             return Redirect(model.ReturnUrl);
         }
 
-        return account.MaVaiTro == 4
+        return roleName is "Admin" or "CRM"
             ? RedirectToAction("Index", "Dashboard")
             : RedirectToAction("Index", "Orders");
     }
+
+    private static bool IsInternalRole(string? roleName) =>
+        roleName is "Admin" or "Staff" or "NhanVien" or "CRM" or "QuanLy" or "Manager";
 
     [HttpGet]
     public async Task<IActionResult> Logout()

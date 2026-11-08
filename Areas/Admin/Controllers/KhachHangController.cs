@@ -12,7 +12,7 @@ namespace CoffeeShop.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Route("Admin/[controller]")]
-[Authorize(Roles = "Admin,Staff,NhanVien")]
+[Authorize(Roles = "Admin,Staff,NhanVien,CRM")]
 public class KhachHangController : Controller
 {
     private readonly CoffeeShopDbContext _context;

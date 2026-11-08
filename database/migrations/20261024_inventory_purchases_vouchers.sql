@@ -75,3 +75,7 @@ BEGIN
     SET IDENTITY_INSERT dbo.[vaitro] OFF;
 END;
 GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.[vaitro] WHERE [TenVaiTro] = N'CRM')
+    INSERT INTO dbo.[vaitro] ([TenVaiTro], [MoTa]) VALUES (N'CRM', N'Nhân viên chăm sóc khách hàng và CRM');
+GO
