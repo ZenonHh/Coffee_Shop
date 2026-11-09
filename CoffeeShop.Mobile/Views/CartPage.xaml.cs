@@ -17,14 +17,22 @@ public partial class CartPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+        _viewModel.StartListeningToCart();
         try
         {
             await _viewModel.LoadCustomerDefaultsAsync();
+            await _viewModel.RefreshCartUpsellAsync();
         }
         catch (Exception exception)
         {
             await DisplayAlertAsync("Không thể tải thông tin nhận hàng", exception.Message, "Đóng");
         }
+    }
+
+    protected override void OnDisappearing()
+    {
+        _viewModel.StopListeningToCart();
+        base.OnDisappearing();
     }
 
     private async void OnBackClicked(object? sender, EventArgs e)

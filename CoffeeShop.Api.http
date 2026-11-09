@@ -72,6 +72,13 @@ Content-Type: application/json
   "tamTinh": 120000
 }
 
+### Vouchers classified for the signed-in customer
+GET {{baseUrl}}/api/voucher/classified?maKhachHang=1
+Authorization: Bearer {{accessToken}}
+
+### Nearest voucher threshold for the current cart subtotal
+GET {{baseUrl}}/api/voucher/cart-upsell?currentTotal=85000
+
 ### Checkout (IDs must exist and have sufficient inventory)
 POST {{baseUrl}}/api/order/checkout
 Authorization: Bearer {{accessToken}}

@@ -40,6 +40,21 @@
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
+                <Border IsVisible="{Binding HasUpsellHint}" BackgroundColor="#241E19" Stroke="#C49B63"
+                        StrokeThickness="1" StrokeShape="RoundRectangle 16" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="🎁" FontSize="20" VerticalOptions="Center" />
+                            <Label Text="{Binding UpsellMessage}" TextColor="#FFFFFF"
+                                   FontAttributes="Bold" FontSize="15" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <ProgressBar Progress="{Binding UpsellProgress}" ProgressColor="#C49B63"
+                                     BackgroundColor="#46392B" />
+                        <Button Text="+ Thêm món" Command="{Binding GoToMenuCommand}"
+                                HorizontalOptions="Start" CornerRadius="20" Padding="18,8"
+                                BackgroundColor="#C49B63" TextColor="#12100D" FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
                 <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16" Padding="14">
                     <VerticalStackLayout Spacing="9">
                         <Label Text="Nhận hàng &amp; thanh toán" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
