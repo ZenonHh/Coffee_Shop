@@ -3873,6 +3873,37 @@ body {
   white-space: pre-wrap;
 }
 
+.survey-results .category-note {
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 14px 16px;
+}
+
+.survey-results .category-note > strong {
+  display: block;
+  color: #44372d;
+  font-size: 15px;
+}
+
+.survey-results .category-note span {
+  font-size: 14px;
+}
+
+.survey-results .admin-data-table {
+  font-size: 14px;
+}
+
+.survey-results .survey-answer-item strong {
+  color: #44372d;
+  font-size: 14px;
+}
+
+.survey-results .survey-answer-item span {
+  color: #62574c;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .customer-details-body section + section {
   margin-top: 22px;
 }

@@ -21,7 +21,7 @@
     <div class="panel-heading table-heading table-card-header">
         <div>
             <h2>Danh sách khảo sát</h2>
-            <p>Khảo sát đã có câu trả lời sẽ khóa cấu trúc câu hỏi và đối tượng nhận.</p>
+            <p>Ngay khi có ít nhất một câu trả lời, câu hỏi và đối tượng nhận sẽ bị khóa để bảo toàn dữ liệu; vẫn có thể sửa tiêu đề, mô tả và thời gian.</p>
         </div>
         <form asp-action="Index" method="get" class="survey-state-filter">
             <label for="surveyState" class="sr-only">Lọc theo trạng thái khảo sát</label>
@@ -78,7 +78,7 @@
                                             data-start="@survey.NgayBatDau.ToString("yyyy-MM-ddTHH:mm")"
                                             data-end="@survey.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")"
                                             data-toggle="modal" data-target="#editSurveyModal">Sửa</button>
-                                    <span class="action-note">Đã khóa câu hỏi</span>
+                                    <span class="action-note" title="Đã có khách hàng trả lời. Câu hỏi và đối tượng nhận được khóa để bảo toàn kết quả khảo sát.">Đã khóa câu hỏi</span>
                                 }
                                 else
                                 {
@@ -105,7 +105,7 @@
 
 @if (Model.Results != null)
 {
-    <section class="panel mt-4" id="survey-result">
+    <section class="panel mt-4 survey-results" id="survey-result">
         <div class="panel-heading">
             <div>
                 <h2>Kết quả: @Model.Results.TieuDe</h2>
