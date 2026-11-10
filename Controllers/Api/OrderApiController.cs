@@ -28,8 +28,7 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
         var customer = await db.Customers.AsNoTracking()
             .Where(item => item.MaKH == customerId && item.TrangThai)
             .Select(item => new CustomerOrderInfo(
-                item.MaKH, item.TaiKhoan, item.HoTen, item.Sdt, item.Email, item.DiaChi,
-                item.DiemTichLuy, item.HangTV))
+                item.MaKH, item.TaiKhoan, item.HoTen, item.Sdt, item.Email, item.DiaChi))
             .FirstOrDefaultAsync(cancellationToken);
         if (customer is null)
             return Unauthorized();
@@ -205,28 +204,6 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
             }
         }
 
-        var pointsEarned = (int)(order.TongTien / 10000m);
-        var newPoints = customer.DiemTichLuy + pointsEarned;
-        var newRank = newPoints >= 500 ? "Kim Cương"
-            : newPoints >= 200 ? "Vàng"
-            : newPoints >= 50 ? "Bạc"
-            : customer.HangTV;
-        await db.Customers.Where(item => item.MaKH == customerId && item.TrangThai)
-            .ExecuteUpdateAsync(update => update
-                .SetProperty(item => item.DiemTichLuy, newPoints)
-                .SetProperty(item => item.HangTV, newRank), cancellationToken);
-        if (pointsEarned > 0)
-        {
-            db.PointHistories.Add(new PointHistory
-            {
-                MaKH = customer.MaKH,
-                MaHD = order.MaHD,
-                DiemThayDoi = pointsEarned,
-                LyDo = $"Tích điểm đơn hàng #{order.MaHD}",
-                NgayThucHien = DateTime.Now
-            });
-        }
-
         if (request.LuuThongTinMacDinh)
         {
             await db.Customers.Where(item => item.MaKH == customerId && item.TrangThai)
@@ -292,8 +269,7 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
     private sealed record PreparedOrderItem(CheckoutItemRequest Request, decimal UnitPrice, List<PreparedTopping> Toppings);
     private sealed record PreparedTopping(int Id, string Name, decimal Price);
     private sealed record CustomerOrderInfo(
-        int MaKH, string? TaiKhoan, string HoTen, string Sdt, string? Email,
-        string? DiaChi, int DiemTichLuy, string HangTV);
+        int MaKH, string? TaiKhoan, string HoTen, string Sdt, string? Email, string? DiaChi);
 }
 
 /// <summary>Order line selection and quantity for checkout.</summary>

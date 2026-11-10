@@ -242,24 +242,6 @@ namespace CoffeeShop.Controllers
 
                 if (customerForOrder is not null)
                 {
-                    var pointsEarned = (int)(cart.GrandTotal / 10000m);
-                    customerForOrder.DiemTichLuy += pointsEarned;
-                    if (customerForOrder.DiemTichLuy >= 500) customerForOrder.HangTV = "Kim Cương";
-                    else if (customerForOrder.DiemTichLuy >= 200) customerForOrder.HangTV = "Vàng";
-                    else if (customerForOrder.DiemTichLuy >= 50) customerForOrder.HangTV = "Bạc";
-
-                    if (pointsEarned > 0)
-                    {
-                        _context.PointHistories.Add(new PointHistory
-                        {
-                            MaKH = customerForOrder.MaKH,
-                            MaHD = order.MaHD,
-                            DiemThayDoi = pointsEarned,
-                            LyDo = $"Tích điểm đơn hàng #{order.MaHD}",
-                            NgayThucHien = DateTime.Now
-                        });
-                    }
-
                     if (model.SaveCustomerInfo)
                     {
                         customerForOrder.HoTen = model.FullName;

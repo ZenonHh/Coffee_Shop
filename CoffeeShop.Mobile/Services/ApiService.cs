@@ -136,6 +136,24 @@ public sealed class ApiService(HttpClient httpClient)
     public async Task<IReadOnlyList<VoucherItem>> GetVouchersAsync(CancellationToken cancellationToken = default) =>
         await GetRequiredAsync<List<VoucherItem>>("api/voucher/list", cancellationToken);
 
+    public async Task<VoucherClassifiedResponse> GetClassifiedVouchersAsync(
+        int customerId, CancellationToken cancellationToken = default)
+    {
+        using var request = await CreateAuthorizedRequestAsync(
+            HttpMethod.Get, $"api/voucher/classified?maKhachHang={customerId}", cancellationToken);
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<VoucherClassifiedResponse>(JsonOptions, cancellationToken)
+            ?? throw new InvalidOperationException("Phản hồi phân loại voucher không hợp lệ.");
+    }
+
+    public Task<CartUpsellHint> GetCartUpsellHintAsync(
+        decimal currentTotal, CancellationToken cancellationToken = default)
+    {
+        var total = currentTotal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return GetRequiredAsync<CartUpsellHint>($"api/voucher/cart-upsell?currentTotal={total}", cancellationToken);
+    }
+
     public async Task UpdateProfileAsync(
         UpdateProfileRequest profile, CancellationToken cancellationToken = default)
     {

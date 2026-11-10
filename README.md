@@ -1,124 +1,221 @@
-# Coffee Shop - Hệ Thống Bán Cà Phê & CRM (C# ASP.NET Core MVC & Microsoft SQL Server)
+# Coffee Shop
 
-Dự án Katinat Coffee được xây dựng và chuẩn hóa trên nền tảng **C# ASP.NET Core MVC (.NET 8 LTS)** kết hợp với **Microsoft SQL Server (MSSQL)** và **Entity Framework Core**.
+Hệ thống quản lý và bán hàng cho cửa hàng cà phê, gồm website khách hàng, khu vực quản trị, REST API và ứng dụng di động. Backend sử dụng ASP.NET Core MVC và SQL Server; mobile app được xây dựng bằng .NET MAUI.
 
-> 📌 **Tra cứu cấu trúc chi tiết & Ánh xạ Route/Controller/View**: Xem tại [`docs/PROJECT_MAP.md`](docs/PROJECT_MAP.md).
+## Mục lục
 
----
+- [Tính năng](#tính-năng)
+- [Công nghệ và yêu cầu](#công-nghệ-và-yêu-cầu)
+- [Tải mã nguồn](#tải-mã-nguồn)
+- [Cấu hình cơ sở dữ liệu](#cấu-hình-cơ-sở-dữ-liệu)
+- [Chạy website và API](#chạy-website-và-api)
+- [Chạy ứng dụng mobile](#chạy-ứng-dụng-mobile)
+- [Tài khoản và quyền truy cập](#tài-khoản-và-quyền-truy-cập)
+- [API di động](#api-di-động)
+- [Cấu trúc repository](#cấu-trúc-repository)
+- [Kiểm tra và xử lý sự cố](#kiểm-tra-và-xử-lý-sự-cố)
+- [Tài liệu tham khảo](#tài-liệu-tham-khảo)
 
-## 1. Cấu Trúc Dự Án Chuẩn Mực
+## Tính năng
+
+### Website khách hàng
+
+- Duyệt thực đơn, danh mục và chi tiết món; tùy chọn kích cỡ và topping.
+- Quản lý giỏ hàng, áp dụng voucher và đặt hàng.
+- Đăng ký, đăng nhập, cập nhật hồ sơ và xem lịch sử đơn.
+- Chương trình thành viên, lịch sử điểm, đổi ưu đãi, đánh giá và khảo sát.
+
+### Khu vực quản trị
+
+- Dashboard và báo cáo hoạt động.
+- Quản lý sản phẩm, danh mục, biến thể, tồn kho, nhà cung cấp và phiếu nhập.
+- Quản lý đơn hàng, thanh toán, khách hàng, tài khoản, voucher, khảo sát và phản hồi.
+- Phân quyền theo tài khoản và vai trò.
+
+### Ứng dụng mobile
+
+- Ứng dụng khách hàng Android/iOS dùng chung backend và REST API.
+- Đăng nhập, xem thực đơn, tùy chỉnh món, đặt hàng, voucher, hồ sơ và lịch sử đơn.
+
+Điểm từ đơn hàng được cộng khi đơn chuyển sang trạng thái **Hoàn thành**, không phải ngay khi khách đặt hàng. Khảo sát có thể có chính sách thưởng điểm riêng.
+
+## Công nghệ và yêu cầu
+
+| Thành phần | Công nghệ |
+|---|---|
+| Website, Admin và REST API | ASP.NET Core MVC, .NET 8 |
+| ORM và dữ liệu | Entity Framework Core 8, Microsoft SQL Server |
+| Mobile | .NET MAUI, .NET 10, CommunityToolkit.Maui |
+| Nền tảng mobile | Android; iOS cần máy Mac và workload phù hợp |
+
+Để chạy website/API:
+
+- Git.
+- .NET 8 SDK.
+- SQL Server (LocalDB, SQL Server Express/Developer hoặc máy chủ tương thích).
+- SSMS hoặc `sqlcmd` để khởi tạo database nếu dùng script SQL.
+
+Để build mobile Android, cài thêm .NET 10 SDK, workload MAUI Android và Android SDK/emulator. Có thể kiểm tra workload bằng `dotnet workload list`.
+
+## Tải mã nguồn
+
+```powershell
+git clone https://github.com/ZenonHh/Coffee_Shop.git
+Set-Location Coffee_Shop
+```
+
+Nếu đã tải source dạng ZIP, giải nén rồi mở terminal tại thư mục chứa `CoffeeShop.csproj`.
+
+## Cấu hình cơ sở dữ liệu
+
+Ứng dụng đọc chuỗi kết nối `ConnectionStrings:DefaultConnection`; nếu không có thì đọc `ConnectionStrings:Default`. Cấu hình này phải trỏ tới SQL Server và database của dự án.
+
+Trong môi trường phát triển, nên đặt connection string bằng User Secrets hoặc biến môi trường thay vì lưu mật khẩu vào Git:
+
+```powershell
+$env:ConnectionStrings__DefaultConnection = "Server=localhost;Database=CoffeeShopDb;Trusted_Connection=True;TrustServerCertificate=True;"
+```
+
+Điều chỉnh `Server` và phương thức xác thực theo môi trường của bạn. SQL authentication có thể dùng `User Id` và `Password`; không đưa thông tin đó vào README, log hoặc commit.
+
+### Khởi tạo schema và dữ liệu mẫu
+
+Script SQL tổng hợp nằm tại [`database/CoffeeShopDBNEW.sql`](database/CoffeeShopDBNEW.sql). Có thể chạy bằng SSMS hoặc:
+
+```powershell
+sqlcmd -S "localhost" -E -C -i "database\CoffeeShopDBNEW.sql"
+```
+
+> **Cảnh báo:** script này có thao tác tạo lại/xóa dữ liệu bảng. Chỉ chạy trên database phát triển có thể khởi tạo lại; sao lưu trước và không chạy trên database đang có dữ liệu cần giữ.
+
+Các script khác trong `database/` là bản SQL hoặc script nâng cấp theo từng giai đoạn. Kiểm tra [`database/README.md`](database/README.md) và nội dung script trước khi chạy để chọn đúng phương án cho database hiện có. Không chạy tất cả script một cách tùy ý.
+
+## Chạy website và API
+
+Từ thư mục gốc:
+
+```powershell
+dotnet restore CoffeeShop.csproj
+dotnet run --project CoffeeShop.csproj --launch-profile http
+```
+
+Profile `http` chạy ở `http://localhost:5160`. Mở địa chỉ đó để vào website. Khu vực quản trị nằm dưới `/Admin` (trang đăng nhập thường là `/Admin/Account/Login`). Health check: `/health`.
+
+Nếu chạy profile `https`, URL mặc định được khai báo trong `Properties/launchSettings.json`. Dùng chứng chỉ phát triển HTTPS đã được tin cậy trên máy:
+
+```powershell
+dotnet dev-certs https --trust
+dotnet run --project CoffeeShop.csproj --launch-profile https
+```
+
+API mobile được host cùng ứng dụng web, tại các đường dẫn `/api/...`.
+
+## Chạy ứng dụng mobile
+
+Mobile là project riêng tại `CoffeeShop.Mobile/`; không chạy bằng lệnh `dotnet run` của website.
+
+Khôi phục workload/dependencies (nếu máy chưa cài workload MAUI cần thiết):
+
+```powershell
+dotnet workload restore CoffeeShop.Mobile\CoffeeShop.Mobile.csproj
+dotnet restore CoffeeShop.Mobile\CoffeeShop.Mobile.csproj
+```
+
+Build Android:
+
+```powershell
+dotnet build CoffeeShop.Mobile\CoffeeShop.Mobile.csproj --framework net10.0-android
+```
+
+Có thể mở repository bằng Visual Studio có hỗ trợ .NET MAUI, chọn project `CoffeeShop.Mobile`, chọn Android Emulator/device rồi chạy. APK đầu ra thường nằm trong `CoffeeShop.Mobile/bin/Debug/net10.0-android/`.
+
+Backend phải đang chạy và truy cập được từ thiết bị:
+
+- Android Emulator: địa chỉ API mặc định là `http://10.0.2.2:5160/` trong `CoffeeShop.Mobile/MauiProgram.cs`; `10.0.2.2` trỏ về máy host.
+- Điện thoại thật: thay địa chỉ API bằng hostname/IP LAN của máy chạy backend và cấu hình network/firewall phù hợp. Điện thoại và máy chủ cần cùng mạng.
+- iOS Simulator/device: cần máy Mac có Xcode và workload iOS. Cấu hình endpoint phải trỏ tới địa chỉ có thể truy cập từ simulator/device.
+
+HTTP được bật cho môi trường phát triển cục bộ; không dùng HTTP/cleartext cho bản phát hành. Với deployment, dùng HTTPS và cấu hình endpoint an toàn phù hợp.
+
+## Tài khoản và quyền truy cập
+
+- Khách hàng có thể đăng ký từ website hoặc ứng dụng mobile.
+- Muốn đăng nhập Admin, cần tài khoản có vai trò quản trị đã được tạo trong database. Trang đăng nhập quản trị nằm dưới `/Admin`.
+- Database/script mẫu có thể chứa một số tài khoản seed. Tên đăng nhập, mật khẩu và trạng thái tài khoản phụ thuộc script/database bạn sử dụng; hãy kiểm tra dữ liệu seed hoặc tạo tài khoản phù hợp. Không dựa vào thông tin đăng nhập cũ trong tài liệu chưa được xác minh.
+- Không sử dụng mật khẩu mẫu trong môi trường thật; đổi hoặc vô hiệu hóa tài khoản seed trước khi triển khai.
+
+## API di động
+
+Các route API được triển khai trong `Controllers/Api/`. Một số endpoint chính:
+
+| Method | Đường dẫn | Mục đích |
+|---|---|---|
+| `POST` | `/api/auth/login` | Đăng nhập |
+| `POST` | `/api/auth/register` | Đăng ký khách hàng |
+| `GET` | `/api/auth/profile` | Hồ sơ hiện tại |
+| `GET` | `/api/auth/points` | Lịch sử điểm |
+| `GET` | `/api/menu/categories` | Danh mục món |
+| `GET` | `/api/menu/products` | Danh sách/tìm món |
+| `GET` | `/api/menu/product-detail/{id}` | Chi tiết món và lựa chọn |
+| `GET` | `/api/voucher` | Voucher |
+| `POST` | `/api/order/checkout` | Đặt hàng |
+| `GET` | `/api/order/history` | Lịch sử đơn |
+
+Các request mẫu nằm trong [`CoffeeShop.Api.http`](CoffeeShop.Api.http). Endpoint có yêu cầu xác thực cần access token nhận được từ API đăng nhập. Token API được lưu trong cache của tiến trình backend, có thời hạn tối đa 7 ngày và sẽ mất hiệu lực khi backend khởi động lại. API không tự chạy migration database.
+
+## Cấu trúc repository
 
 ```text
-c:\Xampp\htdocs\Coffee_Shop\
-├── Areas/                               # Phân hệ Quản trị viên (Admin Area)
-│   └── Admin/
-│       ├── Controllers/                 # 13 Controller nghiệp vụ Admin (1 file = 1 controller)
-│       │   ├── AccountController.cs     # Đăng nhập / Đăng xuất trang quản trị
-│       │   ├── DashboardController.cs   # Thẻ tổng quan; thẻ bán hàng chỉ dành cho Admin
-│       │   ├── FeedbackController.cs    # Đánh giá sản phẩm và góp ý liên hệ
-│       │   ├── KhachHangController.cs   # Quản lý hồ sơ và tài khoản khách hàng
-│       │   ├── NhaCungCapController.cs  # Quản lý Nhà cung cấp & Phiếu nhập
-│       │   ├── OrdersController.cs      # Tra cứu, xác nhận thanh toán & duyệt đơn hàng
-│       │   ├── PhieuNhapController.cs   # Lập & xem chi tiết phiếu nhập kho
-│       │   ├── ProductsController.cs    # Quản lý thực đơn, biến thể size M/L & giá bán
-│       │   ├── StatisticsController.cs # Thống kê khách hàng, hài lòng và khảo sát
-│       │   ├── SurveysController.cs     # Điều hướng đợt khảo sát
-│       │   ├── TaiKhoanController.cs    # Phân quyền tài khoản nhân viên & khách hàng
-│       │   └── VouchersController.cs    # Quản lý mã ưu đãi, voucher giảm giá
-│       └── Views/                       # Giao diện quản trị tương ứng từng Controller
-├── Controllers/                         # 8 Controller chính của Storefront (1 file = 1 controller)
-│   ├── AccountController.cs             # Đăng nhập, đăng ký, hồ sơ tích điểm CRM
-│   ├── CartController.cs                # Giỏ hàng lưu bền vững, cập nhật số lượng, Voucher
-│   ├── CheckoutController.cs            # Đặt hàng, chi tiết đơn, tự động xác nhận khi thanh toán
-│   ├── FeedbackController.cs            # Đánh giá món uống & phản hồi sản phẩm
-│   ├── HomeController.cs                # Trang chủ, Giới thiệu, Dịch vụ, Bài viết, Liên hệ
-│   ├── PromotionsController.cs          # Ưu đãi vouchers, hạng thành viên, đổi điểm nhận quà
-│   ├── ShopController.cs                # Thực đơn, bộ lọc danh mục, chi tiết món uống
-│   └── SurveyController.cs              # Khảo sát khách hàng trực tuyến, tích +50 điểm thưởng
-├── Data/
-│   └── CoffeeShopDbContext.cs           # Entity Framework Core kết nối SQL Server
-├── Helpers/
-│   ├── PersistentCartStore.cs           # Lưu trữ giỏ hàng độc lập
-│   └── SessionExtensions.cs             # Tiện ích Serialize/Deserialize Session
-├── Models/
-│   ├── Entities/                        # Ánh xạ CSDL (SanPham, LoaiSanPham, HoaDon, KhachHang...)
-│   └── ViewModels/                      # ViewModels cho Storefront & Admin
-├── Services/
-│   └── OrderManagementService.cs        # Xử lý trạng thái đơn hàng & tồn kho
-├── Views/                               # Giao diện Razor Views (.cshtml) của Storefront
-│   ├── Account/                         # Đăng nhập, đăng ký, hồ sơ khách hàng
-│   ├── Cart/                            # Trang giỏ hàng và voucher
-│   ├── Checkout/                        # Thanh toán đơn hàng & xác nhận
-│   ├── Feedback/                        # Đánh giá dịch vụ & món uống
-│   ├── Home/                            # Index, Blog, BlogSingle, Contact, Privacy
-│   ├── Promotions/                      # Ưu đãi, bảng hạng thành viên, đổi điểm thưởng
-│   ├── Shop/                            # Danh sách sản phẩm & chi tiết món uống
-│   ├── Survey/                          # Khảo sát khách hàng trực tuyến
-│   └── Shared/
-│       └── _Layout.cshtml               # Layout giao diện chuẩn Responsive
-├── wwwroot/                             # Tài nguyên tĩnh phục vụ trình duyệt
-│   ├── admin/                           # CSS, JS dành riêng cho Admin Area
-│   ├── css/                             # Stylesheets (coffee-blend-theme.css đồng bộ)
-│   ├── fonts/                           # Bộ fonts icon và chữ
-│   ├── images/                          # Ảnh nền, banner, hình minh họa
-│   ├── js/                              # Script tương tác, giỏ hàng AJAX, hiệu ứng
-│   └── picture/                         # Ảnh sản phẩm đồ uống và bánh ngọt
-├── database/
-│   ├── coffee_shop_mssql.sql            # Script khởi tạo CSDL & 48 sản phẩm mẫu trên SQL Server
-│   ├── migrations/                      # Các bản cập nhật CSDL
-│   └── README.md                        # Hướng dẫn thiết lập database
-├── docs/
-│   ├── PROJECT_MAP.md                   # BẢN ĐỒ CHI TIẾT DỰ ÁN & TRA CỨU CODE
-│   └── order-workflow.md                # Quy trình vòng đời đơn hàng
-├── appsettings.json                     # Chuỗi kết nối CSDL và cấu hình ứng dụng
-├── CoffeeShop.csproj                    # File định nghĩa dự án .NET 8
-└── Program.cs                           # Cấu hình DI, Session, Cookie Authentication, Routes
+Coffee_Shop/
+├── Areas/Admin/               # Controllers và Views quản trị
+├── Controllers/               # Website khách hàng và Controllers/Api
+├── CoffeeShop.Mobile/         # Ứng dụng .NET MAUI
+│   ├── Views/                 # Trang XAML và code-behind
+│   ├── ViewModels/            # Trạng thái và lệnh UI
+│   ├── Services/              # API và dịch vụ mobile
+│   └── Resources/             # Styles, màu sắc, ảnh
+├── Data/                      # DbContext
+├── Helpers/                   # Session, giỏ hàng và helpers
+├── Migrations/                # EF Core migrations
+├── Models/                    # Entity và ViewModel
+├── Services/                  # Nghiệp vụ backend, quản lý đơn
+├── Views/                     # Razor Views website khách hàng
+├── wwwroot/                   # CSS, JavaScript, ảnh và tài nguyên web
+├── database/                  # SQL khởi tạo và các script database
+├── docs/                      # Tài liệu kỹ thuật/nghiệp vụ
+├── CoffeeShop.csproj          # Backend web/API (.NET 8)
+└── Program.cs                 # DI, middleware và routing
 ```
 
----
+## Kiểm tra và xử lý sự cố
 
-## 2. Hướng Dẫn Chạy Dự Án
+Build backend:
 
-### Yêu cầu môi trường
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- Microsoft SQL Server (LocalDB, SQL Express hoặc SQL Server Developer)
-
-### Khởi chạy bằng dòng lệnh (Terminal / PowerShell)
-Tại thư mục dự án:
 ```powershell
-dotnet run
+dotnet build CoffeeShop.csproj
 ```
-Mở trình duyệt truy cập:
-👉 **http://localhost:5160**
 
----
+Build Android:
 
-## 3. Tài Khoản Đăng Nhập Mẫu
+```powershell
+dotnet build CoffeeShop.Mobile\CoffeeShop.Mobile.csproj --framework net10.0-android
+```
 
-| Tài khoản | Tên đăng nhập | Mật khẩu | Quyền hạn / Chức năng |
-|---|---|---|---|
-| **Quản trị viên** | `admin` | `admin123` | Quản trị toàn bộ hệ thống (`/Admin`) |
-| **Khách hàng** | `khachhang` | `123456` | Đặt món, tích điểm thành viên, đánh giá, đổi ưu đãi |
+Các điểm cần kiểm tra nếu không chạy được:
 
----
+1. SQL Server đang hoạt động, database đã được khởi tạo và connection string trỏ đúng server/database.
+2. Backend đang lắng nghe đúng URL/port; mở `/health` để kiểm tra ứng dụng và kết nối database.
+3. Mobile trỏ tới endpoint mà emulator/device truy cập được; địa chỉ `localhost` trên điện thoại không phải máy tính đang chạy backend.
+4. Kiểm tra output của `dotnet build`, terminal đang chạy backend và Android Logcat/emulator khi có lỗi.
+5. Nếu schema không khớp, xem các migration trong `Migrations/` và hướng dẫn tại `database/README.md`; sao lưu trước mọi thao tác cập nhật dữ liệu.
 
-## 4. Các Tính Năng Nổi Bật
+## Tài liệu tham khảo
 
-1. **Giao diện Katinat Coffee sang trọng**: Đồng bộ tone màu đen huyền bí & vàng đồng trên toàn bộ các trang.
-2. **Đặt món linh hoạt**: Chọn kích cỡ (Size M, L), topping đi kèm, tính giá động theo thời gian thực.
-3. **Thanh toán & Tự động xác nhận đơn**: Đơn hàng khi khách thanh toán/chuyển khoản sẽ ngay lập tức được xác nhận, mã đơn thứ tự chuẩn `#HD0001`, `#HD0002`... kèm popup xem nhanh khi rê chuột.
-4. **Chương trình Ưu đãi & Đổi điểm (`/Promotions`)**: Hiển thị ưu đãi hiện tại/sắp tới, giảm giá theo giá trị đơn, quyền lợi 4 hạng thành viên (Đồng, Bạc, Vàng, Kim Cương), cơ chế đổi điểm nhận voucher.
-5. **Khảo sát ý kiến tích điểm (`/Survey`)**: Khách hàng hoàn thành khảo sát được tích ngay **+50 điểm** vào tài khoản.
-6. **CRM quản trị (`/Admin/KhachHang`, `/Admin/Statistics`)**: Quản lý hồ sơ khách hàng; thống kê khách hàng, mức độ hài lòng và tỷ lệ tham gia khảo sát theo kỳ; xuất báo cáo Excel/PDF và in theo bộ lọc đang chọn.
+- [Bản đồ project và tra cứu code](docs/PROJECT_MAP.md)
+- [Quy trình đơn hàng](docs/order-workflow.md)
+- [Hướng dẫn database](database/README.md)
+- [HTTP request mẫu cho API](CoffeeShop.Api.http)
 
-> Xuất PDF sử dụng QuestPDF Community License, áp dụng cho cá nhân, tổ chức phi lợi nhuận, dự án mã nguồn mở và tổ chức có doanh thu hằng năm dưới 1 triệu USD. Tổ chức không thuộc nhóm này cần giấy phép thương mại QuestPDF.
+## Bản quyền và thư viện
 
-## 5. Mobile App và REST API
-
-Mã nguồn .NET MAUI nằm trong `CoffeeShop.Mobile/` (Android và iOS); ứng dụng sử dụng `CommunityToolkit.Mvvm` và gọi BFF REST API trong `Controllers/Api/`. Các request mẫu cho mọi endpoint nằm trong `CoffeeShop.Api.http`.
-
-Chạy backend bằng profile HTTP (`dotnet run --launch-profile http`). Android Emulator kết nối tới `http://10.0.2.2:5160/`, được đặt mặc định trong `CoffeeShop.Mobile/MauiProgram.cs`; thiết bị thật cần thay bằng địa chỉ HTTPS mà thiết bị truy cập được. HTTP chỉ dành cho phát triển cục bộ; không dùng cấu hình `usesCleartextTraffic` trong bản phát hành.
-
-Project mobile target .NET 10 để tương thích workload MAUI hiện có và tránh target .NET 8 đã hết hỗ trợ trong SDK cài đặt. Build Android bằng `dotnet build CoffeeShop.Mobile/CoffeeShop.Mobile.csproj --framework net10.0-android`.
-
-API đăng nhập cấp access token ngẫu nhiên có hiệu lực tối đa 7 ngày trong cache của tiến trình backend; token sẽ hết hiệu lực khi backend khởi động lại. Đăng ký ghi BCrypt hash giống nhau vào `TaiKhoan` và `KhachHang`; để không cấp nhầm quyền Admin, môi trường phải có vai trò `Khách hàng`, `Customer` hoặc `KhachHang` (hoặc role ID 1 nếu role này không mang tên Admin/Staff). API không tạo hoặc chạy migration.
+Các package và thư viện bên thứ ba tuân theo giấy phép riêng. Tính năng xuất PDF dùng QuestPDF; kiểm tra điều kiện giấy phép QuestPDF hiện hành và bảo đảm loại hình sử dụng của bạn tuân thủ trước khi triển khai thương mại.

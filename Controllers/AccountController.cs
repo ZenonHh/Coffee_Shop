@@ -70,8 +70,8 @@ namespace CoffeeShop.Controllers
                 .FirstOrDefaultAsync(account => account.TenDangNhap == username);
             if (existingAccount != null && !existingAccount.TrangThai)
             {
-                ModelState.AddModelError(string.Empty, "Tài khoản đã bị khóa. Vui lòng liên hệ cửa hàng.");
-                return View(model);
+                TempData["WarningMessage"] = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.";
+                return RedirectToAction("Contact", "Home");
             }
             if (existingAccount != null && !AuthApiController.IsCustomerRole(existingAccount.MaVaiTro, existingAccount.Role?.TenVaiTro))
             {
@@ -80,7 +80,13 @@ namespace CoffeeShop.Controllers
             }
 
             var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.TaiKhoan == username && c.TrangThai);
+                .FirstOrDefaultAsync(c => c.TaiKhoan == username);
+
+            if (customer != null && !customer.TrangThai)
+            {
+                TempData["WarningMessage"] = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ admin để được hỗ trợ.";
+                return RedirectToAction("Contact", "Home");
+            }
 
             if (customer != null && (customer.MatKhau == password || BCryptVerify(password, customer.MatKhau ?? string.Empty)))
             {

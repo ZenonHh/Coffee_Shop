@@ -4,92 +4,177 @@
              x:Class="CoffeeShop.Mobile.Views.MenuPage"
              x:Name="Root"
              Title="Đặt hàng"
-             BackgroundColor="{StaticResource AppBackground}">
+             BackgroundColor="{StaticResource Background}">
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto"
-          BackgroundColor="{StaticResource AppBackground}">
-        <Grid ColumnDefinitions="*,Auto" Padding="16,8,16,0">
-            <Label Text="Thực đơn" FontSize="24" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
-            <Button Grid.Column="1" Text="{Binding CartItemCount, StringFormat='🛒  {0}'}" Command="{Binding OpenCartCommand}"
-                    IsEnabled="{Binding HasItemsInCart}" BackgroundColor="Transparent"
-                    TextColor="{StaticResource CoffeeAccent}" Padding="8,4" />
+          BackgroundColor="{StaticResource Background}">
+        <Grid Padding="18,12,16,6">
+            <VerticalStackLayout Spacing="1">
+                <Label Text="Thực đơn" FontSize="24" FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}" />
+                <Label Text="Chọn món yêu thích của bạn"
+                       FontSize="12" TextColor="{StaticResource TextMuted}" />
+            </VerticalStackLayout>
         </Grid>
-        <SearchBar x:Name="MenuSearch"
-                   Grid.Row="1"
-                   Placeholder="Tìm cà phê, trà, bánh..."
-                   Text="{Binding SearchText}"
-                   SearchButtonPressed="OnSearchPressed"
-                   BackgroundColor="{StaticResource CoffeeSurface}"
-                   TextColor="{StaticResource CoffeeText}"
-                   PlaceholderColor="{StaticResource CoffeeMuted}"
-                   Margin="16,12" />
+
+        <Border Grid.Row="1" Margin="16,8,16,10" Padding="4,0"
+                BackgroundColor="{StaticResource CardSurface}"
+                Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 26">
+            <SearchBar x:Name="MenuSearch"
+                       Placeholder="Tìm cà phê, trà, bánh..."
+                       Text="{Binding SearchText}"
+                       SearchButtonPressed="OnSearchPressed"
+                       BackgroundColor="Transparent"
+                       TextColor="{StaticResource TextPrimary}"
+                       PlaceholderColor="{StaticResource TextMuted}" />
+        </Border>
+
         <CollectionView Grid.Row="2"
                         ItemsSource="{Binding Categories}"
                         SelectedItem="{Binding SelectedCategory}"
                         SelectionMode="Single"
-                        HeightRequest="52"
-                        ItemsLayout="HorizontalList">
+                        HeightRequest="54"
+                        ItemsLayout="HorizontalList"
+                        Margin="10,0">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Stroke="{StaticResource CoffeeBorder}" BackgroundColor="{StaticResource CoffeeSurface}" StrokeShape="RoundRectangle 22" Padding="16,8" Margin="6,4">
-                        <Label Text="{Binding TenLoaiSP}" TextColor="{StaticResource CoffeeText}" VerticalOptions="Center" />
+                    <Border Stroke="{StaticResource BorderColor}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource CardSurface}"
+                            StrokeShape="RoundRectangle 22"
+                            Padding="16,8" Margin="5,5">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="Selected">
+                                        <VisualState.Setters>
+                                            <Setter Property="BackgroundColor"
+                                                    Value="{StaticResource Primary}" />
+                                            <Setter Property="Stroke"
+                                                    Value="{StaticResource Accent}" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                        <Label Text="{Binding TenLoaiSP}"
+                               TextColor="{StaticResource TextPrimary}"
+                               FontSize="13" FontAttributes="Bold"
+                               VerticalOptions="Center" />
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
         <CollectionView Grid.Row="3"
                         ItemsSource="{Binding Products}"
                         ItemsLayout="VerticalGrid, 2"
                         SelectionMode="None"
-                        Margin="10,4">
+                        Margin="10,2">
             <CollectionView.EmptyView>
-                <Label Text="Chưa có món phù hợp." TextColor="{StaticResource CoffeeMuted}" HorizontalOptions="Center" VerticalOptions="Center" />
+                <VerticalStackLayout Spacing="8" HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                    <Label Text="☕" FontSize="34" HorizontalOptions="Center" />
+                    <Label Text="Chưa có món phù hợp."
+                           TextColor="{StaticResource TextMuted}"
+                           HorizontalOptions="Center" />
+                </VerticalStackLayout>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Stroke="{StaticResource CoffeeBorder}" BackgroundColor="{StaticResource CoffeeSurface}" StrokeShape="RoundRectangle 16" Padding="10" Margin="5">
+                    <Border Style="{StaticResource SurfaceCard}"
+                            Padding="9" Margin="5">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer
                                 Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenProductCommand}"
                                 CommandParameter="{Binding .}" />
                         </Border.GestureRecognizers>
-                        <Grid RowDefinitions="150,Auto,Auto,Auto">
-                            <Grid>
-                                <Label Text="☕" TextColor="{StaticResource CoffeeAccent}" FontSize="38"
-                                       HorizontalOptions="Center" VerticalOptions="Center" />
-                                <Image Source="{Binding HinhAnh, FallbackValue=coffee_swirl.svg}" Aspect="AspectFill" />
-                                <Border BackgroundColor="#B312100D" StrokeThickness="0" StrokeShape="RoundRectangle 9"
-                                        HorizontalOptions="Start" VerticalOptions="Start" Padding="8,4"
-                                        IsVisible="{Binding IsOutOfStock}">
-                                    <Label Text="HẾT HÀNG" TextColor="White" FontSize="10" FontAttributes="Bold" />
+                        <Grid RowDefinitions="150,Auto,Auto" RowSpacing="0">
+                            <Border Grid.Row="0" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{StaticResource SurfaceRaised}"
+                                    Padding="0">
+                                <Grid>
+                                    <Label Text="☕" TextColor="{StaticResource Accent}"
+                                           FontSize="38" HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
+                                    <Image Source="{Binding HinhAnh, FallbackValue=coffee_swirl.svg}"
+                                           Aspect="AspectFill">
+                                        <Image.Triggers>
+                                            <DataTrigger TargetType="Image"
+                                                         Binding="{Binding IsOutOfStock}"
+                                                         Value="True">
+                                                <Setter Property="Opacity" Value="0.4" />
+                                            </DataTrigger>
+                                        </Image.Triggers>
+                                    </Image>
+                                    <Border BackgroundColor="#D912100D"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 9"
+                                            HorizontalOptions="Start"
+                                            VerticalOptions="Start"
+                                            Padding="8,4" Margin="7"
+                                            IsVisible="{Binding IsOutOfStock}">
+                                        <Label Text="HẾT HÀNG" TextColor="White"
+                                               FontSize="9" FontAttributes="Bold" />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Row="1" Spacing="3"
+                                                 Margin="2,9,2,0">
+                                <Label Text="{Binding TenSP}"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       FontSize="14" FontAttributes="Bold"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1" />
+                                <Label Text="{Binding TenLoaiSP}"
+                                       TextColor="{StaticResource TextMuted}"
+                                       FontSize="11" LineBreakMode="TailTruncation"
+                                       MaxLines="1" />
+                            </VerticalStackLayout>
+
+                            <Grid Grid.Row="2" ColumnDefinitions="*,Auto"
+                                  Margin="2,9,0,0">
+                                <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}"
+                                       TextColor="{StaticResource Accent}"
+                                       FontSize="13" FontAttributes="Bold"
+                                       VerticalOptions="Center" />
+                                <Border Grid.Column="1" WidthRequest="30" HeightRequest="30"
+                                        BackgroundColor="{StaticResource SurfaceRaised}"
+                                        Stroke="{StaticResource BorderColor}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 10">
+                                    <Label Text="+" TextColor="{StaticResource Accent}"
+                                           FontSize="21" FontAttributes="Bold"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center" />
                                 </Border>
-                                <Image.Triggers>
-                                    <DataTrigger TargetType="Image" Binding="{Binding IsOutOfStock}" Value="True">
-                                        <Setter Property="Opacity" Value="0.45" />
-                                    </DataTrigger>
-                                </Image.Triggers>
-                            </Grid>
-            <Label Grid.Row="1" Text="{Binding TenSP}" TextColor="{StaticResource CoffeeText}" FontAttributes="Bold" LineBreakMode="WordWrap" MaxLines="2" Margin="0,8,0,2" />
-                            <Label Grid.Row="2" Text="{Binding TenLoaiSP}" TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
-                            <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,8,0,0">
-                                <Label Text="{Binding GiaTu, StringFormat='Từ {0:N0} đ'}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" VerticalOptions="Center" />
-                                <Label Grid.Column="1" Text="+" TextColor="{StaticResource CoffeeAccent}"
-                                       FontSize="26" FontAttributes="Bold" VerticalOptions="Center"
-                                       HorizontalOptions="Center" WidthRequest="42" />
                             </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-        <Border Grid.Row="4" IsVisible="{Binding HasItemsInCart}" BackgroundColor="{StaticResource CoffeeSurfaceRaised}"
-                StrokeThickness="0" StrokeShape="RoundRectangle 18" Margin="16,6,16,12" Padding="14,8">
-            <Grid ColumnDefinitions="*,Auto">
-                <VerticalStackLayout Spacing="1">
-                    <Label Text="{Binding CartItemCount, StringFormat='{0} món trong giỏ'}" TextColor="White" FontSize="12" />
-                    <Label Text="{Binding TotalPriceFormatted}" TextColor="{StaticResource CoffeeAccent}" FontAttributes="Bold" />
+
+        <Border Grid.Row="4" IsVisible="{Binding HasItemsInCart}"
+                BackgroundColor="{StaticResource SurfaceRaised}"
+                Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                StrokeShape="RoundRectangle 18" Margin="16,6,16,12" Padding="14,8">
+            <Border.Shadow>
+                <Shadow Brush="#000000" Offset="0,4" Opacity="0.16" Radius="12" />
+            </Border.Shadow>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <VerticalStackLayout Spacing="1" VerticalOptions="Center">
+                    <Label Text="{Binding CartItemCount, StringFormat='{0} món trong giỏ'}"
+                           TextColor="{StaticResource TextMuted}" FontSize="12" />
+                    <Label Text="{Binding TotalPriceFormatted}"
+                           TextColor="{StaticResource Accent}" FontSize="16"
+                           FontAttributes="Bold" />
                 </VerticalStackLayout>
-                <Button Grid.Column="1" Text="Xem giỏ" BackgroundColor="{StaticResource CoffeeAccent}" TextColor="{StaticResource CoffeeBackground}"
-                        Command="{Binding OpenCartCommand}" />
+                <Button Grid.Column="1" Text="Xem giỏ"
+                        Command="{Binding OpenCartCommand}" Padding="18,8" />
             </Grid>
         </Border>
     </Grid>

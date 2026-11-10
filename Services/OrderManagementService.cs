@@ -87,9 +87,51 @@ namespace CoffeeShop.Services
             order.NguoiXuLy = processedBy;
             order.MaNV ??= staffId;
             order.NgayCapNhat = DateTime.Now;
+            if (nextStatus == OrderStatuses.Completed)
+            {
+                await AwardCompletionPointsAsync(order);
+            }
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
             return OrderOperationResult.Success;
+        }
+
+        private async Task AwardCompletionPointsAsync(Order order)
+        {
+            if (!order.MaKH.HasValue)
+            {
+                return;
+            }
+
+            var pointsEarned = (int)(order.TongTien / 10000m);
+            if (pointsEarned <= 0
+                || await _context.PointHistories.AnyAsync(history =>
+                    history.MaHD == order.MaHD && history.DiemThayDoi > 0))
+            {
+                return;
+            }
+
+            var customer = await _context.Customers
+                .SingleOrDefaultAsync(item => item.MaKH == order.MaKH.Value);
+            if (customer is null)
+            {
+                return;
+            }
+
+            customer.DiemTichLuy += pointsEarned;
+            if (customer.DiemTichLuy >= 500) customer.HangTV = "Kim Cương";
+            else if (customer.DiemTichLuy >= 200) customer.HangTV = "Vàng";
+            else if (customer.DiemTichLuy >= 50) customer.HangTV = "Bạc";
+
+            _context.PointHistories.Add(new PointHistory
+            {
+                MaKH = customer.MaKH,
+                MaHD = order.MaHD,
+                DiemThayDoi = pointsEarned,
+                LyDo = $"Tích điểm đơn hàng #{order.MaHD}",
+                NgayThucHien = DateTime.Now
+            });
         }
 
         public async Task<OrderOperationResult> CancelAsync(int orderId, string cancelReason, string? processedBy)

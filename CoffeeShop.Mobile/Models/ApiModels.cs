@@ -35,6 +35,14 @@ public sealed record VoucherItem(
 public sealed record VoucherCheckResult(int MaVoucher, string MaCode, decimal TienGiamGia);
 public sealed record VoucherCheckRequest(string MaCode, decimal TamTinh);
 public sealed record VoucherCheckResponse(int MaVoucher, string MaCode, decimal TienGiamGia);
+public sealed record VoucherClassifiedResponse(
+    int UserPoints,
+    IReadOnlyList<VoucherItem> AvailableVouchers,
+    IReadOnlyList<VoucherItem> UsedVouchers,
+    IReadOnlyList<VoucherItem> ExchangeVouchers);
+public sealed record CartUpsellHint(
+    bool HasHint, decimal AmountNeeded, decimal? NextThreshold,
+    string? DiscountText, decimal Progress, string? Message);
 public sealed record CheckoutItemRequest(int MaSP, int MaBienThe, int SoLuong, List<int> ToppingIds);
 public sealed record CheckoutRequest(
     string LoaiDonHang, string? HoTenNguoiNhan, string? SdtNguoiNhan, string? DiaChiGiao,

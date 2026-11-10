@@ -5,48 +5,66 @@
              Title="Voucher"
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource AppBackground}">
-    <CollectionView ItemsSource="{Binding Vouchers}" Margin="16,12" SelectionMode="None"
+    <CollectionView ItemsSource="{Binding VisibleVouchers}" Margin="16,12" SelectionMode="None"
                     BackgroundColor="{StaticResource AppBackground}">
         <CollectionView.Header>
-            <VerticalStackLayout Spacing="8" Margin="0,0,0,12">
+            <VerticalStackLayout Spacing="12" Margin="0,0,0,12">
                 <Label Text="Ưu đãi dành cho bạn" TextColor="{StaticResource CoffeeText}"
                        FontSize="26" FontAttributes="Bold" />
-                <Label Text="Mã giảm giá và chương trình đang áp dụng"
-                       TextColor="{StaticResource CoffeeMuted}" FontSize="14" />
+                <Border BackgroundColor="#1F1A16" Stroke="#C49B63" StrokeShape="RoundRectangle 16" Padding="14">
+                    <Label Text="{Binding UserPoints, StringFormat='Điểm tích lũy: {0:N0} điểm - 10.000đ = 1 điểm'}"
+                           TextColor="#FFFFFF" FontSize="14" FontAttributes="Bold" />
+                </Border>
+                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="6">
+                    <Button Text="Đã đổi" Command="{Binding ShowRedeemedCommand}"
+                            BackgroundColor="{Binding TabRedeemedColor}" TextColor="{Binding TabRedeemedTextColor}"
+                            BorderColor="#C49B63" BorderWidth="1" CornerRadius="18" Padding="4,8" FontSize="12" />
+                    <Button Grid.Column="1" Text="Đã sử dụng" Command="{Binding ShowUsedCommand}"
+                            BackgroundColor="{Binding TabUsedColor}" TextColor="{Binding TabUsedTextColor}"
+                            BorderColor="#C49B63" BorderWidth="1" CornerRadius="18" Padding="4,8" FontSize="12" />
+                    <Button Grid.Column="2" Text="Đổi voucher" Command="{Binding ShowExchangeCommand}"
+                            BackgroundColor="{Binding TabExchangeColor}" TextColor="{Binding TabExchangeTextColor}"
+                            BorderColor="#C49B63" BorderWidth="1" CornerRadius="18" Padding="4,8" FontSize="12" />
+                </Grid>
             </VerticalStackLayout>
         </CollectionView.Header>
         <CollectionView.EmptyView>
             <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center">
-                <Label Text="Hiện chưa có voucher khả dụng." TextColor="{StaticResource CoffeeMuted}"
+                <Label Text="Hiện chưa có voucher trong danh mục này." TextColor="{StaticResource CoffeeMuted}"
                        HorizontalTextAlignment="Center" />
             </VerticalStackLayout>
         </CollectionView.EmptyView>
         <CollectionView.ItemTemplate>
             <DataTemplate>
-                <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}"
-                        StrokeShape="RoundRectangle 18" Padding="0" Margin="0,5">
-                    <Grid ColumnDefinitions="104,*">
+                <Border BackgroundColor="#1F1A16" Stroke="{StaticResource CoffeeBorder}"
+                        StrokeShape="RoundRectangle 18" Padding="0" Margin="0,5" Opacity="{Binding Opacity}">
+                    <Grid ColumnDefinitions="96,*">
                         <Border BackgroundColor="#30271E" StrokeThickness="0"
                                 StrokeShape="RoundRectangle 18,0,0,18">
                             <Grid>
                                 <Image Source="coffee_swirl.svg" Aspect="AspectFill" Opacity="0.55" />
-                                <Label Text="✦" FontSize="38" TextColor="{StaticResource CoffeeAccent}"
+                                <Label Text="✦" FontSize="38" TextColor="#C49B63"
                                        HorizontalOptions="Center" VerticalOptions="Center" />
                             </Grid>
                         </Border>
                         <VerticalStackLayout Grid.Column="1" Padding="14" Spacing="5">
-                            <Label Text="{Binding MaCode}" TextColor="{StaticResource CoffeeAccent}"
+                            <Label Text="{Binding Voucher.MaCode}" TextColor="#C49B63"
                                    CharacterSpacing="1.5" FontSize="12" FontAttributes="Bold" />
-                            <Label Text="{Binding DisplayTitle}" TextColor="{StaticResource CoffeeText}"
+                            <Label Text="{Binding Voucher.DisplayTitle}" TextColor="#FFFFFF"
                                    FontSize="16" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-                            <Label Text="{Binding DisplayDiscount}" TextColor="{StaticResource CoffeeAccent}"
+                            <Label Text="{Binding Voucher.DisplayDiscount}" TextColor="#C49B63"
                                    FontSize="18" FontAttributes="Bold" />
-                            <Label Text="{Binding DonToiThieu, StringFormat='Đơn tối thiểu {0:N0} đ'}"
+                            <Label Text="{Binding Voucher.DonToiThieu, StringFormat='Đơn tối thiểu {0:N0} đ'}"
                                    TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
-                            <Label Text="{Binding ExpiryText}"
+                            <Label Text="{Binding Voucher.ExpiryText}"
                                    TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
                             <Button Text="Dùng ngay"
+                                    IsVisible="{Binding CanUse}"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.UseVoucherCommand}"
+                                    CommandParameter="{Binding .}" Padding="16,8" HorizontalOptions="Start" />
+                            <Button Text="{Binding ActionText}" IsVisible="{Binding IsExchange}"
+                                    IsEnabled="{Binding CanRedeem}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.RedeemVoucherCommand}"
                                     CommandParameter="{Binding .}" Padding="16,8" HorizontalOptions="Start" />
                         </VerticalStackLayout>
                     </Grid>

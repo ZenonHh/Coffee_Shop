@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CoffeeShop.Mobile.Models;
@@ -11,6 +12,9 @@ public partial class CartViewModel : ObservableObject
 {
     private readonly ApiService _api;
     private readonly CartService _cart;
+    private CancellationTokenSource? _upsellRefreshCts;
+    private bool _isListeningToCart;
+
     public System.Collections.ObjectModel.ObservableCollection<CartLine> Items => _cart.Items;
     public decimal Subtotal => _cart.Subtotal;
     public decimal ShippingFee => IsPickup ? 0 : _cart.ShippingFee;
@@ -47,6 +51,15 @@ public partial class CartViewModel : ObservableObject
     [ObservableProperty]
     private decimal voucherDiscount;
 
+    [ObservableProperty]
+    private bool hasUpsellHint;
+
+    [ObservableProperty]
+    private string upsellMessage = string.Empty;
+
+    [ObservableProperty]
+    private double upsellProgress;
+
     public IReadOnlyList<PaymentOption> PaymentMethods { get; } =
     [
         new("COD", "Tiền mặt khi nhận hàng (COD)"),
@@ -61,7 +74,7 @@ public partial class CartViewModel : ObservableObject
         _cart = cart;
         VoucherCode = cart.VoucherCode;
         SelectedFulfillment = cart.SelectedFulfillment;
-        cart.PropertyChanged += (_, _) => RefreshTotals();
+        StartListeningToCart();
     }
 
     public async Task LoadCustomerDefaultsAsync()
@@ -92,6 +105,66 @@ public partial class CartViewModel : ObservableObject
         OnPropertyChanged(nameof(PaymentMethod));
     partial void OnVoucherDiscountChanged(decimal value) => OnPropertyChanged(nameof(Total));
 
+    public void StartListeningToCart()
+    {
+        if (_isListeningToCart)
+            return;
+
+        _cart.PropertyChanged += OnCartPropertyChanged;
+        _isListeningToCart = true;
+    }
+
+    public void StopListeningToCart()
+    {
+        if (!_isListeningToCart)
+            return;
+
+        _cart.PropertyChanged -= OnCartPropertyChanged;
+        _isListeningToCart = false;
+        _upsellRefreshCts?.Cancel();
+    }
+
+    private void OnCartPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        RefreshTotals();
+        if (args.PropertyName == nameof(CartService.Subtotal))
+            _ = RefreshCartUpsellAsync();
+    }
+
+    public async Task RefreshCartUpsellAsync()
+    {
+        var refreshCts = new CancellationTokenSource();
+        var previousCts = Interlocked.Exchange(ref _upsellRefreshCts, refreshCts);
+        previousCts?.Cancel();
+
+        try
+        {
+            var hint = await _api.GetCartUpsellHintAsync(Subtotal, refreshCts.Token);
+            if (refreshCts.IsCancellationRequested)
+                return;
+
+            HasUpsellHint = hint.HasHint;
+            UpsellMessage = hint.Message ?? string.Empty;
+            UpsellProgress = Math.Clamp((double)hint.Progress, 0, 1);
+        }
+        catch (OperationCanceledException) when (refreshCts.IsCancellationRequested)
+        {
+        }
+        catch (Exception exception)
+        {
+            if (!refreshCts.IsCancellationRequested)
+            {
+                HasUpsellHint = false;
+                await Shell.Current.DisplayAlertAsync("Không thể tải ưu đãi giỏ hàng", exception.Message, "Đóng");
+            }
+        }
+        finally
+        {
+            Interlocked.CompareExchange(ref _upsellRefreshCts, null, refreshCts);
+            refreshCts.Dispose();
+        }
+    }
+
     [RelayCommand]
     private void Increase(CartLine item) => _cart.ChangeQuantity(item, 1);
 
@@ -116,6 +189,9 @@ public partial class CartViewModel : ObservableObject
             await Shell.Current.DisplayAlertAsync("Voucher chưa áp dụng được", exception.Message, "Đóng");
         }
     }
+
+    [RelayCommand]
+    private async Task GoToMenuAsync() => await Shell.Current.GoToAsync("//order");
 
     [RelayCommand]
     private async Task CheckoutAsync()
