@@ -39,7 +39,11 @@ public sealed record VoucherClassifiedResponse(
     int UserPoints,
     IReadOnlyList<VoucherItem> AvailableVouchers,
     IReadOnlyList<VoucherItem> UsedVouchers,
-    IReadOnlyList<VoucherItem> ExchangeVouchers);
+    IReadOnlyList<ExchangeRewardItem> ExchangeRewards);
+public sealed record ExchangeRewardItem(
+    int Id, int Points, string Title, string Description, string CodePrefix, string Icon);
+public sealed record RedeemRewardRequest(int RewardId);
+public sealed record RedeemRewardResponse(int UserPoints, VoucherItem Voucher);
 public sealed record CartUpsellHint(
     bool HasHint, decimal AmountNeeded, decimal? NextThreshold,
     string? DiscountText, decimal Progress, string? Message);

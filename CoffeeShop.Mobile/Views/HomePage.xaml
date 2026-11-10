@@ -37,7 +37,7 @@
                                         <BoxView Color="#6612100D" />
                                         <VerticalStackLayout VerticalOptions="End" Padding="20"
                                                              Spacing="5">
-                                            <Label Text="COFFEE SHOP"
+                                            <Label Text="KATINAT COFFEE"
                                                    TextColor="{StaticResource Accent}"
                                                    CharacterSpacing="2" FontSize="11"
                                                    FontAttributes="Bold" />
@@ -182,5 +182,14 @@
                         Command="{Binding OpenCartCommand}" Padding="18,8" />
             </Grid>
         </Border>
+        <Grid Grid.RowSpan="2" ZIndex="10" IsVisible="{Binding IsLoading}"
+              BackgroundColor="{StaticResource Background}">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="14">
+                <ActivityIndicator IsRunning="{Binding IsLoading}" Color="{StaticResource Accent}"
+                                   WidthRequest="48" HeightRequest="48" />
+                <Label Text="Đang tải Katinat Coffee..." TextColor="{StaticResource TextPrimary}"
+                       FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Grid>
     </Grid>
 </ContentPage>

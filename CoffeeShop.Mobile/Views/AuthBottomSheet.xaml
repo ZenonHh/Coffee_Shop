@@ -10,11 +10,11 @@
             <Image Source="coffee_swirl.svg" Aspect="AspectFill" />
             <BoxView Color="#6612100D" />
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Padding="20">
-                <Label Text="COFFEE SHOP" TextColor="{StaticResource CoffeeAccent}" CharacterSpacing="4"
+                <Label Text="KATINAT COFFEE" TextColor="{StaticResource CoffeeAccent}" CharacterSpacing="4"
                        FontSize="13" HorizontalOptions="Center" />
                 <Label Text="Chào bạn!" TextColor="White" FontSize="30" FontAttributes="Bold"
                        HorizontalOptions="Center" />
-                <Label Text="Chào mừng bạn đến với Coffee Shop" TextColor="White" FontSize="16"
+                <Label Text="Chào mừng bạn đến với Katinat Coffee" TextColor="White" FontSize="16"
                        HorizontalOptions="Center" HorizontalTextAlignment="Center" />
             </VerticalStackLayout>
             <Button Text="×" Clicked="OnCloseClicked" BackgroundColor="Transparent" TextColor="White"
@@ -27,7 +27,7 @@
                 <VerticalStackLayout Spacing="14">
                     <Label Text="{Binding ContinueText}" TextColor="{StaticResource CoffeeText}"
                            FontSize="22" FontAttributes="Bold" />
-                    <Label Text="Một tài khoản cho mọi trải nghiệm Coffee Shop"
+                    <Label Text="Một tài khoản cho mọi trải nghiệm Katinat Coffee"
                            TextColor="{StaticResource CoffeeMuted}" FontSize="13" />
                     <Border Stroke="{StaticResource CoffeeAccent}" StrokeShape="RoundRectangle 14" Padding="8,0"
                             BackgroundColor="{StaticResource CoffeeSurface}">
@@ -78,13 +78,19 @@
                             </Trigger>
                         </Button.Triggers>
                     </Button>
-                    <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
-                                       Color="{StaticResource CoffeeAccent}" />
                     <Button Text="{Binding ModeSwitchText}" Command="{Binding ToggleModeCommand}"
                             BackgroundColor="Transparent"
                             TextColor="{StaticResource CoffeeMuted}" FontSize="12" />
                 </VerticalStackLayout>
             </ScrollView>
         </Border>
+        <Grid IsVisible="{Binding IsBusy}" ZIndex="10" BackgroundColor="#E612100D">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="14">
+                <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource CoffeeAccent}"
+                                   WidthRequest="48" HeightRequest="48" />
+                <Label Text="Đang đăng nhập..." TextColor="White" FontSize="16"
+                       FontAttributes="Bold" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Grid>
     </Grid>
 </ContentPage>

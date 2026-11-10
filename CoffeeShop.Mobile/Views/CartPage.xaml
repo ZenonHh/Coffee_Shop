@@ -40,21 +40,6 @@
                         </Grid>
                     </VerticalStackLayout>
                 </Border>
-                <Border IsVisible="{Binding HasUpsellHint}" BackgroundColor="#241E19" Stroke="#C49B63"
-                        StrokeThickness="1" StrokeShape="RoundRectangle 16" Padding="14">
-                    <VerticalStackLayout Spacing="10">
-                        <HorizontalStackLayout Spacing="8">
-                            <Label Text="🎁" FontSize="20" VerticalOptions="Center" />
-                            <Label Text="{Binding UpsellMessage}" TextColor="#FFFFFF"
-                                   FontAttributes="Bold" FontSize="15" VerticalOptions="Center" />
-                        </HorizontalStackLayout>
-                        <ProgressBar Progress="{Binding UpsellProgress}" ProgressColor="#C49B63"
-                                     BackgroundColor="#46392B" />
-                        <Button Text="+ Thêm món" Command="{Binding GoToMenuCommand}"
-                                HorizontalOptions="Start" CornerRadius="20" Padding="18,8"
-                                BackgroundColor="#C49B63" TextColor="#12100D" FontAttributes="Bold" />
-                    </VerticalStackLayout>
-                </Border>
                 <Border BackgroundColor="{StaticResource CoffeeSurface}" Stroke="{StaticResource CoffeeBorder}" StrokeShape="RoundRectangle 16" Padding="14">
                     <VerticalStackLayout Spacing="9">
                         <Label Text="Nhận hàng &amp; thanh toán" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" />
@@ -63,13 +48,30 @@
                         <Entry Placeholder="Nhập số điện thoại nhận hàng..." Keyboard="Telephone" Text="{Binding Phone}" />
                         <Entry Placeholder="Nhập email nhận hóa đơn..." Keyboard="Email" Text="{Binding Email}" />
                         <Entry Placeholder="Nhập địa chỉ nhận hàng của bạn..." Text="{Binding Address}" IsVisible="{Binding IsDelivery}" />
-                        <HorizontalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
                             <CheckBox IsChecked="{Binding SaveCustomerInfo}" Color="{StaticResource CoffeeAccent}" />
-                            <Label Text="Lưu thông tin này làm địa chỉ nhận hàng mặc định cho lần sau"
-                                   TextColor="{StaticResource CoffeeMuted}" VerticalOptions="Center" FontSize="12" />
-                        </HorizontalStackLayout>
+                            <Label Grid.Column="1" Text="Lưu thông tin này làm địa chỉ nhận hàng mặc định cho lần sau"
+                                   TextColor="{StaticResource CoffeeMuted}" VerticalOptions="Center" FontSize="12"
+                                   LineBreakMode="WordWrap" />
+                        </Grid>
                         <Picker Title="Phương thức thanh toán" ItemsSource="{Binding PaymentMethods}"
                                 ItemDisplayBinding="{Binding Label}" SelectedItem="{Binding SelectedPayment}" />
+                    </VerticalStackLayout>
+                </Border>
+                <Border IsVisible="{Binding HasUpsellHint}" BackgroundColor="#241E19" Stroke="#C49B63"
+                        StrokeThickness="1" StrokeShape="RoundRectangle 16" Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                            <Label Text="🎁" FontSize="20" VerticalOptions="Start" />
+                            <Label Grid.Column="1" Text="{Binding UpsellMessage}" TextColor="#FFFFFF"
+                                   FontAttributes="Bold" FontSize="14" VerticalOptions="Center"
+                                   LineBreakMode="WordWrap" />
+                        </Grid>
+                        <ProgressBar Progress="{Binding UpsellProgress}" ProgressColor="#C49B63"
+                                     BackgroundColor="#46392B" />
+                        <Button Text="+ Thêm món" Command="{Binding GoToMenuCommand}"
+                                HorizontalOptions="Start" CornerRadius="20" Padding="18,8"
+                                BackgroundColor="#C49B63" TextColor="#12100D" FontAttributes="Bold" />
                     </VerticalStackLayout>
                 </Border>
                 <VerticalStackLayout Spacing="6">

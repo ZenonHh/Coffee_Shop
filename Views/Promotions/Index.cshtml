@@ -298,10 +298,7 @@
                             {
                                 <form asp-action="RedeemPoints" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn dùng @reward.PointsRequired điểm để đổi @reward.Title?');">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="pointsRequired" value="@reward.PointsRequired" />
-                                    <input type="hidden" name="discountAmount" value="@reward.DiscountAmount" />
-                                    <input type="hidden" name="minOrder" value="@reward.MinOrder" />
-                                    <input type="hidden" name="rewardTitle" value="@reward.Title" />
+                                    <input type="hidden" name="rewardId" value="@reward.Id" />
                                     <button type="submit" class="btn btn-primary btn-block btn-sm py-2 font-weight-bold">
                                         Đổi Ngay
                                     </button>

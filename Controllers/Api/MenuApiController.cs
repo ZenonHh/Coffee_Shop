@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
+using CoffeeShop.Services;
 
 namespace CoffeeShop.Controllers.Api;
 
@@ -25,28 +26,103 @@ public sealed class MenuApiController(CoffeeShopDbContext db) : ControllerBase
     [HttpGet("products")]
     [ProducesResponseType(typeof(IReadOnlyList<ProductCardResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ProductCardResponse>>> Products(
-        [FromQuery] int? categoryId, [FromQuery] string? keyword, CancellationToken cancellationToken)
+        [FromQuery] int? categoryId,
+        [FromQuery] string? keyword,
+        [FromQuery] string? sortOrder,
+        [FromQuery] string? priceRange,
+        [FromQuery] List<string>? sizes,
+        [FromQuery] bool hasTopping,
+        [FromQuery] int? minimumRating,
+        CancellationToken cancellationToken)
     {
+        sortOrder = sortOrder is "name-asc" or "name-desc" or "price-asc" or "price-desc"
+            or "best-selling" or "rating-desc" ? sortOrder : "name-asc";
+        priceRange = priceRange is "under-30" or "30-40" or "40-50" or "over-50"
+            ? priceRange : null;
+        sizes = sizes?
+            .Where(size => size is "M" or "L")
+            .Distinct(StringComparer.Ordinal)
+            .ToList() ?? [];
+        minimumRating = minimumRating == 4 ? minimumRating : null;
+
         var query = db.Products.AsNoTracking()
             .Where(product => product.TrangThai && product.MaLoaiSP != 9);
         if (categoryId is > 0)
             query = query.Where(product => product.MaLoaiSP == categoryId.Value);
+
+        if (sizes.Count > 0)
+            query = query.Where(product => product.Variants.Any(variant =>
+                variant.TrangThai && sizes.Contains(variant.KichCo)));
+
+        query = priceRange switch
+        {
+            "under-30" => query.Where(product => product.Variants.Any(variant =>
+                variant.TrangThai && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                && variant.GiaBan < 30000m)),
+            "30-40" => query.Where(product => product.Variants.Any(variant =>
+                variant.TrangThai && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                && variant.GiaBan >= 30000m && variant.GiaBan < 40000m)),
+            "40-50" => query.Where(product => product.Variants.Any(variant =>
+                variant.TrangThai && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                && variant.GiaBan >= 40000m && variant.GiaBan <= 50000m)),
+            "over-50" => query.Where(product => product.Variants.Any(variant =>
+                variant.TrangThai && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                && variant.GiaBan > 50000m)),
+            _ => query
+        };
+
         if (!string.IsNullOrWhiteSpace(keyword))
         {
             var search = keyword.Trim();
             query = query.Where(product => product.TenSP.Contains(search));
         }
 
-        var products = await query.OrderBy(product => product.TenSP)
-            .Select(product => new ProductCardResponse(
-                product.MaSP,
-                product.TenSP,
-                product.HinhAnh,
-                product.Category!.TenLoaiSP,
-                product.Variants.Where(variant => variant.TrangThai)
-                    .Select(variant => (decimal?)variant.GiaBan)
-                    .Min(),
-                product.SoLuongTon <= 0))
+        if (hasTopping)
+            query = query.Where(_ => db.Products.Any(topping =>
+                topping.MaLoaiSP == 9 && topping.TrangThai && topping.SoLuongTon > 0));
+
+        if (minimumRating.HasValue)
+            query = query.Where(product => product.Feedbacks
+                .Where(feedback => feedback.DanhGia.HasValue)
+                .Average(feedback => (double?)feedback.DanhGia) >= minimumRating.Value);
+
+        var productCards = query.Select(product => new
+        {
+            Product = product,
+            GiaTu = product.Variants
+                .Where(variant => variant.TrangThai
+                    && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
+                .Select(variant => (decimal?)variant.GiaBan)
+                .Min(),
+            SoLuongDaBan = db.OrderDetails
+                .Where(detail => detail.MaSP == product.MaSP
+                    && detail.Order!.TrangThai != OrderStatuses.Cancelled)
+                .Sum(detail => (int?)detail.SoLuong) ?? 0,
+            DiemDanhGia = product.Feedbacks
+                .Where(feedback => feedback.DanhGia.HasValue)
+                .Average(feedback => (double?)feedback.DanhGia)
+        });
+
+        productCards = sortOrder switch
+        {
+            "name-desc" => productCards.OrderByDescending(card => card.Product.TenSP),
+            "price-asc" => productCards.OrderBy(card => card.GiaTu == null).ThenBy(card => card.GiaTu),
+            "price-desc" => productCards.OrderBy(card => card.GiaTu == null).ThenByDescending(card => card.GiaTu),
+            "best-selling" => productCards.OrderByDescending(card => card.SoLuongDaBan)
+                .ThenBy(card => card.Product.TenSP),
+            "rating-desc" => productCards.OrderByDescending(card => card.DiemDanhGia.HasValue)
+                .ThenByDescending(card => card.DiemDanhGia)
+                .ThenBy(card => card.Product.TenSP),
+            _ => productCards.OrderBy(card => card.Product.TenSP)
+        };
+
+        var products = await productCards.Select(card => new ProductCardResponse(
+                card.Product.MaSP,
+                card.Product.TenSP,
+                card.Product.HinhAnh,
+                card.Product.Category!.TenLoaiSP,
+                card.GiaTu,
+                card.Product.SoLuongTon <= 0))
             .ToListAsync(cancellationToken);
         return Ok(products);
     }

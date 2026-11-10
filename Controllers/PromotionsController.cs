@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
@@ -43,50 +43,6 @@ namespace CoffeeShop.Controllers
             var upcomingVouchers = allVouchers
                 .Where(v => v.NgayBatDau.HasValue && v.NgayBatDau > now)
                 .ToList();
-
-            var orderRules = new List<OrderDiscountRule>
-            {
-                new()
-                {
-                    MinOrderAmount = 100000m,
-                    DiscountPercent = 5,
-                    DirectDiscountAmount = 5000m,
-                    Title = "Đơn từ 100.000đ",
-                    Description = "Giảm trực tiếp 5.000đ khi thanh toán đơn hàng từ 100K.",
-                    BadgeText = "Giảm 5%",
-                    Icon = "☕"
-                },
-                new()
-                {
-                    MinOrderAmount = 200000m,
-                    DiscountPercent = 10,
-                    DirectDiscountAmount = 15000m,
-                    Title = "Đơn từ 200.000đ",
-                    Description = "Giảm ngay 15.000đ hoặc 10% tổng đơn hàng dành cho nhóm bạn.",
-                    BadgeText = "Giảm 10%",
-                    Icon = "🍰"
-                },
-                new()
-                {
-                    MinOrderAmount = 300000m,
-                    DiscountPercent = 15,
-                    DirectDiscountAmount = 30000m,
-                    Title = "Đơn từ 300.000đ",
-                    Description = "Giảm ngay 30.000đ và tặng kèm mã miễn phí vận chuyển 5km.",
-                    BadgeText = "Giảm 15%",
-                    Icon = "🎉"
-                },
-                new()
-                {
-                    MinOrderAmount = 500000m,
-                    DiscountPercent = 20,
-                    DirectDiscountAmount = 50000m,
-                    Title = "Đơn từ 500.000đ",
-                    Description = "Giảm ngay 50.000đ và nhân đôi điểm tích lũy vào tài khoản.",
-                    BadgeText = "Giảm 20% VIP",
-                    Icon = "👑"
-                }
-            };
 
             var currentTier = customer?.HangTV ?? "Đồng";
             var memberTiers = new List<MemberTierBenefit>
@@ -133,54 +89,14 @@ namespace CoffeeShop.Controllers
                 }
             };
 
-            var rewards = new List<PointRedeemReward>
-            {
-                new()
-                {
-                    PointsRequired = 20,
-                    Title = "Mã giảm giá 20.000đ",
-                    Description = "Áp dụng cho mọi đơn hàng từ 50.000đ trở lên.",
-                    DiscountAmount = 20000m,
-                    MinOrder = 50000m,
-                    Icon = "🎟️"
-                },
-                new()
-                {
-                    PointsRequired = 50,
-                    Title = "Mã giảm giá 50.000đ",
-                    Description = "Áp dụng cho mọi đơn hàng từ 120.000đ trở lên.",
-                    DiscountAmount = 50000m,
-                    MinOrder = 120000m,
-                    Icon = "🎁"
-                },
-                new()
-                {
-                    PointsRequired = 100,
-                    Title = "Mã giảm giá 100.000đ",
-                    Description = "Áp dụng cho đơn từ 200.000đ, siêu tiết kiệm cho tiệc nhóm.",
-                    DiscountAmount = 100000m,
-                    MinOrder = 200000m,
-                    Icon = "⭐"
-                },
-                new()
-                {
-                    PointsRequired = 150,
-                    Title = "Ly Đồ Uống Signature Miễn Phí",
-                    Description = "Giảm 100% (tối đa 65.000đ) cho ly nước yêu thích của bạn.",
-                    DiscountAmount = 65000m,
-                    MinOrder = 0m,
-                    Icon = "☕"
-                }
-            };
-
             var viewModel = new PromotionsPageViewModel
             {
                 CurrentCustomer = customer,
                 ActiveVouchers = activeVouchers,
                 UpcomingVouchers = upcomingVouchers,
-                OrderDiscountRules = orderRules,
+                OrderDiscountRules = OrderDiscountRuleCatalog.All.ToList(),
                 MemberTiers = memberTiers,
-                RedeemRewards = rewards
+                RedeemRewards = PointRedeemRewardCatalog.All.ToList()
             };
 
             return View(viewModel);
@@ -188,8 +104,15 @@ namespace CoffeeShop.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RedeemPoints(int pointsRequired, decimal discountAmount, decimal minOrder, string rewardTitle)
+        public async Task<IActionResult> RedeemPoints(int rewardId)
         {
+            var reward = PointRedeemRewardCatalog.All.FirstOrDefault(item => item.Id == rewardId);
+            if (reward is null)
+            {
+                TempData["Error"] = "Ưu đãi đổi điểm không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+
             if (User.Identity?.IsAuthenticated != true)
             {
                 const string prompt = "Vui lòng đăng nhập tài khoản để đổi điểm lấy ưu đãi.";
@@ -197,6 +120,7 @@ namespace CoffeeShop.Controllers
                 return RedirectToAction("Login", "Account", new { returnUrl = "/Promotions#redeem", message = prompt });
             }
 
+            await using var transaction = await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             var customer = await _context.Customers.FirstOrDefaultAsync(c => c.TaiKhoan == User.Identity.Name);
             if (customer == null)
             {
@@ -204,31 +128,30 @@ namespace CoffeeShop.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            if (customer.DiemTichLuy < pointsRequired)
+            if (customer.DiemTichLuy < reward.PointsRequired)
             {
-                TempData["Error"] = $"Bạn hiện có {customer.DiemTichLuy} điểm, cần {pointsRequired} điểm để đổi ưu đãi này.";
+                TempData["Error"] = $"Bạn hiện có {customer.DiemTichLuy} điểm, cần {reward.PointsRequired} điểm để đổi ưu đãi này.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Trừ điểm và tạo mã voucher cá nhân
-            customer.DiemTichLuy -= pointsRequired;
+            customer.DiemTichLuy -= reward.PointsRequired;
 
-            var randomSuffix = RandomNumberGenerator.GetInt32(1000, 9999);
-            var voucherCode = $"CB-P{pointsRequired}-{randomSuffix}";
+            var now = DateTime.Now;
+            var voucherCode = $"{reward.CodePrefix}-{Guid.NewGuid():N}".ToUpperInvariant();
 
             var newVoucher = new Voucher
             {
                 MaCode = voucherCode,
-                TenChuongTrinh = $"Đổi điểm thưởng ({rewardTitle})",
-                PhanLoaiGiam = "CASH",
-                GiaTriGiam = discountAmount,
-                DonToiThieu = minOrder,
-                GiamToiDa = discountAmount,
+                TenChuongTrinh = $"Đổi điểm thưởng ({reward.Title})",
+                PhanLoaiGiam = reward.RewardType,
+                GiaTriGiam = reward.DiscountAmount,
+                DonToiThieu = reward.MinOrder,
+                GiamToiDa = reward.DiscountAmount,
                 SoLuongToiDa = 1,
                 SoLuongDaDung = 0,
                 TrangThai = true,
-                NgayBatDau = DateTime.Now,
-                NgayKetThuc = DateTime.Now.AddDays(30)
+                NgayBatDau = now,
+                NgayKetThuc = now.AddDays(30)
             };
 
             _context.Vouchers.Add(newVoucher);
@@ -236,14 +159,15 @@ namespace CoffeeShop.Controllers
             _context.PointHistories.Add(new PointHistory
             {
                 MaKH = customer.MaKH,
-                DiemThayDoi = -pointsRequired,
-                LyDo = $"Đổi {pointsRequired} điểm lấy mã voucher {voucherCode}",
-                NgayThucHien = DateTime.Now
+                DiemThayDoi = -reward.PointsRequired,
+                LyDo = $"Đổi {reward.PointsRequired} điểm lấy mã voucher {voucherCode}",
+                NgayThucHien = now
             });
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
-            TempData["Success"] = $"🎉 Chúc mừng bạn đã đổi thành công mã ưu đãi: {voucherCode} ({rewardTitle})! Mã có giá trị trong 30 ngày.";
+            TempData["Success"] = $"🎉 Chúc mừng bạn đã đổi thành công mã ưu đãi: {voucherCode} ({reward.Title})! Mã có giá trị trong 30 ngày.";
             return RedirectToAction(nameof(Index));
         }
     }

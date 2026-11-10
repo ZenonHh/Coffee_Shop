@@ -37,13 +37,30 @@ public sealed class ApiService(HttpClient httpClient)
         await GetRequiredAsync<List<CategoryItem>>("api/menu/categories", cancellationToken);
 
     public async Task<IReadOnlyList<ProductItem>> GetProductsAsync(
-        int? categoryId, string? keyword, CancellationToken cancellationToken = default)
+        int? categoryId,
+        string? keyword,
+        string? sortOrder = null,
+        string? priceRange = null,
+        IReadOnlyList<string>? sizes = null,
+        bool hasTopping = false,
+        int? minimumRating = null,
+        CancellationToken cancellationToken = default)
     {
         var query = new List<string>();
         if (categoryId is > 0)
             query.Add($"categoryId={categoryId}");
         if (!string.IsNullOrWhiteSpace(keyword))
             query.Add($"keyword={Uri.EscapeDataString(keyword.Trim())}");
+        if (!string.IsNullOrWhiteSpace(sortOrder))
+            query.Add($"sortOrder={Uri.EscapeDataString(sortOrder)}");
+        if (!string.IsNullOrWhiteSpace(priceRange))
+            query.Add($"priceRange={Uri.EscapeDataString(priceRange)}");
+        if (sizes is not null)
+            query.AddRange(sizes.Select(size => $"sizes={Uri.EscapeDataString(size)}"));
+        if (hasTopping)
+            query.Add("hasTopping=true");
+        if (minimumRating.HasValue)
+            query.Add($"minimumRating={minimumRating.Value}");
         return await GetRequiredAsync<List<ProductItem>>(
             "api/menu/products" + (query.Count == 0 ? "" : "?" + string.Join("&", query)), cancellationToken);
     }
@@ -145,6 +162,18 @@ public sealed class ApiService(HttpClient httpClient)
         await EnsureSuccessAsync(response, cancellationToken);
         return await response.Content.ReadFromJsonAsync<VoucherClassifiedResponse>(JsonOptions, cancellationToken)
             ?? throw new InvalidOperationException("Phản hồi phân loại voucher không hợp lệ.");
+    }
+
+    public async Task<RedeemRewardResponse> RedeemRewardAsync(
+        int rewardId, CancellationToken cancellationToken = default)
+    {
+        using var request = await CreateAuthorizedRequestAsync(
+            HttpMethod.Post, "api/voucher/redeem", cancellationToken);
+        request.Content = JsonContent.Create(new RedeemRewardRequest(rewardId), options: JsonOptions);
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync<RedeemRewardResponse>(JsonOptions, cancellationToken)
+            ?? throw new InvalidOperationException("Phản hồi đổi điểm lấy voucher không hợp lệ.");
     }
 
     public Task<CartUpsellHint> GetCartUpsellHintAsync(

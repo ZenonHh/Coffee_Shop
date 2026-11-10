@@ -87,9 +87,9 @@ public partial class AuthViewModel(ApiService api) : ObservableObject
                 return;
             }
 
-            var usernameExists = await api.CheckUsernameAsync(Username.Trim());
             if (IsRegistrationMode)
             {
+                var usernameExists = await api.CheckUsernameAsync(Username.Trim());
                 if (usernameExists)
                 {
                     ErrorMessage = "Tên đăng nhập này đã được sử dụng. Hãy chọn Đăng nhập hoặc dùng tên khác.";
@@ -106,12 +106,6 @@ public partial class AuthViewModel(ApiService api) : ObservableObject
             }
             else
             {
-                if (!usernameExists)
-                {
-                    ErrorMessage = "Chưa tìm thấy tài khoản này. Chọn “Chưa có tài khoản? Đăng ký” để tạo tài khoản mới.";
-                    return;
-                }
-
                 await api.LoginAsync(Username.Trim(), Password);
             }
 

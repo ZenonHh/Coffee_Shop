@@ -15,6 +15,13 @@ public partial class VoucherPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await _viewModel.LoadCommand.ExecuteAsync(null);
+        try
+        {
+            await _viewModel.LoadCommand.ExecuteAsync(null);
+        }
+        catch (Exception exception)
+        {
+            await DisplayAlertAsync("Không thể tải ưu đãi", exception.Message, "Đóng");
+        }
     }
 }

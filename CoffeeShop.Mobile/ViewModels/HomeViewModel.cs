@@ -52,6 +52,9 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private int bannerPosition;
 
+    [ObservableProperty]
+    private bool isLoading;
+
     [RelayCommand]
     private async Task SelectDeliveryAsync()
     {
@@ -109,8 +112,12 @@ public partial class HomeViewModel : ObservableObject
 
     public async Task LoadAsync()
     {
+        if (IsLoading)
+            return;
+
         try
         {
+            IsLoading = true;
             var profile = await _api.GetProfileAsync();
             if (profile is not null)
                 CustomerName = profile.HoTen;
@@ -123,6 +130,10 @@ public partial class HomeViewModel : ObservableObject
         catch (Exception exception)
         {
             await Shell.Current.DisplayAlertAsync("Không thể tải trang chủ", exception.Message, "Đóng");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 

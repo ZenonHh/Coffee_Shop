@@ -12,9 +12,13 @@
        Shell.TabBarTitleColor="#C49B63"
        Shell.TabBarUnselectedColor="#8A7D75">
     <TabBar>
-        <ShellContent x:Name="HomeTab" Title="Home" Icon="tab_home.svg" Route="home" />
-        <ShellContent x:Name="VoucherTab" Title="Voucher" Icon="tab_voucher.svg" Route="voucher" />
-        <ShellContent x:Name="OrderTab" Title="Order" Icon="tab_order.svg" Route="order" />
-        <ShellContent x:Name="AccountTab" Title="Account" Icon="tab_account.svg" Route="account" />
+        <ShellContent x:Name="HomeTab" Title="" Icon="tab_home.svg" Route="home"
+                      AutomationProperties.Name="Trang chủ" />
+        <ShellContent x:Name="VoucherTab" Title="" Icon="tab_voucher.svg" Route="voucher"
+                      AutomationProperties.Name="Voucher" />
+        <ShellContent x:Name="OrderTab" Title="" Icon="tab_order.svg" Route="order"
+                      AutomationProperties.Name="Đặt hàng" />
+        <ShellContent x:Name="AccountTab" Title="" Icon="tab_account.svg" Route="account"
+                      AutomationProperties.Name="Tài khoản" />
     </TabBar>
 </Shell>

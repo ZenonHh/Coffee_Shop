@@ -4,46 +4,32 @@
              x:Class="CoffeeShop.Mobile.Views.SplashPage"
              Shell.NavBarIsVisible="False"
              NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{StaticResource AppBackground}">
-    <Grid BackgroundColor="{StaticResource AppBackground}">
-        <Image Source="coffee_swirl.svg" Aspect="AspectFill" />
-        <BoxView Color="#8012100D" />
+             BackgroundColor="White">
+    <Grid BackgroundColor="White">
         <VerticalStackLayout Padding="28" VerticalOptions="Center" HorizontalOptions="Center" Spacing="18">
-            <VerticalStackLayout Spacing="3">
-                <Label Text="COFFEE" TextColor="{StaticResource CoffeeAccent}" CharacterSpacing="5"
-                       FontSize="13" FontAttributes="Bold" HorizontalOptions="Center" />
-                <Label Text="SHOP" TextColor="{StaticResource CoffeeText}" CharacterSpacing="8"
-                       FontSize="12" HorizontalOptions="Center" />
-            </VerticalStackLayout>
-            <VerticalStackLayout HorizontalOptions="Center" Spacing="10">
-                <Border WidthRequest="124" HeightRequest="124" Stroke="{StaticResource CoffeeAccent}"
-                        StrokeThickness="1.5" BackgroundColor="#3312100D"
-                        StrokeShape="RoundRectangle 62" Padding="12">
-                    <Label Text="☕" FontSize="64" HorizontalOptions="Center" VerticalOptions="Center" />
-                </Border>
-                <Label Text="Coffee Shop" TextColor="White" FontSize="25" FontAttributes="Bold"
-                       HorizontalOptions="Center" />
-            </VerticalStackLayout>
-            <Border Stroke="{StaticResource CoffeeAccent}" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 32" BackgroundColor="#AA1F1B17" Padding="8">
+            <Image Source="katinat_logo.png" WidthRequest="280" HeightRequest="280"
+                   Aspect="AspectFit" HorizontalOptions="Center" />
+            <Border Stroke="{StaticResource PrimaryGold}" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 32" BackgroundColor="White" Padding="8">
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding StartCommand}" />
                 </Border.GestureRecognizers>
                 <Grid ColumnDefinitions="64,*" ColumnSpacing="16">
-                    <Border BackgroundColor="{StaticResource CoffeeAccent}" StrokeThickness="0"
+                    <Border BackgroundColor="{StaticResource PrimaryGold}" StrokeThickness="0"
                             StrokeShape="RoundRectangle 28" WidthRequest="56" HeightRequest="56">
-                        <Label Text="☕" FontSize="27" HorizontalOptions="Center" VerticalOptions="Center" />
+                        <Label Text="›" TextColor="White" FontSize="32" FontAttributes="Bold"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
                     </Border>
-                    <Label Grid.Column="1" Text="›   Bắt đầu ngay"
-                           TextColor="White" FontSize="18" HorizontalOptions="Start"
+                    <Label Grid.Column="1" Text="Bắt đầu ngay"
+                           TextColor="#684B31" FontSize="18" HorizontalOptions="Start"
                            VerticalOptions="Center" />
                 </Grid>
             </Border>
             <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"
-                   TextColor="#FFFF8A80" FontSize="12" HorizontalTextAlignment="Center" />
+                   TextColor="#B3261E" FontSize="12" HorizontalTextAlignment="Center" />
         </VerticalStackLayout>
         <ActivityIndicator IsRunning="{Binding IsCheckingSession}" IsVisible="{Binding IsCheckingSession}"
-                           Color="{StaticResource CoffeeAccent}" VerticalOptions="Start" HorizontalOptions="End"
+                           Color="{StaticResource PrimaryGold}" VerticalOptions="Start" HorizontalOptions="End"
                            Margin="24,48" />
     </Grid>
 </ContentPage>

@@ -1,31 +1,52 @@
 using System.Collections.ObjectModel;
-using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CoffeeShop.Mobile.Models;
 using CoffeeShop.Mobile.Services;
-using Microsoft.Maui.Storage;
 
 namespace CoffeeShop.Mobile.ViewModels;
 
-public sealed record VoucherDisplayItem(
-    VoucherItem Voucher, bool IsUsed, bool IsExchange, int PointsRequired, bool IsRedeemed)
+public sealed record VoucherDisplayItem(VoucherItem Voucher, bool IsUsed)
 {
     public double Opacity => IsUsed ? 0.6 : 1;
-    public string ActionText => IsRedeemed ? "Đã đổi" : $"Đổi ({PointsRequired} điểm)";
-    public bool CanUse => !IsUsed && !IsExchange;
-    public bool CanRedeem => IsExchange && !IsRedeemed;
+    public string Title => Voucher.DisplayTitle;
+    public string DiscountText => Voucher.DisplayDiscount;
+    public string MinimumText => $"Đơn tối thiểu {Voucher.DonToiThieu:N0} đ";
+    public string ExpiryText => Voucher.ExpiryText;
+}
+
+public sealed record ExchangeRewardDisplayItem(
+    ExchangeRewardItem Reward, bool CanRedeem, int MissingPoints)
+{
+    public string ButtonText => CanRedeem ? "Đổi Ngay" : $"Cần thêm {MissingPoints} điểm";
+    public string ButtonBackgroundColor => CanRedeem ? "#C49B63" : "#3A3530";
+    public string ButtonTextColor => CanRedeem ? "#12100D" : "#9E968E";
+    public string IconText => Reward.Icon switch
+    {
+        "ticket.png" or "🎟️" => "🎟️",
+        "gift.png" or "🎁" => "🎁",
+        "star.png" or "⭐" => "⭐",
+        "cup.png" or "☕" => "☕",
+        _ => "🎁"
+    };
 }
 
 public partial class VoucherViewModel(ApiService api, CartService cart) : ObservableObject
 {
-    private const string RedeemedVouchersKey = "MyRedeemedVouchers";
-    private IReadOnlyList<VoucherItem> _availableVouchers = [];
-    private IReadOnlyList<VoucherItem> _usedVouchers = [];
-    private IReadOnlyList<VoucherItem> _exchangeVouchers = [];
-    private HashSet<string> _redeemedCodes = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ExchangeRewardItem[] DefaultRewards =
+    [
+        new(1, 20, "Mã giảm giá 20.000đ", "Áp dụng cho mọi đơn hàng từ 50.000đ trở lên.", "REWARD20K", "ticket.png"),
+        new(2, 50, "Mã giảm giá 50.000đ", "Áp dụng cho mọi đơn hàng từ 120.000đ trở lên.", "REWARD50K", "gift.png"),
+        new(3, 100, "Mã giảm giá 100.000đ", "Áp dụng cho đơn từ 200.000đ, siêu tiết kiệm cho tiệc nhóm.", "REWARD100K", "star.png"),
+        new(4, 150, "Ly Đồ Uống Signature Miễn Phí", "Giảm 100% (tối đa 65.000đ) cho ly nước yêu thích của bạn.", "REWARDFREE", "cup.png")
+    ];
 
-    public ObservableCollection<VoucherDisplayItem> VisibleVouchers { get; } = [];
+    private IReadOnlyList<ExchangeRewardItem> _rewardDefinitions = DefaultRewards;
+    private int? _customerId;
+
+    public ObservableCollection<VoucherDisplayItem> AvailableVouchers { get; } = [];
+    public ObservableCollection<VoucherDisplayItem> UsedVouchers { get; } = [];
+    public ObservableCollection<ExchangeRewardDisplayItem> ExchangeRewards { get; } = [];
 
     [ObservableProperty]
     private bool isBusy;
@@ -36,23 +57,30 @@ public partial class VoucherViewModel(ApiService api, CartService cart) : Observ
     [ObservableProperty]
     private int selectedTabIndex;
 
-    public string TabRedeemedColor => SelectedTabIndex == 0 ? "#C49B63" : "#1F1A16";
-    public string TabUsedColor => SelectedTabIndex == 1 ? "#C49B63" : "#1F1A16";
-    public string TabExchangeColor => SelectedTabIndex == 2 ? "#C49B63" : "#1F1A16";
-    public string TabRedeemedTextColor => SelectedTabIndex == 0 ? "#12100D" : "#FFFFFF";
-    public string TabUsedTextColor => SelectedTabIndex == 1 ? "#12100D" : "#FFFFFF";
-    public string TabExchangeTextColor => SelectedTabIndex == 2 ? "#12100D" : "#FFFFFF";
+    public bool IsAvailableTab => SelectedTabIndex == 0;
+    public bool IsUsedTab => SelectedTabIndex == 1;
+    public bool IsExchangeTab => SelectedTabIndex == 2;
+    public string TabRedeemedColor => IsAvailableTab ? "#C49B63" : "#1F1A16";
+    public string TabUsedColor => IsUsedTab ? "#C49B63" : "#1F1A16";
+    public string TabExchangeColor => IsExchangeTab ? "#C49B63" : "#1F1A16";
+    public string TabRedeemedTextColor => IsAvailableTab ? "#12100D" : "#FFFFFF";
+    public string TabUsedTextColor => IsUsedTab ? "#12100D" : "#FFFFFF";
+    public string TabExchangeTextColor => IsExchangeTab ? "#12100D" : "#FFFFFF";
 
     partial void OnSelectedTabIndexChanged(int value)
     {
+        OnPropertyChanged(nameof(IsAvailableTab));
+        OnPropertyChanged(nameof(IsUsedTab));
+        OnPropertyChanged(nameof(IsExchangeTab));
         OnPropertyChanged(nameof(TabRedeemedColor));
         OnPropertyChanged(nameof(TabUsedColor));
         OnPropertyChanged(nameof(TabExchangeColor));
         OnPropertyChanged(nameof(TabRedeemedTextColor));
         OnPropertyChanged(nameof(TabUsedTextColor));
         OnPropertyChanged(nameof(TabExchangeTextColor));
-        RefreshVisibleVouchers();
     }
+
+    partial void OnUserPointsChanged(int value) => RefreshExchangeRewards();
 
     [RelayCommand]
     public async Task LoadAsync()
@@ -67,24 +95,39 @@ public partial class VoucherViewModel(ApiService api, CartService cart) : Observ
             VoucherClassifiedResponse classified;
             if (profile is null)
             {
+                _customerId = null;
                 var activeVouchers = await api.GetVouchersAsync();
-                classified = new VoucherClassifiedResponse(0, activeVouchers, [], activeVouchers);
+                classified = new VoucherClassifiedResponse(0, activeVouchers, [], DefaultRewards);
             }
             else
             {
+                _customerId = profile.MaKH;
                 classified = await api.GetClassifiedVouchersAsync(profile.MaKH);
             }
 
-            _availableVouchers = classified.AvailableVouchers;
-            _usedVouchers = classified.UsedVouchers;
-            _exchangeVouchers = classified.ExchangeVouchers;
-            _redeemedCodes = ReadRedeemedCodes();
+            _rewardDefinitions = classified.ExchangeRewards is { Count: > 0 } rewards
+                ? rewards
+                : DefaultRewards;
+            UserPoints = classified.UserPoints;
 
-            var spentPoints = _exchangeVouchers
-                .Where(voucher => _redeemedCodes.Contains(voucher.MaCode))
-                .Sum(GetPointsRequired);
-            UserPoints = Math.Max(0, classified.UserPoints - spentPoints);
-            RefreshVisibleVouchers();
+            var availableVouchers = classified.AvailableVouchers ?? [];
+            var usedVouchers = classified.UsedVouchers ?? [];
+            var usedCodes = usedVouchers
+                .Select(item => item.MaCode)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var availableItems = availableVouchers
+                .Where(item => !usedCodes.Contains(item.MaCode))
+                .ToList();
+
+            AvailableVouchers.Clear();
+            foreach (var voucher in availableItems)
+                AvailableVouchers.Add(new VoucherDisplayItem(voucher, false));
+
+            UsedVouchers.Clear();
+            foreach (var voucher in usedVouchers)
+                UsedVouchers.Add(new VoucherDisplayItem(voucher, true));
+
+            RefreshExchangeRewards();
         }
         catch (Exception exception)
         {
@@ -116,54 +159,36 @@ public partial class VoucherViewModel(ApiService api, CartService cart) : Observ
     }
 
     [RelayCommand]
-    private async Task RedeemVoucherAsync(VoucherDisplayItem? item)
+    private async Task RedeemRewardAsync(ExchangeRewardDisplayItem? item)
     {
-        if (item is null || item.IsRedeemed)
+        if (item is null || !item.CanRedeem || _customerId is null)
             return;
 
-        if (UserPoints < item.PointsRequired)
+        try
         {
+            var result = await api.RedeemRewardAsync(item.Reward.Id);
+            UserPoints = result.UserPoints;
+            if (!AvailableVouchers.Any(voucher =>
+                    string.Equals(voucher.Voucher.MaCode, result.Voucher.MaCode, StringComparison.OrdinalIgnoreCase)))
+                AvailableVouchers.Add(new VoucherDisplayItem(result.Voucher, false));
+            SelectedTabIndex = 0;
             await Shell.Current.DisplayAlertAsync(
-                "Chưa đủ điểm", $"Bạn cần {item.PointsRequired} điểm để đổi voucher này.", "Đóng");
-            return;
+                "Đổi voucher thành công", $"Mã voucher của bạn: {result.Voucher.MaCode}", "Đóng");
         }
-
-        UserPoints -= item.PointsRequired;
-        _redeemedCodes.Add(item.Voucher.MaCode);
-        Preferences.Default.Set(RedeemedVouchersKey, JsonSerializer.Serialize(_redeemedCodes));
-        SelectedTabIndex = 0;
-        RefreshVisibleVouchers();
-    }
-
-    private void RefreshVisibleVouchers()
-    {
-        IEnumerable<VoucherDisplayItem> items = SelectedTabIndex switch
+        catch (Exception exception)
         {
-            1 => _usedVouchers.Select(voucher => new VoucherDisplayItem(voucher, true, false, 0, false)),
-            2 => _exchangeVouchers.Select(voucher => new VoucherDisplayItem(
-                voucher, false, true, GetPointsRequired(voucher), _redeemedCodes.Contains(voucher.MaCode))),
-            _ => _availableVouchers
-                .Where(voucher => _redeemedCodes.Contains(voucher.MaCode))
-                .Where(voucher => !_usedVouchers.Any(used =>
-                    string.Equals(used.MaCode, voucher.MaCode, StringComparison.OrdinalIgnoreCase)))
-                .Select(voucher => new VoucherDisplayItem(voucher, false, false, 0, false))
-        };
-
-        VisibleVouchers.Clear();
-        foreach (var item in items)
-            VisibleVouchers.Add(item);
+            await Shell.Current.DisplayAlertAsync("Không thể đổi voucher", exception.Message, "Đóng");
+        }
     }
 
-    private static HashSet<string> ReadRedeemedCodes()
+    private void RefreshExchangeRewards()
     {
-        var storedCodes = Preferences.Default.Get(RedeemedVouchersKey, string.Empty);
-        if (string.IsNullOrWhiteSpace(storedCodes))
-            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        var codes = JsonSerializer.Deserialize<List<string>>(storedCodes) ?? [];
-        return codes.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        ExchangeRewards.Clear();
+        foreach (var reward in _rewardDefinitions)
+        {
+            var missingPoints = Math.Max(0, reward.Points - UserPoints);
+            ExchangeRewards.Add(new ExchangeRewardDisplayItem(reward, _customerId.HasValue && missingPoints == 0, missingPoints));
+        }
     }
 
-    private static int GetPointsRequired(VoucherItem voucher) =>
-        Math.Max(20, (int)(voucher.GiaTriGiam / 400m));
 }

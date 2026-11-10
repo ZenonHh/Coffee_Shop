@@ -16,18 +16,107 @@
             </VerticalStackLayout>
         </Grid>
 
-        <Border Grid.Row="1" Margin="16,8,16,10" Padding="4,0"
-                BackgroundColor="{StaticResource CardSurface}"
-                Stroke="{StaticResource BorderColor}" StrokeThickness="1"
-                StrokeShape="RoundRectangle 26">
-            <SearchBar x:Name="MenuSearch"
-                       Placeholder="Tìm cà phê, trà, bánh..."
-                       Text="{Binding SearchText}"
-                       SearchButtonPressed="OnSearchPressed"
-                       BackgroundColor="Transparent"
-                       TextColor="{StaticResource TextPrimary}"
-                       PlaceholderColor="{StaticResource TextMuted}" />
-        </Border>
+        <VerticalStackLayout Grid.Row="1" Spacing="8" Margin="16,8,16,10">
+            <Border Padding="4,0" BackgroundColor="{StaticResource CardSurface}"
+                    Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 26">
+                <SearchBar x:Name="MenuSearch"
+                           Placeholder="Tìm cà phê, trà, bánh..."
+                           Text="{Binding SearchText}"
+                           SearchButtonPressed="OnSearchPressed"
+                           BackgroundColor="Transparent"
+                           TextColor="{StaticResource TextPrimary}"
+                           PlaceholderColor="{StaticResource TextMuted}" />
+            </Border>
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <Button Text="{Binding ActiveFilterCount, StringFormat='Bộ lọc nâng cao ({0})'}"
+                        Command="{Binding ToggleAdvancedFiltersCommand}"
+                        BackgroundColor="{StaticResource CardSurface}"
+                        TextColor="{StaticResource TextPrimary}"
+                        BorderColor="{StaticResource BorderColor}" BorderWidth="1"
+                        CornerRadius="16" FontSize="12" Padding="8,10" />
+                <Button Grid.Column="1"
+                        Text="{Binding SelectedSortOption.Label, StringFormat='Sắp xếp: {0}'}"
+                        Command="{Binding ToggleSortOptionsCommand}"
+                        BackgroundColor="{StaticResource CardSurface}"
+                        TextColor="{StaticResource TextPrimary}"
+                        BorderColor="{StaticResource BorderColor}" BorderWidth="1"
+                        CornerRadius="16" FontSize="12" Padding="8,10" />
+            </Grid>
+            <Border IsVisible="{Binding IsSortOptionsVisible}"
+                    BackgroundColor="{StaticResource CardSurface}"
+                    Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16" Padding="8">
+                <CollectionView ItemsSource="{Binding SortOptions}"
+                                ItemsLayout="VerticalGrid, 2" HeightRequest="156"
+                                SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Button Text="{Binding Label}"
+                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.SelectSortCommand}"
+                                    CommandParameter="{Binding .}"
+                                    BackgroundColor="{Binding ButtonBackgroundColor}"
+                                    TextColor="{Binding ButtonTextColor}"
+                                    CornerRadius="12" FontSize="12" Padding="6,8"
+                                    Margin="3" />
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Border>
+            <Border IsVisible="{Binding IsAdvancedFilterVisible}"
+                    BackgroundColor="{StaticResource CardSurface}"
+                    Stroke="{StaticResource BorderColor}" StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16" Padding="12">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Khoảng giá" TextColor="{StaticResource TextMuted}" FontSize="11" />
+                    <CollectionView ItemsSource="{Binding PriceRangeOptions}"
+                                    ItemsLayout="VerticalGrid, 2" HeightRequest="132"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Button Text="{Binding Label}"
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.SelectPriceRangeCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="{Binding ButtonBackgroundColor}"
+                                        TextColor="{Binding ButtonTextColor}"
+                                        CornerRadius="12" FontSize="12" Padding="6,8"
+                                        Margin="3" />
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Grid ColumnDefinitions="Auto,*,Auto,*" ColumnSpacing="4">
+                        <CheckBox IsChecked="{Binding IsSizeMSelected}" Color="{StaticResource Accent}" />
+                        <Label Grid.Column="1" Text="Size M" TextColor="{StaticResource TextPrimary}"
+                               VerticalOptions="Center" FontSize="12" />
+                        <CheckBox Grid.Column="2" IsChecked="{Binding IsSizeLSelected}"
+                                  Color="{StaticResource Accent}" />
+                        <Label Grid.Column="3" Text="Size L" TextColor="{StaticResource TextPrimary}"
+                               VerticalOptions="Center" FontSize="12" />
+                    </Grid>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="6">
+                        <Button Text="{Binding MinimumRatingButtonText}"
+                                Command="{Binding ToggleMinimumRatingCommand}"
+                                BackgroundColor="{Binding MinimumRatingOption.ButtonBackgroundColor}"
+                                TextColor="{Binding MinimumRatingOption.ButtonTextColor}"
+                                CornerRadius="12" FontSize="11" Padding="6,8" />
+                        <Button Grid.Column="1" Text="Có thể thêm topping"
+                                Command="{Binding ToggleToppingCommand}"
+                                BackgroundColor="{Binding ToppingOption.ButtonBackgroundColor}"
+                                TextColor="{Binding ToppingOption.ButtonTextColor}"
+                                CornerRadius="12" FontSize="11" Padding="6,8" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+                        <Button Text="Xóa bộ lọc" Command="{Binding ClearFiltersCommand}"
+                                BackgroundColor="Transparent" TextColor="{StaticResource TextMuted}"
+                                FontSize="12" Padding="10,8" />
+                        <Button Grid.Column="1" Text="Xem kết quả"
+                                Command="{Binding ApplyFiltersCommand}"
+                                BackgroundColor="{StaticResource Primary}" TextColor="White"
+                                FontSize="12" Padding="16,8" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
 
         <CollectionView Grid.Row="2"
                         ItemsSource="{Binding Categories}"
