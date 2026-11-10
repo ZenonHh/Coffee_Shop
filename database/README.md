@@ -29,3 +29,9 @@ Cách chạy:
 ## 3. Tài Khoản Quản Trị Mẫu
 - **Admin**: `admin` / Mật khẩu: `123456` (Vai trò: Quản trị viên)
 - **Khách hàng**: `user01` / Mật khẩu: `123456`
+
+## 4. Cập Nhật Database Đã Tạo
+Nếu database đã được tạo trước đó bằng `coffee_shop_mssql.sql`, chạy script
+[`migrations/20261109_make_legacy_survey_invitation_optional.sql`](migrations/20261109_make_legacy_survey_invitation_optional.sql)
+trong SSMS hoặc `sqlcmd`. Script chỉ đổi cột legacy `MaLoiMoi` trong `CauTraLoi`
+thành cho phép `NULL`, để câu trả lời khảo sát mới không cần mã lời mời cũ.

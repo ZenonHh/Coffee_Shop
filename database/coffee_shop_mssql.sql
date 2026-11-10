@@ -348,7 +348,7 @@ CREATE TABLE dbo.[danhmucluachon] (
 GO
 CREATE TABLE dbo.[cautraloi] (
     [MaCauTraLoi] INT IDENTITY(1,1) NOT NULL,
-    [MaLoiMoi] INT NOT NULL,
+    [MaLoiMoi] INT NULL,
     [MaCauHoi] INT NOT NULL,
     [MaDanhMuc] INT NULL,
     [NoiDungTraLoi] NVARCHAR(MAX) NULL,
