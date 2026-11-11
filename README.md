@@ -124,7 +124,7 @@ dotnet restore CoffeeShop.Mobile\CoffeeShop.Mobile.csproj
 Build Android:
 
 ```powershell
-dotnet build CoffeeShop.Mobile\CoffeeShop.Mobile.csproj --framework net10.0-android
+ dotnet build .\CoffeeShop.Mobile\CoffeeShop.Mobile.csproj -t:Run -f net10.0-android
 ```
 
 Có thể mở repository bằng Visual Studio có hỗ trợ .NET MAUI, chọn project `CoffeeShop.Mobile`, chọn Android Emulator/device rồi chạy. APK đầu ra thường nằm trong `CoffeeShop.Mobile/bin/Debug/net10.0-android/`.
