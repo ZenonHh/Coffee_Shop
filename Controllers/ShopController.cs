@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using CoffeeShop.Data;
 using CoffeeShop.Models.ViewModels;
 using CoffeeShop.Services;
@@ -8,11 +9,14 @@ namespace CoffeeShop.Controllers
 {
     public class ShopController : Controller
     {
+        private static readonly SemaphoreSlim SearchCacheLock = new(1, 1);
         private readonly CoffeeShopDbContext _context;
+        private readonly IMemoryCache _cache;
 
-        public ShopController(CoffeeShopDbContext context)
+        public ShopController(CoffeeShopDbContext context, IMemoryCache cache)
         {
             _context = context;
+            _cache = cache;
         }
 
         public async Task<IActionResult> Index(
@@ -37,103 +41,131 @@ namespace CoffeeShop.Controllers
                 .ToList() ?? new List<string>();
             minimumRating = minimumRating == 4 ? minimumRating : null;
 
-            var categories = await _context.Categories
-                .AsNoTracking()
-                .Where(category => category.MaLoaiSP != 9)
-                .OrderBy(category => category.ThuTuHienThi)
-                .Select(category => new ShopCategoryViewModel
-                {
-                    MaLoaiSP = category.MaLoaiSP,
-                    TenLoaiSP = category.TenLoaiSP
-                })
-                .ToListAsync();
-
-            var query = _context.Products
-                .AsNoTracking()
-                .Where(p => p.TrangThai && p.MaLoaiSP != 9);
-
-            if (categoryId.HasValue && categoryId.Value > 0)
+            categoryId = categoryId is > 0 ? categoryId : null;
+            const string cacheSessionKey = "ShopSearch.CacheSessionId";
+            var sessionCacheId = HttpContext.Session.GetString(cacheSessionKey);
+            if (string.IsNullOrEmpty(sessionCacheId))
             {
-                query = query.Where(p => p.MaLoaiSP == categoryId.Value);
+                sessionCacheId = Guid.NewGuid().ToString("N");
+                HttpContext.Session.SetString(cacheSessionKey, sessionCacheId);
             }
 
-            if (sizes.Count > 0)
-            {
-                query = query.Where(product => product.Variants
-                    .Any(variant => variant.TrangThai && sizes.Contains(variant.KichCo)));
-            }
+            var cachedCategories = await GetOrCreateSearchCacheAsync(
+                $"shop:categories:{sessionCacheId}",
+                async () => await _context.Categories
+                    .AsNoTracking()
+                    .Where(category => category.MaLoaiSP != 9)
+                    .OrderBy(category => category.ThuTuHienThi)
+                    .Select(category => new ShopCategoryViewModel
+                    {
+                        MaLoaiSP = category.MaLoaiSP,
+                        TenLoaiSP = category.TenLoaiSP
+                    })
+                    .ToListAsync());
+            var categories = cachedCategories.Value;
 
-            query = priceRange switch
-            {
-                "under-30" => query.Where(product => product.Variants
-                    .Any(variant => variant.TrangThai
-                        && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
-                        && variant.GiaBan < 30000m)),
-                "30-40" => query.Where(product => product.Variants
-                    .Any(variant => variant.TrangThai
-                        && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
-                        && variant.GiaBan >= 30000m
-                        && variant.GiaBan < 40000m)),
-                "40-50" => query.Where(product => product.Variants
-                    .Any(variant => variant.TrangThai
-                        && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
-                        && variant.GiaBan >= 40000m
-                        && variant.GiaBan <= 50000m)),
-                "over-50" => query.Where(product => product.Variants
-                    .Any(variant => variant.TrangThai
-                        && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
-                        && variant.GiaBan > 50000m)),
-                _ => query
-            };
-
-            IQueryable<ShopProductCardViewModel> productsQuery = query
-                .Select(product => new ShopProductCardViewModel
+            var sizeCacheKey = string.Join("-", sizes.OrderBy(size => size, StringComparer.Ordinal));
+            var productsCacheKey = $"shop:products:{sessionCacheId}:{categoryId?.ToString() ?? "all"}:{priceRange ?? "any"}:{sizeCacheKey}";
+            var cachedSearchResult = await GetOrCreateSearchCacheAsync(
+                productsCacheKey,
+                async () =>
                 {
-                    MaSP = product.MaSP,
-                    TenSP = product.TenSP,
-                    HinhAnh = product.HinhAnh,
-                    TenLoaiSP = product.Category!.TenLoaiSP,
-                    GiaBan = product.Variants
-                        .Where(variant => variant.TrangThai
-                            && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
-                        .Select(variant => (decimal?)variant.GiaBan)
-                        .Min(),
-                    SelectedVariantId = product.Variants
-                        .Where(variant => variant.TrangThai
-                            && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
-                        .OrderBy(variant => variant.GiaBan)
-                        .ThenBy(variant => variant.MaBienThe)
-                        .Select(variant => (int?)variant.MaBienThe)
-                        .FirstOrDefault(),
-                    Variants = product.Variants
-                        .Where(variant => variant.TrangThai)
-                        .OrderBy(variant => variant.MaBienThe)
-                        .Select(variant => new ProductVariantOptionViewModel
+                    var query = _context.Products
+                        .AsNoTracking()
+                        .Where(product => product.TrangThai && product.MaLoaiSP != 9);
+
+                    if (categoryId.HasValue)
+                    {
+                        query = query.Where(product => product.MaLoaiSP == categoryId.Value);
+                    }
+
+                    if (sizes.Count > 0)
+                    {
+                        query = query.Where(product => product.Variants
+                            .Any(variant => variant.TrangThai && sizes.Contains(variant.KichCo)));
+                    }
+
+                    query = priceRange switch
+                    {
+                        "under-30" => query.Where(product => product.Variants
+                            .Any(variant => variant.TrangThai
+                                && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                                && variant.GiaBan < 30000m)),
+                        "30-40" => query.Where(product => product.Variants
+                            .Any(variant => variant.TrangThai
+                                && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                                && variant.GiaBan >= 30000m
+                                && variant.GiaBan < 40000m)),
+                        "40-50" => query.Where(product => product.Variants
+                            .Any(variant => variant.TrangThai
+                                && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                                && variant.GiaBan >= 40000m
+                                && variant.GiaBan <= 50000m)),
+                        "over-50" => query.Where(product => product.Variants
+                            .Any(variant => variant.TrangThai
+                                && (sizes.Count == 0 || sizes.Contains(variant.KichCo))
+                                && variant.GiaBan > 50000m)),
+                        _ => query
+                    };
+
+                    var products = await query
+                        .Select(product => new ShopProductCardViewModel
                         {
-                            MaBienThe = variant.MaBienThe,
-                            KichCo = variant.KichCo,
-                            GiaBan = variant.GiaBan
+                            MaSP = product.MaSP,
+                            TenSP = product.TenSP,
+                            HinhAnh = product.HinhAnh,
+                            TenLoaiSP = product.Category!.TenLoaiSP,
+                            GiaBan = product.Variants
+                                .Where(variant => variant.TrangThai
+                                    && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
+                                .Select(variant => (decimal?)variant.GiaBan)
+                                .Min(),
+                            SelectedVariantId = product.Variants
+                                .Where(variant => variant.TrangThai
+                                    && (sizes.Count == 0 || sizes.Contains(variant.KichCo)))
+                                .OrderBy(variant => variant.GiaBan)
+                                .ThenBy(variant => variant.MaBienThe)
+                                .Select(variant => (int?)variant.MaBienThe)
+                                .FirstOrDefault(),
+                            Variants = product.Variants
+                                .Where(variant => variant.TrangThai)
+                                .OrderBy(variant => variant.MaBienThe)
+                                .Select(variant => new ProductVariantOptionViewModel
+                                {
+                                    MaBienThe = variant.MaBienThe,
+                                    KichCo = variant.KichCo,
+                                    GiaBan = variant.GiaBan
+                                })
+                                .ToList(),
+                            SoLuongTon = product.SoLuongTon,
+                            SoLuongDaBan = _context.OrderDetails
+                                .Where(detail => detail.MaSP == product.MaSP
+                                    && detail.Order!.TrangThai != OrderStatuses.Cancelled)
+                                .Sum(detail => (int?)detail.SoLuong) ?? 0,
+                            DiemDanhGia = product.Feedbacks
+                                .Where(feedback => feedback.DanhGia.HasValue)
+                                .Average(feedback => (double?)feedback.DanhGia)
                         })
-                        .ToList(),
-                    SoLuongTon = product.SoLuongTon,
-                    SoLuongDaBan = _context.OrderDetails
-                        .Where(detail => detail.MaSP == product.MaSP
-                            && detail.Order!.TrangThai != OrderStatuses.Cancelled)
-                        .Sum(detail => (int?)detail.SoLuong) ?? 0,
-                    DiemDanhGia = product.Feedbacks
-                        .Where(feedback => feedback.DanhGia.HasValue)
-                        .Average(feedback => (double?)feedback.DanhGia)
-                });
+                        .ToListAsync();
 
+                    var hasAvailableToppings = await _context.Products
+                        .AnyAsync(topping => topping.MaLoaiSP == 9 && topping.TrangThai && topping.SoLuongTon > 0);
+
+                    return new CachedShopSearch(products, hasAvailableToppings);
+                });
+            var cachedSearch = cachedSearchResult.Value;
+            Response.Headers["X-Search-Cache"] = cachedSearchResult.Hit ? "HIT" : "MISS";
+
+            IEnumerable<ShopProductCardViewModel> productsQuery = cachedSearch.Products;
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                productsQuery = productsQuery.Where(product => product.TenSP.Contains(keyword));
+                productsQuery = productsQuery.Where(product =>
+                    product.TenSP.Contains(keyword, StringComparison.OrdinalIgnoreCase));
             }
 
-            if (hasTopping)
+            if (hasTopping && !cachedSearch.HasAvailableToppings)
             {
-                productsQuery = productsQuery.Where(_ => _context.Products
-                    .Any(topping => topping.MaLoaiSP == 9 && topping.TrangThai && topping.SoLuongTon > 0));
+                productsQuery = Enumerable.Empty<ShopProductCardViewModel>();
             }
 
             if (minimumRating.HasValue)
@@ -153,7 +185,7 @@ namespace CoffeeShop.Controllers
                 _ => productsQuery.OrderBy(product => product.TenSP)
             };
 
-            var products = await productsQuery.ToListAsync();
+            var products = productsQuery.ToList();
 
             var viewModel = new ShopViewModel
             {
@@ -175,6 +207,36 @@ namespace CoffeeShop.Controllers
 
             return View(viewModel);
         }
+
+        private async Task<(T Value, bool Hit)> GetOrCreateSearchCacheAsync<T>(string cacheKey, Func<Task<T>> factory)
+            where T : class
+        {
+            if (_cache.TryGetValue(cacheKey, out T? cachedValue) && cachedValue is not null)
+            {
+                return (cachedValue, true);
+            }
+
+            await SearchCacheLock.WaitAsync();
+            try
+            {
+                if (_cache.TryGetValue(cacheKey, out cachedValue) && cachedValue is not null)
+                {
+                    return (cachedValue, true);
+                }
+
+                var value = await factory();
+                _cache.Set(cacheKey, value, TimeSpan.FromMinutes(5));
+                return (value, false);
+            }
+            finally
+            {
+                SearchCacheLock.Release();
+            }
+        }
+
+        private sealed record CachedShopSearch(
+            List<ShopProductCardViewModel> Products,
+            bool HasAvailableToppings);
 
         public async Task<IActionResult> Detail(int id)
         {
