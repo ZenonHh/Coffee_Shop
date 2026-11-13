@@ -109,7 +109,6 @@
                             <li><a asp-controller="Promotions" asp-action="Index" class="py-2 d-block">Ưu đãi & Điểm thưởng</a></li>
                             <li><a asp-controller="Account" asp-action="Profile" class="py-2 d-block">Tài khoản & Điểm tích lũy</a></li>
                             <li><a asp-controller="Account" asp-action="OrderHistory" class="py-2 d-block">Lịch sử đơn hàng</a></li>
-                            <li><a asp-area="Admin" asp-controller="@(User.IsInRole("Admin") ? "Dashboard" : "Orders")" asp-action="Index" class="py-2 d-block text-warning"><i class="icon-cog"></i> Cổng Quản Trị (Admin)</a></li>
                         </ul>
                     </div>
                 </div>
