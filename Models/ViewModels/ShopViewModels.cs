@@ -117,6 +117,10 @@ namespace CoffeeShop.Models.ViewModels
 
     public class CartViewModel
     {
+        private const decimal FirstDiscountThreshold = 200000m;
+        private const decimal SecondDiscountThreshold = 300000m;
+        private const decimal ThirdDiscountThreshold = 500000m;
+
         public List<CartItemViewModel> Items { get; set; } = new();
         public decimal SubTotal => Items.Sum(i => i.TotalPrice);
         public decimal ShippingFee { get; set; } = 0;
@@ -125,6 +129,28 @@ namespace CoffeeShop.Models.ViewModels
         public decimal DiscountAmount => AutomaticDiscountAmount + VoucherDiscountAmount;
         public string? VoucherCode { get; set; }
         public decimal GrandTotal => Math.Max(0, SubTotal + ShippingFee - DiscountAmount);
+        public decimal? NextAutomaticDiscountThreshold => SubTotal < FirstDiscountThreshold
+            ? FirstDiscountThreshold
+            : SubTotal < SecondDiscountThreshold
+                ? SecondDiscountThreshold
+                : SubTotal < ThirdDiscountThreshold
+                    ? ThirdDiscountThreshold
+                    : null;
+        public decimal? NextAutomaticDiscountAmount => SubTotal < FirstDiscountThreshold
+            ? 5000m
+            : SubTotal < SecondDiscountThreshold
+                ? 10000m
+                : SubTotal < ThirdDiscountThreshold
+                    ? 15000m
+                    : null;
+
+        public static decimal CalculateAutomaticDiscount(decimal subtotal) => subtotal switch
+        {
+            >= ThirdDiscountThreshold => 30000m,
+            >= SecondDiscountThreshold => 15000m,
+            >= FirstDiscountThreshold => 5000m,
+            _ => 0m
+        };
     }
 
     public class CheckoutViewModel

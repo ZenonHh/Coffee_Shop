@@ -490,6 +490,17 @@ body.shop-filter-open {
   white-space: nowrap;
 }
 
+.cart-page .cart-discount-suggestion {
+  margin: -0.35rem 0 0.9rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(196, 155, 99, 0.35);
+  border-radius: 4px;
+  background: rgba(196, 155, 99, 0.08);
+  color: #e6c997;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .checkout-page {
   padding: 4.5rem 0 5rem;
 }

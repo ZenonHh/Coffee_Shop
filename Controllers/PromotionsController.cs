@@ -30,9 +30,14 @@ namespace CoffeeShop.Controllers
                     .FirstOrDefaultAsync(c => c.TaiKhoan == User.Identity.Name);
             }
 
+            var customerId = customer?.MaKH;
             var allVouchers = await _context.Vouchers
                 .AsNoTracking()
-                .Where(v => v.TrangThai && (v.SoLuongToiDa <= 0 || v.SoLuongDaDung < v.SoLuongToiDa))
+                .Where(v => v.TrangThai
+                    && (v.SoLuongToiDa <= 0 || v.SoLuongDaDung < v.SoLuongToiDa)
+                    && (v.MaKH.HasValue
+                        ? customerId.HasValue && v.MaKH == customerId.Value
+                        : v.TenChuongTrinh == null || !v.TenChuongTrinh.StartsWith("Đổi điểm thưởng")))
                 .OrderByDescending(v => v.GiaTriGiam)
                 .ToListAsync();
 
@@ -142,6 +147,7 @@ namespace CoffeeShop.Controllers
             var newVoucher = new Voucher
             {
                 MaCode = voucherCode,
+                MaKH = customer.MaKH,
                 TenChuongTrinh = $"Đổi điểm thưởng ({reward.Title})",
                 PhanLoaiGiam = reward.RewardType,
                 GiaTriGiam = reward.DiscountAmount,

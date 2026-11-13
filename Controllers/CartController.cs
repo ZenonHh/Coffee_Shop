@@ -17,17 +17,23 @@ namespace CoffeeShop.Controllers
             _cartStore = cartStore;
         }
 
-        private static decimal CalculateAutomaticDiscount(decimal subtotal) => subtotal switch
+        private static bool IsPersonalVoucher(string? campaignName) =>
+            campaignName?.StartsWith("Đổi điểm thưởng", StringComparison.OrdinalIgnoreCase) == true;
+
+        private async Task<bool> IsVoucherAvailableToCurrentCustomer(int? ownerCustomerId, string? campaignName)
         {
-            >= 500000m => 30000m,
-            >= 300000m => 15000m,
-            >= 200000m => 5000m,
-            _ => 0m
-        };
+            if (!ownerCustomerId.HasValue)
+                return !IsPersonalVoucher(campaignName);
+
+            var username = User.Identity?.Name;
+            return !string.IsNullOrWhiteSpace(username)
+                && await _context.Customers.AnyAsync(customer =>
+                    customer.MaKH == ownerCustomerId.Value && customer.TaiKhoan == username);
+        }
 
         private async Task RefreshDiscounts(CartViewModel cart)
         {
-            cart.AutomaticDiscountAmount = Math.Min(CalculateAutomaticDiscount(cart.SubTotal), cart.SubTotal);
+            cart.AutomaticDiscountAmount = Math.Min(CartViewModel.CalculateAutomaticDiscount(cart.SubTotal), cart.SubTotal);
             cart.VoucherDiscountAmount = 0;
 
             if (string.IsNullOrWhiteSpace(cart.VoucherCode)) return;
@@ -37,6 +43,7 @@ namespace CoffeeShop.Controllers
             if (voucher == null || voucher.SoLuongDaDung >= voucher.SoLuongToiDa
                 || (voucher.NgayBatDau.HasValue && now < voucher.NgayBatDau.Value)
                 || (voucher.NgayKetThuc.HasValue && now > voucher.NgayKetThuc.Value)
+                || !await IsVoucherAvailableToCurrentCustomer(voucher.MaKH, voucher.TenChuongTrinh)
                 || cart.SubTotal < voucher.DonToiThieu)
             {
                 cart.VoucherCode = null;
@@ -175,7 +182,20 @@ namespace CoffeeShop.Controllers
             }
             await RefreshDiscounts(cart);
             await _cartStore.SaveCartAsync(cart);
-            return Json(new { success = true, cartCount = cart.Items.Sum(cartItem => cartItem.Quantity), subTotal = cart.SubTotal, automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal, itemTotal = item?.TotalPrice ?? 0, voucherCode = cart.VoucherCode });
+            return Json(new
+            {
+                success = true,
+                cartCount = cart.Items.Sum(cartItem => cartItem.Quantity),
+                subTotal = cart.SubTotal,
+                automaticDiscount = cart.AutomaticDiscountAmount,
+                nextDiscountThreshold = cart.NextAutomaticDiscountThreshold,
+                nextDiscountAmount = cart.NextAutomaticDiscountAmount,
+                voucherDiscount = cart.VoucherDiscountAmount,
+                discount = cart.DiscountAmount,
+                grandTotal = cart.GrandTotal,
+                itemTotal = item?.TotalPrice ?? 0,
+                voucherCode = cart.VoucherCode
+            });
         }
 
         [HttpPost]
@@ -205,6 +225,22 @@ namespace CoffeeShop.Controllers
             var normalizedCode = submittedCode.Trim().ToUpperInvariant();
             var voucher = await _context.Vouchers.FirstOrDefaultAsync(v => v.MaCode == normalizedCode && v.TrangThai);
             if (voucher == null || voucher.SoLuongDaDung >= voucher.SoLuongToiDa) return Json(new { success = false, message = "Mã giảm giá không hợp lệ, đã hết lượt hoặc đang tắt." });
+            if (!await IsVoucherAvailableToCurrentCustomer(voucher.MaKH, voucher.TenChuongTrinh))
+            {
+                cart.VoucherCode = null;
+                await RefreshDiscounts(cart);
+                await _cartStore.SaveCartAsync(cart);
+                return Json(new
+                {
+                    success = false,
+                    message = "Voucher cá nhân không thuộc tài khoản của bạn.",
+                    automaticDiscount = cart.AutomaticDiscountAmount,
+                    voucherDiscount = cart.VoucherDiscountAmount,
+                    discount = cart.DiscountAmount,
+                    grandTotal = cart.GrandTotal,
+                    voucherCode = cart.VoucherCode
+                });
+            }
             var now = DateTime.Now;
             if (voucher.NgayBatDau.HasValue && now < voucher.NgayBatDau.Value) return Json(new { success = false, message = $"Voucher bắt đầu từ {voucher.NgayBatDau.Value:dd/MM/yyyy HH:mm}." });
             if (voucher.NgayKetThuc.HasValue && now > voucher.NgayKetThuc.Value) return Json(new { success = false, message = "Voucher đã hết thời hạn sử dụng." });
@@ -213,7 +249,18 @@ namespace CoffeeShop.Controllers
             cart.VoucherCode = voucher.MaCode;
             await RefreshDiscounts(cart);
             await _cartStore.SaveCartAsync(cart);
-            return Json(new { success = true, discountAmount = cart.VoucherDiscountAmount, finalTotal = cart.GrandTotal, message = $"Đã áp dụng {voucher.MaCode}{(string.IsNullOrWhiteSpace(voucher.TenChuongTrinh) ? "" : $" - {voucher.TenChuongTrinh}")}.", automaticDiscount = cart.AutomaticDiscountAmount, voucherDiscount = cart.VoucherDiscountAmount, discount = cart.DiscountAmount, grandTotal = cart.GrandTotal });
+            return Json(new
+            {
+                success = true,
+                discountAmount = cart.VoucherDiscountAmount,
+                finalTotal = cart.GrandTotal,
+                message = $"Đã áp dụng {voucher.MaCode}{(string.IsNullOrWhiteSpace(voucher.TenChuongTrinh) ? "" : $" - {voucher.TenChuongTrinh}")}.",
+                automaticDiscount = cart.AutomaticDiscountAmount,
+                voucherDiscount = cart.VoucherDiscountAmount,
+                discount = cart.DiscountAmount,
+                grandTotal = cart.GrandTotal,
+                voucherCode = cart.VoucherCode
+            });
         }
 
         [HttpGet]

@@ -96,7 +96,17 @@
                             <span id="subTotalText">@Model.SubTotal.ToString("N0") đ</span>
                         </p>
                         <p class="d-flex justify-content-between text-white"><span>Ưu đãi theo giá trị đơn</span><span id="automaticDiscountText" class="text-success">-@Model.AutomaticDiscountAmount.ToString("N0") đ</span></p>
-                        <p class="d-flex justify-content-between text-white"><span>Voucher @(!string.IsNullOrWhiteSpace(Model.VoucherCode) ? "(" + Model.VoucherCode + ")" : "")</span><span id="voucherDiscountText" class="text-success">-@Model.VoucherDiscountAmount.ToString("N0") đ</span></p>
+                        <div id="automaticDiscountSuggestion" class="cart-discount-suggestion" role="status" aria-live="polite">
+                            @if (Model.NextAutomaticDiscountThreshold.HasValue && Model.NextAutomaticDiscountAmount.HasValue)
+                            {
+                                <span id="automaticDiscountSuggestionText">Thêm @((Model.NextAutomaticDiscountThreshold.Value - Model.SubTotal).ToString("N0")) đ để được giảm thêm @Model.NextAutomaticDiscountAmount.Value.ToString("N0") đ cho đơn từ @Model.NextAutomaticDiscountThreshold.Value.ToString("N0") đ.</span>
+                            }
+                            else
+                            {
+                                <span id="automaticDiscountSuggestionText">Bạn đã đạt mức ưu đãi cao nhất cho đơn hàng.</span>
+                            }
+                        </div>
+                        <p class="d-flex justify-content-between text-white"><span>Voucher <span id="voucherCodeLabel">@(!string.IsNullOrWhiteSpace(Model.VoucherCode) ? "(" + Model.VoucherCode + ")" : "")</span></span><span id="voucherDiscountText" class="text-success">-@Model.VoucherDiscountAmount.ToString("N0") đ</span></p>
                         <p class="d-flex justify-content-between text-white font-weight-bold"><span>Tổng giảm giá</span><span id="discountText" class="text-success">-@Model.DiscountAmount.ToString("N0") đ</span></p>
                         <p class="d-flex justify-content-between text-white">
                             <span>Phí giao hàng</span>
@@ -146,12 +156,25 @@
                     $('#subTotalText').text(res.subTotal.toLocaleString('vi-VN') + ' đ');
                     $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' đ');
                     $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateAutomaticDiscountSuggestion(res.subTotal, res.nextDiscountThreshold, res.nextDiscountAmount);
                     $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateVoucherCodeLabel(res.voucherCode);
                     $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
                     updateCartBadge();
                 }
             }
         });
+    }
+
+    function updateAutomaticDiscountSuggestion(subTotal, nextThreshold, nextDiscount) {
+        var message = nextThreshold && nextDiscount
+            ? 'Thêm ' + (nextThreshold - subTotal).toLocaleString('vi-VN') + ' đ để được giảm thêm ' + nextDiscount.toLocaleString('vi-VN') + ' đ cho đơn từ ' + nextThreshold.toLocaleString('vi-VN') + ' đ.'
+            : 'Bạn đã đạt mức ưu đãi cao nhất cho đơn hàng.';
+        $('#automaticDiscountSuggestionText').text(message);
+    }
+
+    function updateVoucherCodeLabel(code) {
+        $('#voucherCodeLabel').text(code ? '(' + code + ')' : '');
     }
 
     function applyVoucher() {
@@ -165,10 +188,13 @@
                 if (res.success) {
                     $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
                     $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateVoucherCodeLabel(res.voucherCode);
                     $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
                     $('#grandTotalText').text((res.grandTotal || 0).toLocaleString('vi-VN') + ' đ');
                 } else if (res.grandTotal !== undefined) {
                     $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateVoucherCodeLabel(res.voucherCode);
                     $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
                     $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' đ');
                 }

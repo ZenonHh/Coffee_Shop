@@ -90,7 +90,12 @@ namespace CoffeeShop.Controllers
                 return View("Index", model);
             }
 
-            cart.AutomaticDiscountAmount = Math.Min(CalculateAutomaticDiscount(cart.SubTotal), cart.SubTotal);
+            cart.AutomaticDiscountAmount = Math.Min(CartViewModel.CalculateAutomaticDiscount(cart.SubTotal), cart.SubTotal);
+            Customer? customerForOrder = null;
+            if (User.Identity?.IsAuthenticated == true)
+                customerForOrder = await FindCurrentCustomerAsync(tracking: true, cancellationToken);
+            var customerId = customerForOrder?.MaKH;
+
             Voucher? voucher = null;
             if (!string.IsNullOrWhiteSpace(cart.VoucherCode))
             {
@@ -100,6 +105,9 @@ namespace CoffeeShop.Controllers
                 if (voucher == null || voucher.SoLuongDaDung >= voucher.SoLuongToiDa
                     || (voucher.NgayBatDau.HasValue && now < voucher.NgayBatDau.Value)
                     || (voucher.NgayKetThuc.HasValue && now > voucher.NgayKetThuc.Value)
+                    || (voucher.MaKH.HasValue
+                        ? !customerId.HasValue || voucher.MaKH.Value != customerId.Value
+                        : IsPersonalVoucher(voucher.TenChuongTrinh))
                     || cart.SubTotal < voucher.DonToiThieu)
                 {
                     ModelState.AddModelError(string.Empty, "Voucher không còn hợp lệ. Vui lòng áp dụng lại mã giảm giá.");
@@ -119,11 +127,6 @@ namespace CoffeeShop.Controllers
             {
                 cart.VoucherDiscountAmount = 0;
             }
-
-            Customer? customerForOrder = null;
-            if (User.Identity?.IsAuthenticated == true)
-                customerForOrder = await FindCurrentCustomerAsync(tracking: true, cancellationToken);
-            var customerId = customerForOrder?.MaKH;
 
             var order = new Order();
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
@@ -285,13 +288,8 @@ namespace CoffeeShop.Controllers
                 : await query.FirstOrDefaultAsync(item => item.TaiKhoan == username, cancellationToken);
         }
 
-        private static decimal CalculateAutomaticDiscount(decimal subtotal) => subtotal switch
-        {
-            >= 500000m => 30000m,
-            >= 300000m => 15000m,
-            >= 200000m => 5000m,
-            _ => 0m
-        };
+        private static bool IsPersonalVoucher(string? campaignName) =>
+            campaignName?.StartsWith("Đổi điểm thưởng", StringComparison.OrdinalIgnoreCase) == true;
 
         private static Dictionary<int, int> GetStockRequirements(CartViewModel cart)
         {

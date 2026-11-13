@@ -28,6 +28,9 @@ public sealed class ApiVoucherController(CoffeeShopDbContext db) : ControllerBas
             .Where(item => item.TrangThai && item.SoLuongDaDung < item.SoLuongToiDa
                 && (!item.NgayBatDau.HasValue || item.NgayBatDau <= now)
                 && (!item.NgayKetThuc.HasValue || item.NgayKetThuc >= now))
+            .Where(item => item.MaKH.HasValue
+                ? item.MaKH == customerId
+                : item.TenChuongTrinh == null || !item.TenChuongTrinh.StartsWith("Đổi điểm thưởng"))
             .OrderBy(item => item.NgayKetThuc)
             .Select(item => new VoucherListResponse(
                 item.MaVoucher, item.MaCode, item.TenChuongTrinh, item.PhanLoaiGiam, item.GiaTriGiam,
@@ -99,6 +102,7 @@ public sealed class ApiVoucherController(CoffeeShopDbContext db) : ControllerBas
         var voucher = new Voucher
         {
             MaCode = voucherCode,
+            MaKH = customer.MaKH,
             TenChuongTrinh = $"Đổi điểm thưởng ({reward.Title})",
             PhanLoaiGiam = reward.RewardType,
             GiaTriGiam = reward.DiscountAmount,

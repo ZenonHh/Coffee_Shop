@@ -121,7 +121,7 @@
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <span class="badge badge-warning font-weight-bold" style="font-size: 14px; padding: 5px 10px;">@discountText</span>
-                                    <span class="badge badge-gold-outline">Đang áp dụng</span>
+                                    <span class="badge badge-gold-outline">@(v.MaKH.HasValue ? "Voucher cá nhân" : "Đang áp dụng")</span>
                                 </div>
                                 <h5 class="text-white font-weight-bold mb-2">@(string.IsNullOrWhiteSpace(v.TenChuongTrinh) ? "Mã giảm giá đơn hàng" : v.TenChuongTrinh)</h5>
                                 <p class="text-muted small mb-2">• Đơn tối thiểu: <strong>@v.DonToiThieu.ToString("N0") đ</strong></p>

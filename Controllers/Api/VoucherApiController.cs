@@ -20,6 +20,8 @@ public sealed class VoucherApiController(CoffeeShopDbContext db) : ControllerBas
             .Where(item => item.TrangThai && item.SoLuongDaDung < item.SoLuongToiDa
                 && (!item.NgayBatDau.HasValue || item.NgayBatDau <= now)
                 && (!item.NgayKetThuc.HasValue || item.NgayKetThuc >= now))
+            .Where(item => !item.MaKH.HasValue
+                && (item.TenChuongTrinh == null || !item.TenChuongTrinh.StartsWith("Đổi điểm thưởng")))
             .OrderBy(item => item.NgayKetThuc)
             .Select(item => new VoucherListResponse(
                 item.MaVoucher, item.MaCode, item.TenChuongTrinh, item.PhanLoaiGiam, item.GiaTriGiam,
@@ -37,7 +39,9 @@ public sealed class VoucherApiController(CoffeeShopDbContext db) : ControllerBas
     {
         var code = request.MaCode.Trim();
         var voucher = await db.Vouchers.AsNoTracking()
-            .Where(item => item.MaCode == code)
+            .Where(item => item.MaCode == code
+                && !item.MaKH.HasValue
+                && (item.TenChuongTrinh == null || !item.TenChuongTrinh.StartsWith("Đổi điểm thưởng")))
             .Select(item => new
             {
                 item.MaVoucher,

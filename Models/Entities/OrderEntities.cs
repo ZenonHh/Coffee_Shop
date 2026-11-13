@@ -9,6 +9,11 @@ namespace CoffeeShop.Models.Entities
         [Key]
         public int MaVoucher { get; set; }
 
+        public int? MaKH { get; set; }
+
+        [ForeignKey(nameof(MaKH))]
+        public virtual Customer? Customer { get; set; }
+
         [Required]
         [MaxLength(50)]
         public string MaCode { get; set; } = string.Empty;

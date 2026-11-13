@@ -111,7 +111,8 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
                 .Where(item => item.MaCode == code)
                 .Select(item => new
                 {
-                    item.MaVoucher, item.PhanLoaiGiam, item.GiaTriGiam, item.DonToiThieu,
+                        item.MaVoucher, item.MaKH, item.TenChuongTrinh,
+                        item.PhanLoaiGiam, item.GiaTriGiam, item.DonToiThieu,
                     item.GiamToiDa, item.NgayBatDau, item.NgayKetThuc, item.SoLuongDaDung,
                     item.SoLuongToiDa, item.TrangThai
                 })
@@ -120,6 +121,9 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
             if (voucher is null || !voucher.TrangThai || voucher.SoLuongDaDung >= voucher.SoLuongToiDa
                 || (voucher.NgayBatDau.HasValue && now < voucher.NgayBatDau.Value)
                 || (voucher.NgayKetThuc.HasValue && now > voucher.NgayKetThuc.Value)
+                    || (voucher.MaKH.HasValue
+                        ? voucher.MaKH.Value != customerId
+                        : voucher.TenChuongTrinh?.StartsWith("Đổi điểm thưởng", StringComparison.OrdinalIgnoreCase) == true)
                 || subtotal < voucher.DonToiThieu)
                 return BadRequest(new ProblemDetails { Status = 400, Title = "Voucher không hợp lệ" });
 
@@ -131,7 +135,7 @@ public sealed class OrderApiController(CoffeeShopDbContext db) : ControllerBase
             voucherId = voucher.MaVoucher;
 
             var reserved = await db.Vouchers
-                .Where(item => item.MaVoucher == voucher.MaVoucher && item.TrangThai
+                .Where(item => item.MaVoucher == voucher.MaVoucher && item.MaKH == voucher.MaKH && item.TrangThai
                     && item.SoLuongDaDung < item.SoLuongToiDa
                     && (!item.NgayBatDau.HasValue || item.NgayBatDau <= now)
                     && (!item.NgayKetThuc.HasValue || item.NgayKetThuc >= now))

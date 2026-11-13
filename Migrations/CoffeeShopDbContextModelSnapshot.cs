@@ -865,6 +865,9 @@ namespace CoffeeShop.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("MaKH")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("NgayBatDau")
                         .HasColumnType("datetime2");
 
@@ -890,6 +893,8 @@ namespace CoffeeShop.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("MaVoucher");
+
+                    b.HasIndex("MaKH");
 
                     b.ToTable("Voucher");
                 });
@@ -928,14 +933,14 @@ namespace CoffeeShop.Migrations
                         .WithMany("Orders")
                         .HasForeignKey("MaKH");
 
-                    b.HasOne("CoffeeShop.Models.Entities.Voucher", "Voucher")
-                        .WithMany()
-                        .HasForeignKey("MaVoucher")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("CoffeeShop.Models.Entities.StaffMember", "StaffMember")
                         .WithMany()
                         .HasForeignKey("MaNV")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("CoffeeShop.Models.Entities.Voucher", "Voucher")
+                        .WithMany()
+                        .HasForeignKey("MaVoucher")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Customer");
@@ -1162,6 +1167,16 @@ namespace CoffeeShop.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Survey");
+                });
+
+            modelBuilder.Entity("CoffeeShop.Models.Entities.Voucher", b =>
+                {
+                    b.HasOne("CoffeeShop.Models.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("MaKH")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("CoffeeShop.Models.Entities.Category", b =>
