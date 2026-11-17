@@ -193,6 +193,16 @@ public sealed class ApiService(HttpClient httpClient)
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
+    public async Task UpdateAddressAsync(
+        UpdateAddressRequest address, CancellationToken cancellationToken = default)
+    {
+        using var request = await CreateAuthorizedRequestAsync(
+            HttpMethod.Put, "api/mobile-user/address", cancellationToken);
+        request.Content = JsonContent.Create(address, options: JsonOptions);
+        using var response = await httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+    }
+
     public async Task ChangePasswordAsync(
         ChangePasswordRequest password, CancellationToken cancellationToken = default)
     {

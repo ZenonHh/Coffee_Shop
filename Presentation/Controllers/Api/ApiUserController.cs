@@ -56,6 +56,23 @@ public sealed class ApiUserController(CoffeeShopDbContext db) : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("address")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdateAddress(
+        UpdateMobileAddressRequest request,
+        CancellationToken cancellationToken)
+    {
+        var customerId = (int)HttpContext.Items["MobileCustomerId"]!;
+        var customer = await db.Customers
+            .FirstOrDefaultAsync(item => item.MaKH == customerId, cancellationToken);
+        if (customer is null)
+            return NotFound();
+
+        customer.DiaChi = string.IsNullOrWhiteSpace(request.DiaChi) ? null : request.DiaChi.Trim();
+        await db.SaveChangesAsync(cancellationToken);
+        return NoContent();
+    }
+
     [HttpPut("password")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -101,6 +118,12 @@ public sealed class ApiUserController(CoffeeShopDbContext db) : ControllerBase
         await db.SaveChangesAsync(cancellationToken);
         return NoContent();
     }
+}
+
+public sealed record UpdateMobileAddressRequest
+{
+    [StringLength(255)]
+    public string? DiaChi { get; init; }
 }
 
 public sealed record UpdateMobileProfileRequest

@@ -86,7 +86,7 @@
                         </VerticalStackLayout>
                         <Label Grid.Column="2" Text="›" TextColor="{StaticResource CoffeeMuted}" FontSize="24" VerticalOptions="Center" />
                         <Grid.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnFeatureTapped" CommandParameter="Address" />
+                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.NavigateToAddressBookCommand}" />
                         </Grid.GestureRecognizers>
                     </Grid>
                 </Border>

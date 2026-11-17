@@ -7,6 +7,7 @@ public sealed record CustomerProfile(
     string? DiaChi, int DiemTichLuy, string HangTV);
 
 public sealed record UpdateProfileRequest(string HoTen, string Sdt, string? Email, string? DiaChi);
+public sealed record UpdateAddressRequest(string? DiaChi);
 public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 public sealed record AuthResponse(string AccessToken, CustomerProfile Customer);
 public sealed record UsernameCheckResponse(bool Exists);

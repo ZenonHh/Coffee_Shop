@@ -43,3 +43,4 @@ nó giữ nguyên dữ liệu và đồng bộ tên một số bảng với mapp
 
 Với database cũ chưa có cột voucher gắn với khách hàng, chạy
 [`ScopeRedeemedVouchersToCustomers.sql`](ScopeRedeemedVouchersToCustomers.sql).
+Script này phải chạy trên đúng database mà API đang kết nối; ứng dụng không tự áp dụng migration khi khởi động. Nếu API báo `Invalid column name 'MaKH'`, chạy script trên bằng SSMS hoặc `sqlcmd`, sau đó khởi động lại API.

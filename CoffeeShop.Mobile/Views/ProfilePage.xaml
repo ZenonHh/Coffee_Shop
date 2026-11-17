@@ -40,8 +40,6 @@
             <Label x:Name="SignInPrompt" Text="Đăng nhập để xem thông tin hội viên và lịch sử đặt hàng."
                    TextColor="{StaticResource CoffeeMuted}" IsVisible="False" />
             <Button x:Name="SignInButton" Text="Đăng nhập" Clicked="OnSignInClicked" />
-            <Button x:Name="SignOutButton" Text="Đăng xuất" BackgroundColor="{StaticResource CoffeeSurface}" TextColor="{StaticResource CoffeeText}"
-                    BorderColor="{StaticResource CoffeeBorder}" BorderWidth="1" IsVisible="False" Clicked="OnSignOutClicked" />
             <Label Text="Hỗ trợ khách hàng" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource CoffeeText}" Margin="0,12,0,0" />
             <Label Text="Hotline: 1900 0000" TextColor="{StaticResource CoffeeMuted}" />
             <Label Text="Chính sách bảo mật  ·  Điều khoản sử dụng" TextColor="{StaticResource CoffeeMuted}" />

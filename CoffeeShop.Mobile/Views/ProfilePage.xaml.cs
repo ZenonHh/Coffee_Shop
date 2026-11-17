@@ -32,7 +32,6 @@ public partial class ProfilePage : ContentPage
             ProfileEditForm.IsVisible = false;
             SignInPrompt.IsVisible = !signedIn;
             SignInButton.IsVisible = !signedIn;
-            SignOutButton.IsVisible = signedIn;
             if (profile is null)
                 return;
             FullNameLabel.Text = profile.HoTen;
@@ -52,7 +51,6 @@ public partial class ProfilePage : ContentPage
             ProfileCard.IsVisible = false;
             SignInPrompt.IsVisible = true;
             SignInButton.IsVisible = true;
-            SignOutButton.IsVisible = false;
         }
         catch (Exception exception)
         {
@@ -126,9 +124,4 @@ public partial class ProfilePage : ContentPage
         }
     }
 
-    private async void OnSignOutClicked(object? sender, EventArgs e)
-    {
-        await _api.LogoutAsync();
-        await LoadProfileAsync();
-    }
 }

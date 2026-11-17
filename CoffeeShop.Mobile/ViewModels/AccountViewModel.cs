@@ -30,6 +30,9 @@ public partial class AccountViewModel : ObservableObject
     private async Task NavigateToVouchersAsync() => await Shell.Current.GoToAsync("//voucher");
 
     [RelayCommand]
+    private async Task NavigateToAddressBookAsync() => await Shell.Current.GoToAsync("address-book");
+
+    [RelayCommand]
     private async Task NavigateToFavoritesAsync() => await Shell.Current.GoToAsync("favorites");
 
     [RelayCommand]

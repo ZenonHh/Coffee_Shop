@@ -7,8 +7,7 @@
              BackgroundColor="#CC12100D">
     <Grid RowDefinitions="*,Auto">
         <Grid Grid.Row="0">
-            <Image Source="coffee_swirl.svg" Aspect="AspectFill" />
-            <BoxView Color="#6612100D" />
+            <BoxView Color="#FF12100D" />
             <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Padding="20">
                 <Label Text="KATINAT COFFEE" TextColor="{StaticResource CoffeeAccent}" CharacterSpacing="4"
                        FontSize="13" HorizontalOptions="Center" />

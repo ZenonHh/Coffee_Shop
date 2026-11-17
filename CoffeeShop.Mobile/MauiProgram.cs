@@ -40,6 +40,7 @@ public static class MauiProgram
         builder.Services.AddTransient<FavoritesPage>();
         builder.Services.AddTransient<OrderHistoryPage>();
         builder.Services.AddTransient<CartPage>();
+        builder.Services.AddTransient<AddressBookPage>();
 
         return builder.Build();
     }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CoffeeShop.Mobile.Views.AddressBookPage"
+             Title="Sổ địa chỉ"
+             BackgroundColor="{StaticResource AppBackground}">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+            <Label Text="Địa chỉ nhận hàng mặc định"
+                   FontSize="22" FontAttributes="Bold"
+                   TextColor="{StaticResource CoffeeText}" />
+            <Label Text="Địa chỉ này sẽ được dùng khi đặt giao hàng. Bạn có thể để trống để xóa địa chỉ mặc định."
+                   TextColor="{StaticResource CoffeeMuted}" />
+            <Editor x:Name="AddressEditor"
+                    Placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."
+                    AutoSize="TextChanges"
+                    MinimumHeightRequest="120"
+                    MaxLength="255"
+                    TextColor="{StaticResource CoffeeText}"
+                    PlaceholderColor="{StaticResource CoffeeMuted}"
+                    BackgroundColor="{StaticResource CoffeeSurface}" />
+            <Button x:Name="SaveButton"
+                    Text="Lưu địa chỉ"
+                    Clicked="OnSaveAddressClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
