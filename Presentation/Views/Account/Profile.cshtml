@@ -1,0 +1,190 @@
+@model CoffeeShop.Business.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Trang Cá Nhân & Điểm Tích Lũy - Katinat Coffee";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 670px; min-height: 670px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Hồ Sơ Khách Hàng</h1>
+                    <p class="breadcrumbs mb-0"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Tài khoản</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Message"]
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Thẻ Hội viên & Điểm tích lũy -->
+            <div class="col-lg-4 mb-4 ftco-animate">
+                <div class="p-3 rounded text-center" style="background: #171412; border: 1.5px solid rgba(196, 155, 99, 0.4); box-shadow: 0 8px 25px rgba(0,0,0,0.5);">
+                    <div class="rounded-circle d-inline-flex justify-content-center align-items-center mb-2" style="width: 64px; height: 64px; background: rgba(196, 155, 99, 0.15); border: 1.5px solid #c49b63;">
+                        <span class="icon-person" style="font-size: 32px; color: #c49b63;"></span>
+                    </div>
+                    <h5 class="text-white mb-1 font-weight-bold">@Model.Customer.HoTen</h5>
+                    <p class="text-muted mb-2 small">Tài khoản: @@(@Model.Customer.TaiKhoan)</p>
+
+                    <div class="p-2 rounded mb-2" style="background: #201a15; border: 1px solid rgba(196, 155, 99, 0.25);">
+                        <span class="text-muted d-block small" style="letter-spacing: 1px;">HẠNG THÀNH VIÊN</span>
+                        <h4 class="font-weight-bold mb-0" style="color: #c49b63;">@Model.Customer.HangTV</h4>
+                    </div>
+
+                    <div class="p-2 rounded" style="background: #201a15; border: 1px solid rgba(196, 155, 99, 0.25);">
+                        <span class="text-muted d-block small" style="letter-spacing: 1px;">ĐIỂM TÍCH LŨY HIỆN CÓ</span>
+                        <h3 class="font-weight-bold mb-0" style="color: #c49b63;">@Model.Customer.DiemTichLuy <small style="font-size: 14px;">điểm</small></h3>
+                        <small class="text-muted d-block mt-1">(Tích lũy 1 điểm mỗi 10.000 đ đơn hàng)</small>
+                    </div>
+                </div>
+
+                <!-- Lịch sử điểm -->
+                <div class="p-4 rounded mt-4" style="background: #171412; border: 1px solid rgba(196, 155, 99, 0.25);">
+                    <h5 class="text-white mb-3 font-weight-bold" style="color: #c49b63 !important;">Biến Động Điểm Gần Đây</h5>
+                    @if (Model.PointHistories.Any())
+                    {
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var point in Model.PointHistories)
+                            {
+                                <li class="border-bottom border-secondary pb-2 mb-2 text-light small d-flex justify-content-between">
+                                    <div>
+                                        <div>@point.LyDo</div>
+                                        <div class="text-muted" style="font-size: 11px;">@point.NgayThucHien.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                    <span class="text-success font-weight-bold">+@point.DiemThayDoi</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted small mb-0">Chưa có lịch sử cộng điểm nào.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Thông tin & bảo mật tài khoản -->
+            <div class="col-lg-8 ftco-animate">
+                <div id="profileReadView" class="p-3 bg-dark border border-secondary rounded mb-4 @(ViewBag.ShowProfileEdit == true ? "d-none" : string.Empty)">
+                    <h4 class="text-white mb-3">Thông Tin Cá Nhân</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <span class="text-muted d-block small">Họ và tên</span>
+                            <strong class="text-white">@Model.Customer.HoTen</strong>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <span class="text-muted d-block small">Tên đăng nhập</span>
+                            <strong class="text-white">@Model.Customer.TaiKhoan</strong>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <span class="text-muted d-block small">Số điện thoại</span>
+                            <strong class="text-white">@Model.Customer.Sdt</strong>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <span class="text-muted d-block small">Email</span>
+                            <strong class="text-white">@(string.IsNullOrWhiteSpace(Model.Customer.Email) ? "Chưa cập nhật" : Model.Customer.Email)</strong>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <span class="text-muted d-block small">Địa chỉ mặc định</span>
+                            <strong class="text-white">@(string.IsNullOrWhiteSpace(Model.Customer.DiaChi) ? "Chưa cập nhật" : Model.Customer.DiaChi)</strong>
+                        </div>
+                    </div>
+                    <button id="showProfileEdit" type="button" class="btn btn-primary py-2 px-3">Chỉnh sửa thông tin</button>
+                    <a asp-action="OrderHistory" class="btn btn-outline-primary py-2 px-3 ml-2">Lịch sử đơn hàng</a>
+                </div>
+
+                <div id="profileEditView" class="profile-edit-card p-3 bg-dark border border-secondary rounded mb-4 @(ViewBag.ShowProfileEdit == true ? string.Empty : "d-none")">
+                    <h4 class="text-white mb-3">Chỉnh Sửa Thông Tin</h4>
+                    <form asp-action="UpdateProfile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Họ và tên</label>
+                                <input asp-for="EditProfile.FullName" class="form-control" autocomplete="name" required />
+                                <span asp-validation-for="EditProfile.FullName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Số điện thoại</label>
+                                <input asp-for="EditProfile.Phone" class="form-control" type="tel" inputmode="numeric" autocomplete="tel" maxlength="10" required />
+                                <span asp-validation-for="EditProfile.Phone" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Email</label>
+                                <input asp-for="EditProfile.Email" class="form-control" type="email" autocomplete="email" />
+                                <span asp-validation-for="EditProfile.Email" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Địa chỉ mặc định</label>
+                                <input asp-for="EditProfile.Address" class="form-control" autocomplete="street-address" />
+                                <span asp-validation-for="EditProfile.Address" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="text-white">Tên đăng nhập</label>
+                                <input class="form-control" value="@Model.Customer.TaiKhoan" readonly aria-readonly="true" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary py-2 px-3">Lưu thay đổi</button>
+                        <button id="cancelProfileEdit" type="button" class="btn btn-outline-primary py-2 px-3 ml-2">Hủy bỏ</button>
+                    </form>
+                </div>
+
+                <div class="password-change-card p-3 bg-dark border border-secondary rounded mb-4">
+                    <h4 class="text-white mb-3">Đổi Mật Khẩu</h4>
+                    <form asp-action="ChangePassword" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <div class="form-group">
+                            <label class="text-white" asp-for="ChangePassword.CurrentPassword">Mật khẩu hiện tại</label>
+                            <input asp-for="ChangePassword.CurrentPassword" class="form-control" autocomplete="current-password" />
+                            <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="text-white" asp-for="ChangePassword.NewPassword">Mật khẩu mới</label>
+                            <input asp-for="ChangePassword.NewPassword" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="ChangePassword.NewPassword" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label class="text-white" asp-for="ChangePassword.ConfirmPassword">Xác nhận mật khẩu mới</label>
+                            <input asp-for="ChangePassword.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary py-2 px-4">Cập nhật mật khẩu</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    (() => {
+        const readView = document.getElementById("profileReadView");
+        const editView = document.getElementById("profileEditView");
+        document.getElementById("showProfileEdit")?.addEventListener("click", () => {
+            readView?.classList.add("d-none");
+            editView?.classList.remove("d-none");
+        });
+        document.getElementById("cancelProfileEdit")?.addEventListener("click", () => {
+            editView?.classList.add("d-none");
+            readView?.classList.remove("d-none");
+        });
+    })();
+</script>

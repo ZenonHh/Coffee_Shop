@@ -21,8 +21,8 @@
 
 | Lớp | Vai trò |
 |---|---|
-| Boundary | Razor Views: `Checkout/Index`, `Admin/Orders/Index` (bao gồm modal), `Admin/Orders/Details` |
-| Controller | `CheckoutController`, `Areas/Admin/OrdersController`: nhận request, xác thực ModelState, chọn View/điều hướng và thông báo |
+| Boundary | Razor Views: `Presentation/Views/Checkout/Index`, `Presentation/Areas/Admin/Views/Orders/Index` (bao gồm modal), `Presentation/Areas/Admin/Views/Orders/Details` |
+| Controller | `Presentation/Controllers/CheckoutController`, `Presentation/Areas/Admin/Controllers/OrdersController`: nhận request, xác thực ModelState, chọn View/điều hướng và thông báo |
 | Business logic | `OrderManagementService`: quy tắc chuyển trạng thái, tính tồn kho cần hoàn, giao dịch xác nhận/hủy |
-| Data access | `CoffeeShopDbContext`, EF Core và SQL Server `dbo.HoaDon`, `dbo.ChiTietHoaDon`, `dbo.ChiTietHoaDon_Topping`, `dbo.SanPham` |
-| ViewModel | `OrderListViewModel`, `OrderDetailViewModel`, `CancelOrderRequestModel`: dữ liệu tường minh giữa Boundary và Controller |
+| Data access | `Data/CoffeeShopDbContext`, entities trong `Data/Entities`, EF Core và SQL Server `dbo.HoaDon`, `dbo.ChiTietHoaDon`, `dbo.ChiTietHoaDon_Topping`, `dbo.SanPham` |
+| ViewModel | `Business/ViewModels/OrderViewModels.cs`: dữ liệu tường minh giữa Boundary và Controller |

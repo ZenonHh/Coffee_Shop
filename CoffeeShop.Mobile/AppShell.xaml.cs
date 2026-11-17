@@ -8,10 +8,10 @@ public partial class AppShell : Shell
     public AppShell(IServiceProvider services)
     {
         InitializeComponent();
-        HomeTab.Content = services.GetRequiredService<HomePage>();
-        VoucherTab.Content = services.GetRequiredService<VoucherPage>();
-        OrderTab.Content = services.GetRequiredService<MenuPage>();
-        AccountTab.Content = services.GetRequiredService<AccountPage>();
+        HomeTab.ContentTemplate = new DataTemplate(() => services.GetRequiredService<HomePage>());
+        VoucherTab.ContentTemplate = new DataTemplate(() => services.GetRequiredService<VoucherPage>());
+        OrderTab.ContentTemplate = new DataTemplate(() => services.GetRequiredService<MenuPage>());
+        AccountTab.ContentTemplate = new DataTemplate(() => services.GetRequiredService<AccountPage>());
 
         Routing.RegisterRoute("menu", typeof(MenuPage));
         Routing.RegisterRoute(nameof(MenuPage), typeof(MenuPage));

@@ -1,0 +1,847 @@
+@model CoffeeShop.Business.ViewModels.AdminDashboardViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+    var dailyRevenueJson = JsonSerializer.Serialize(Model.DailyStats.Any() ? Model.DailyStats : Model.DailyRevenues.Select(d => new CoffeeShop.Business.ViewModels.DashboardChartPeriodViewModel { Label = d.Date, Revenue = d.Revenue, OrderCount = d.OrderCount }));
+    var weeklyRevenueJson = JsonSerializer.Serialize(Model.WeeklyStats);
+    var monthlyRevenueJson = JsonSerializer.Serialize(Model.MonthlyStats);
+    var orderStatusJson = JsonSerializer.Serialize(Model.OrderStatusesList);
+    var topProductsJson = JsonSerializer.Serialize(Model.TopSellingProducts);
+    var customerTrendJson = JsonSerializer.Serialize(Model.CustomerTrend);
+    var satisfactionRatingsJson = JsonSerializer.Serialize(Model.SatisfactionRatings);
+    var surveyParticipationJson = JsonSerializer.Serialize(Model.SurveyParticipation);
+}
+
+<style>
+    .dashboard-status-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 9px;
+        background-color: #ffffff;
+        border: 1px solid #dcdcdc;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #333333;
+        transition: all 0.2s ease-in-out;
+        gap: 5px;
+        text-decoration: none !important;
+    }
+    .dashboard-status-filter-btn:hover {
+        background-color: #fcfaf7;
+        border-color: #6f4e37;
+        color: #6f4e37;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(111, 78, 55, 0.12);
+    }
+    .status-indicator-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .status-count-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 10px;
+        line-height: 1.2;
+    }
+    .kpi-stat-box {
+        padding: 8px 12px;
+        border-radius: 6px;
+        background: #fdfbf9;
+        border: 1px solid #f2ede8;
+    }
+</style>
+
+<!-- Số liệu cần theo dõi -->
+<div class="row mb-4 dashboard-overview">
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="col-md-3 col-sm-6">
+            <a asp-controller="Orders" asp-action="Index" asp-route-status="@CoffeeShop.Business.Services.OrderStatuses.Completed" class="card stat-card dashboard-card dashboard-card-revenue p-3 mb-3 text-decoration-none">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small mb-1">Tổng doanh thu</h6>
+                        <h3 class="font-weight-bold mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-2x opacity-50"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <a asp-controller="Orders" asp-action="Index" asp-route-status="@CoffeeShop.Business.Services.OrderStatuses.WaitingForConfirmation" class="card stat-card dashboard-card dashboard-card-orders p-3 mb-3 text-decoration-none">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase small mb-1">Đơn chờ xác nhận</h6>
+                        <h3 class="font-weight-bold mb-0">@Model.PendingOrderCount</h3>
+                    </div>
+                    <i class="fas fa-hourglass-half fa-2x opacity-50"></i>
+                </div>
+            </a>
+        </div>
+    }
+    <div class="col-md-3 col-sm-6">
+        <a asp-controller="KhachHang" asp-action="Index" class="card stat-card dashboard-card dashboard-card-customers p-3 mb-3 text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Khách hàng</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.TotalCustomerCount</h3>
+                </div>
+                <i class="fas fa-users fa-2x opacity-50"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a asp-controller="Feedback" asp-action="Index" asp-route-tab="reviews" asp-route-status="pending" class="card stat-card dashboard-card dashboard-card-feedback p-3 mb-3 text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Đánh giá chưa phản hồi</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.PendingReviewCount</h3>
+                </div>
+                <i class="fas fa-inbox fa-2x opacity-50"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a asp-controller="Feedback" asp-action="Index" asp-route-tab="contacts" asp-route-status="pending" class="card stat-card dashboard-card dashboard-card-feedback p-3 mb-3 text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Góp ý chưa xử lý</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.PendingContactCount</h3>
+                </div>
+                <i class="fas fa-comment-dots fa-2x opacity-50"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <a asp-controller="Surveys" asp-action="Index" asp-route-state="active" class="card stat-card dashboard-card dashboard-card-products p-3 mb-3 text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase small mb-1">Khảo sát đang mở</h6>
+                    <h3 class="font-weight-bold mb-0">@Model.ActiveSurveyCount</h3>
+                </div>
+                <i class="fas fa-poll fa-2x opacity-50"></i>
+            </div>
+        </a>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin"))
+{
+    <!-- Khu vực Biểu đồ Thống kê Dashboard -->
+    <div class="row mb-4">
+        <!-- Biểu đồ Doanh thu & Đơn hàng linh hoạt theo Ngày / Tuần / Tháng -->
+        <div class="col-lg-8 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom flex-wrap" style="gap: 10px;">
+                    <div>
+                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-chart-line mr-2 text-warning"></i>Doanh thu &amp; Số đơn hàng
+                        </h5>
+                        <small class="text-muted" id="chartPeriodSubtitle">Thống kê biến động dòng tiền và số lượng đơn hàng (7 ngày qua)</small>
+                    </div>
+                    <div class="d-flex align-items-center" style="gap: 8px;">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc chu kỳ">
+                            <button type="button" class="btn btn-sm btn-primary js-period-toggle active font-weight-bold" data-period="daily" style="font-size: 12px; padding: 4px 11px;">Theo Ngày</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary js-period-toggle font-weight-bold" data-period="weekly" style="font-size: 12px; padding: 4px 11px;">Theo Tuần</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary js-period-toggle font-weight-bold" data-period="monthly" style="font-size: 12px; padding: 4px 11px;">Theo Tháng</button>
+                        </div>
+                        <span class="badge badge-pill badge-light px-3 py-2 border d-none d-md-inline" id="chartPeriodBadge">7 ngày gần nhất</span>
+                    </div>
+                </div>
+
+                <!-- KPI Tóm tắt nhanh trong kỳ đã chọn -->
+                <div class="px-3 pt-3 pb-0">
+                    <div class="row no-gutters p-2 rounded text-center kpi-stat-box">
+                        <div class="col-4 border-right py-1">
+                            <span class="text-muted d-block small" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Doanh thu kỳ</span>
+                            <strong class="h6 mb-0 font-weight-bold" id="kpiPeriodRevenue" style="color: #6f4e37; font-size: 15px;">--</strong>
+                        </div>
+                        <div class="col-4 border-right py-1">
+                            <span class="text-muted d-block small" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Tổng số đơn</span>
+                            <strong class="h6 mb-0 font-weight-bold" id="kpiPeriodOrders" style="color: #2563eb; font-size: 15px;">--</strong>
+                        </div>
+                        <div class="col-4 py-1">
+                            <span class="text-muted d-block small" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">TB mỗi đơn</span>
+                            <strong class="h6 mb-0 font-weight-bold" id="kpiPeriodAOV" style="color: #16a34a; font-size: 15px;">--</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body pt-2">
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="revenueOrdersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ Cơ cấu trạng thái đơn hàng (Đồng bộ chuẩn 5 mục) -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-chart-pie mr-2 text-info"></i>Trạng thái đơn hàng
+                        </h5>
+                        <small class="text-muted">Đồng bộ 5 bước quy trình đơn hàng</small>
+                    </div>
+                    <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size: 11.5px; padding: 2px 8px;">
+                        Quản lý đơn
+                    </a>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-between p-3">
+                    <div style="position: relative; height: 210px; width: 100%;">
+                        <canvas id="orderStatusChart"></canvas>
+                        <div id="orderStatusCenterText" class="position-absolute text-center" style="top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                            <span class="text-muted d-block" style="font-size: 10.5px; text-transform: uppercase; line-height: 1;">Tổng cộng</span>
+                            <strong class="font-weight-bold" id="orderStatusCenterTotal" style="font-size: 20px; color: var(--ink, #28251f);">@Model.OrderStatusesList.Sum(s => s.Count)</strong>
+                            <small class="text-muted d-block" style="font-size: 10.5px; line-height: 1;">đơn hàng</small>
+                        </div>
+                    </div>
+
+                    <!-- 5 nút trạng thái đồng bộ chính xác với bộ lọc đơn hàng -->
+                    <div class="order-status-dashboard-list mt-3 pt-2 border-top">
+                        <div class="d-flex flex-wrap justify-content-center" style="gap: 6px;">
+                            @foreach (var st in Model.OrderStatusesList)
+                            {
+                                <a asp-controller="Orders" asp-action="Index" asp-route-status="@st.Status" 
+                                   class="dashboard-status-filter-btn" 
+                                   title="Bấm để mở danh sách đơn: @st.Status">
+                                    <span class="status-indicator-dot" style="background-color: @st.Color;"></span>
+                                    <span class="status-title font-weight-bold">@st.Status</span>
+                                    <span class="status-count-badge" style="background-color: @(st.Color)20; color: @st.Color;">@st.Count</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hàng 2: Top 5 Món uống bán chạy nhất & Đánh giá mức độ hài lòng khách hàng CSAT (đã xóa Lối tắt nghiệp vụ theo yêu cầu) -->
+    <div class="row mb-4">
+        <!-- Biểu đồ Top 5 sản phẩm bán chạy -->
+        <div class="col-lg-7 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <div>
+                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-coffee mr-2 text-success"></i>Top 5 Món uống bán chạy nhất
+                        </h5>
+                        <small class="text-muted">Dựa trên các đơn hàng hợp lệ trong hệ thống</small>
+                    </div>
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size: 12px;">Xem kho món</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.TopSellingProducts.Any())
+                    {
+                        <div style="position: relative; height: 270px; width: 100%;">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3 text-secondary opacity-50"></i>
+                            <p class="mb-0">Chưa có đủ dữ liệu đơn hàng để xếp hạng món.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Mức độ hài lòng của khách hàng (CSAT) -->
+        <div class="col-lg-5 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <div>
+                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-star mr-2 text-warning"></i>Mức độ hài lòng CSAT
+                        </h5>
+                        <small class="text-muted">Đánh giá khách hàng trong 30 ngày gần nhất</small>
+                    </div>
+                    <a asp-controller="Feedback" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size: 12px;">Xem góp ý</a>
+                </div>
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                        <div>
+                            <span class="text-muted small d-block">Điểm hài lòng trung bình</span>
+                            <div class="d-flex align-items-baseline">
+                                <h2 class="font-weight-bold mb-0 text-warning mr-2">
+                                    @(Model.AverageSatisfaction.HasValue ? Model.AverageSatisfaction.Value.ToString("0.0") : "5.0")
+                                </h2>
+                                <span class="text-muted small">/ 5.0 ⭐</span>
+                            </div>
+                        </div>
+                        <span class="badge badge-light border px-3 py-2 font-weight-bold" style="font-size: 12px;">
+                            @Model.SatisfactionResponseCount lượt đánh giá
+                        </span>
+                    </div>
+                    @if (Model.SatisfactionResponseCount > 0)
+                    {
+                        <div style="position: relative; height: 190px; width: 100%;">
+                            <canvas id="satisfactionChart"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="far fa-smile fa-3x mb-2 text-warning opacity-50"></i>
+                            <p class="mb-0 small">Chưa có đánh giá trong 30 ngày gần nhất.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row dashboard-crm-charts">
+        <div class="col-lg-7 mb-4">
+            <section class="dashboard-chart-card h-100">
+                <div class="dashboard-chart-heading">
+                    <div>
+                        <h2><i class="fas fa-user-plus" aria-hidden="true"></i> Khách hàng mới</h2>
+                        <p>Lượng khách đăng ký trong 7 ngày gần nhất</p>
+                    </div>
+                    <span class="dashboard-chart-period">7 ngày</span>
+                </div>
+                <div class="dashboard-chart-body">
+                    <canvas id="customerTrendChart" aria-label="Biểu đồ khách hàng mới trong 7 ngày gần nhất"></canvas>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-5 mb-4">
+            <section class="dashboard-chart-card h-100">
+                <div class="dashboard-chart-heading">
+                    <div>
+                        <h2><i class="fas fa-star" aria-hidden="true"></i> Mức độ hài lòng</h2>
+                        <p>Phân bố đánh giá trong 30 ngày gần nhất</p>
+                    </div>
+                    <strong class="dashboard-satisfaction-score">
+                        @(Model.AverageSatisfaction.HasValue ? Model.AverageSatisfaction.Value.ToString("0.0") : "—")
+                        <small>/ 5</small>
+                    </strong>
+                </div>
+                @if (Model.SatisfactionResponseCount > 0)
+                {
+                    <div class="dashboard-chart-body dashboard-chart-body-doughnut">
+                        <canvas id="satisfactionChart" aria-label="Biểu đồ phân bố đánh giá hài lòng"></canvas>
+                    </div>
+                    <p class="dashboard-chart-footnote">@Model.SatisfactionResponseCount lượt đánh giá</p>
+                }
+                else
+                {
+                    <div class="dashboard-chart-empty">
+                        <i class="far fa-comment-dots" aria-hidden="true"></i>
+                        <span>Chưa có đánh giá trong 30 ngày gần nhất.</span>
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-12 mb-4">
+            <section class="dashboard-chart-card">
+                <div class="dashboard-chart-heading">
+                    <div>
+                        <h2><i class="fas fa-poll" aria-hidden="true"></i> Hiệu quả khảo sát</h2>
+                        <p>Tỷ lệ khách hàng hoàn thành các khảo sát đang mở</p>
+                    </div>
+                    <a asp-area="Admin" asp-controller="Surveys" asp-action="Index" class="dashboard-chart-link">Quản lý khảo sát <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                </div>
+                @if (Model.SurveyParticipation.Any())
+                {
+                    <div class="dashboard-chart-body dashboard-chart-body-surveys" style="height:@Math.Max(220, Model.SurveyParticipation.Count * 58)px">
+                        <canvas id="surveyParticipationChart" aria-label="Biểu đồ tỷ lệ tham gia khảo sát đang mở"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="dashboard-chart-empty dashboard-chart-empty-compact">
+                        <i class="far fa-clipboard" aria-hidden="true"></i>
+                        <span>Hiện chưa có khảo sát nào đang mở.</span>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+}
+
+<script type="application/json" id="dashboard-daily-revenue-data">@Html.Raw(dailyRevenueJson)</script>
+<script type="application/json" id="dashboard-weekly-revenue-data">@Html.Raw(weeklyRevenueJson)</script>
+<script type="application/json" id="dashboard-monthly-revenue-data">@Html.Raw(monthlyRevenueJson)</script>
+<script type="application/json" id="dashboard-order-status-data">@Html.Raw(orderStatusJson)</script>
+<script type="application/json" id="dashboard-top-products-data">@Html.Raw(topProductsJson)</script>
+<script type="application/json" id="dashboard-customer-trend-data">@Html.Raw(customerTrendJson)</script>
+<script type="application/json" id="dashboard-satisfaction-data">@Html.Raw(satisfactionRatingsJson)</script>
+<script type="application/json" id="dashboard-survey-participation-data">@Html.Raw(surveyParticipationJson)</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            if (typeof Chart === 'undefined') return;
+
+            var dailyEl = document.getElementById('dashboard-daily-revenue-data');
+            var weeklyEl = document.getElementById('dashboard-weekly-revenue-data');
+            var monthlyEl = document.getElementById('dashboard-monthly-revenue-data');
+            var statusDataEl = document.getElementById('dashboard-order-status-data');
+            var topProductsDataEl = document.getElementById('dashboard-top-products-data');
+            var customerTrendDataEl = document.getElementById('dashboard-customer-trend-data');
+            var satisfactionDataEl = document.getElementById('dashboard-satisfaction-data');
+            var surveyParticipationDataEl = document.getElementById('dashboard-survey-participation-data');
+
+            var datasets = {
+                daily: dailyEl ? JSON.parse(dailyEl.textContent || '[]') : [],
+                weekly: weeklyEl ? JSON.parse(weeklyEl.textContent || '[]') : [],
+                monthly: monthlyEl ? JSON.parse(monthlyEl.textContent || '[]') : []
+            };
+
+            var statusData = statusDataEl ? JSON.parse(statusDataEl.textContent || '[]') : [];
+            var topProducts = topProductsDataEl ? JSON.parse(topProductsDataEl.textContent || '[]') : [];
+            var customerTrend = customerTrendDataEl ? JSON.parse(customerTrendDataEl.textContent || '[]') : [];
+            var satisfactionRatings = satisfactionDataEl ? JSON.parse(satisfactionDataEl.textContent || '[]') : [];
+            var surveyParticipation = surveyParticipationDataEl ? JSON.parse(surveyParticipationDataEl.textContent || '[]') : [];
+
+            var primary = '#6f4e37'; // Katinat coffee brown
+            var secondary = '#c49b63'; // Katinat gold
+            var ink = '#28251f';
+            var muted = '#8e8981';
+            var line = '#efede9';
+
+            Chart.defaults.font.family = "'DM Sans', sans-serif";
+            Chart.defaults.color = ink;
+
+            var customerTrendCanvas = document.getElementById('customerTrendChart');
+            if (customerTrendCanvas && customerTrend.length > 0) {
+                new Chart(customerTrendCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: customerTrend.map(function (item) { return item.Date; }),
+                        datasets: [{
+                            label: 'Khách hàng mới',
+                            data: customerTrend.map(function (item) { return item.CustomerCount; }),
+                            borderColor: primary,
+                            backgroundColor: 'rgba(196, 155, 99, 0.18)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: secondary,
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { precision: 0 },
+                                grid: { color: line }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) { return ' ' + ctx.parsed.y + ' khách hàng mới'; }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var satisfactionCanvas = document.getElementById('satisfactionChart');
+            if (satisfactionCanvas && satisfactionRatings.length > 0) {
+                new Chart(satisfactionCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: satisfactionRatings.map(function (item) { return item.Rating + ' sao'; }),
+                        datasets: [{
+                            data: satisfactionRatings.map(function (item) { return item.Count; }),
+                            backgroundColor: ['#c97a67', '#dca578', '#e3c36f', '#9bb58b', '#5f997c'],
+                            borderColor: '#fff',
+                            borderWidth: 3,
+                            hoverOffset: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { usePointStyle: true, pointStyle: 'circle', padding: 18 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var surveyParticipationCanvas = document.getElementById('surveyParticipationChart');
+            if (surveyParticipationCanvas && surveyParticipation.length > 0) {
+                new Chart(surveyParticipationCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: surveyParticipation.map(function (item) { return item.Title; }),
+                        datasets: [{
+                            label: 'Đã hoàn thành',
+                            data: surveyParticipation.map(function (item) { return item.ResponseCount; }),
+                            backgroundColor: secondary,
+                            borderRadius: 5,
+                            barThickness: 18
+                        }, {
+                            label: 'Chưa hoàn thành',
+                            data: surveyParticipation.map(function (item) { return Math.max(item.TargetCount - item.ResponseCount, 0); }),
+                            backgroundColor: '#eee8e2',
+                            borderRadius: 5,
+                            barThickness: 18
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { stacked: true, beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } },
+                            y: { stacked: true, grid: { display: false } }
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle' } },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        var survey = surveyParticipation[ctx.dataIndex];
+                                        return ' ' + ctx.dataset.label + ': ' + ctx.parsed.x
+                                            + (ctx.datasetIndex === 0 ? ' (' + survey.Percentage + '%)' : '');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 1. BIỂU ĐỒ DOANH THU & SỐ ĐƠN (COMBO CHART CÓ CHỌN NGÀY / TUẦN / THÁNG)
+            var revCanvas = document.getElementById('revenueOrdersChart');
+            var revenueChart = null;
+
+            function updatePeriodKpis(dataArray) {
+                var totalRev = 0;
+                var totalOrders = 0;
+                dataArray.forEach(function (item) {
+                    totalRev += (item.Revenue || 0);
+                    totalOrders += (item.OrderCount || 0);
+                });
+                var aov = totalOrders > 0 ? Math.round(totalRev / totalOrders) : 0;
+
+                var revEl = document.getElementById('kpiPeriodRevenue');
+                var ordersEl = document.getElementById('kpiPeriodOrders');
+                var aovEl = document.getElementById('kpiPeriodAOV');
+
+                if (revEl) revEl.textContent = totalRev.toLocaleString('vi-VN') + ' đ';
+                if (ordersEl) ordersEl.textContent = totalOrders.toLocaleString('vi-VN') + ' đơn';
+                if (aovEl) aovEl.textContent = aov.toLocaleString('vi-VN') + ' đ/đơn';
+            }
+
+            function getPeriodMax(dataArray) {
+                var maxRev = 0;
+                var maxOrders = 0;
+                dataArray.forEach(function (item) {
+                    if (item.Revenue > maxRev) maxRev = item.Revenue;
+                    if (item.OrderCount > maxOrders) maxOrders = item.OrderCount;
+                });
+                return {
+                    suggestedMaxRevenue: maxRev > 0 ? Math.ceil((maxRev * 1.2) / 100000) * 100000 : 500000,
+                    suggestedMaxOrders: maxOrders > 0 ? Math.max(5, maxOrders + 1) : 5
+                };
+            }
+
+            if (revCanvas) {
+                var initialData = datasets.daily;
+                var initLimits = getPeriodMax(initialData);
+                updatePeriodKpis(initialData);
+
+                var revCtx = revCanvas.getContext('2d');
+                var revGradient = revCtx.createLinearGradient(0, 0, 0, 280);
+                revGradient.addColorStop(0, 'rgba(196, 155, 99, 0.32)');
+                revGradient.addColorStop(1, 'rgba(196, 155, 99, 0.01)');
+
+                revenueChart = new Chart(revCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: initialData.map(function (item) { return item.Label; }),
+                        datasets: [
+                            {
+                                type: 'line',
+                                label: 'Doanh thu',
+                                data: initialData.map(function (item) { return item.Revenue; }),
+                                borderColor: secondary,
+                                backgroundColor: revGradient,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.38,
+                                pointBackgroundColor: '#ffffff',
+                                pointBorderColor: secondary,
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 7,
+                                pointHoverBackgroundColor: secondary,
+                                pointHoverBorderColor: '#ffffff',
+                                pointHoverBorderWidth: 2,
+                                yAxisID: 'y'
+                            },
+                            {
+                                type: 'bar',
+                                label: 'Số đơn hàng',
+                                data: initialData.map(function (item) { return item.OrderCount; }),
+                                backgroundColor: 'rgba(111, 78, 55, 0.75)',
+                                hoverBackgroundColor: '#6f4e37',
+                                borderColor: '#6f4e37',
+                                borderWidth: 1,
+                                borderRadius: 6,
+                                maxBarThickness: 32,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: ink, font: { weight: '500' } }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                beginAtZero: true,
+                                suggestedMin: 0,
+                                suggestedMax: initLimits.suggestedMaxRevenue,
+                                grid: { color: line },
+                                ticks: {
+                                    color: muted,
+                                    callback: function (val) {
+                                        if (val === 0) return '0 đ';
+                                        if (val >= 1000000) {
+                                            return (val / 1000000).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + ' tr';
+                                        }
+                                        if (val >= 1000) {
+                                            return (val / 1000).toLocaleString('vi-VN', { maximumFractionDigits: 0 }) + ' k';
+                                        }
+                                        return Number(val).toLocaleString('vi-VN') + ' đ';
+                                    }
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                beginAtZero: true,
+                                suggestedMin: 0,
+                                suggestedMax: initLimits.suggestedMaxOrders,
+                                grid: { drawOnChartArea: false },
+                                ticks: {
+                                    precision: 0,
+                                    stepSize: 1,
+                                    color: primary,
+                                    callback: function (val) {
+                                        if (Number.isInteger(val)) return val + ' đơn';
+                                        return '';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                align: 'end',
+                                labels: {
+                                    usePointStyle: true,
+                                    boxWidth: 10,
+                                    font: { size: 12, weight: '500' }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(40, 37, 31, 0.94)',
+                                titleFont: { size: 13, weight: 'bold' },
+                                bodyFont: { size: 12 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (ctx) {
+                                        if (ctx.datasetIndex === 0) {
+                                            return '  💰 Doanh thu: ' + Number(ctx.parsed.y).toLocaleString('vi-VN') + ' đ';
+                                        } else {
+                                            return '  📦 Số đơn hàng: ' + ctx.parsed.y + ' đơn';
+                                        }
+                                    },
+                                    afterBody: function (items) {
+                                        var revItem = items.find(function(it) { return it.datasetIndex === 0; });
+                                        var ordItem = items.find(function(it) { return it.datasetIndex === 1; });
+                                        if (revItem && ordItem && ordItem.parsed.y > 0) {
+                                            var aov = Math.round(revItem.parsed.y / ordItem.parsed.y);
+                                            return '  🏷️ TB mỗi đơn: ' + aov.toLocaleString('vi-VN') + ' đ/đơn';
+                                        }
+                                        return '';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Xử lý chuyển đổi linh hoạt Theo Ngày / Theo Tuần / Theo Tháng
+                var buttons = document.querySelectorAll('.js-period-toggle');
+                var subtitleEl = document.getElementById('chartPeriodSubtitle');
+                var badgeEl = document.getElementById('chartPeriodBadge');
+
+                buttons.forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        var period = this.getAttribute('data-period');
+                        var data = datasets[period] || [];
+                        if (!revenueChart || data.length === 0) return;
+
+                        buttons.forEach(function (b) {
+                            b.classList.remove('btn-primary', 'active');
+                            b.classList.add('btn-outline-secondary');
+                        });
+                        this.classList.remove('btn-outline-secondary');
+                        this.classList.add('btn-primary', 'active');
+
+                        var limits = getPeriodMax(data);
+                        revenueChart.data.labels = data.map(function (item) { return item.Label; });
+                        revenueChart.data.datasets[0].data = data.map(function (item) { return item.Revenue; });
+                        revenueChart.data.datasets[1].data = data.map(function (item) { return item.OrderCount; });
+
+                        revenueChart.options.scales.y.suggestedMax = limits.suggestedMaxRevenue;
+                        revenueChart.options.scales.y1.suggestedMax = limits.suggestedMaxOrders;
+                        revenueChart.update();
+
+                        updatePeriodKpis(data);
+
+                        if (period === 'daily') {
+                            if (subtitleEl) subtitleEl.textContent = 'Thống kê biến động dòng tiền và số lượng đơn hàng (7 ngày qua)';
+                            if (badgeEl) badgeEl.textContent = '7 ngày gần nhất';
+                        } else if (period === 'weekly') {
+                            if (subtitleEl) subtitleEl.textContent = 'Thống kê biến động dòng tiền và số lượng đơn hàng theo từng tuần (8 tuần gần nhất)';
+                            if (badgeEl) badgeEl.textContent = '8 tuần gần nhất';
+                        } else if (period === 'monthly') {
+                            if (subtitleEl) subtitleEl.textContent = 'Thống kê biến động dòng tiền và số lượng đơn hàng theo từng tháng (6 tháng gần nhất)';
+                            if (badgeEl) badgeEl.textContent = '6 tháng gần nhất';
+                        }
+                    });
+                });
+            }
+
+            // 2. BIỂU ĐỒ TRẠNG THÁI ĐƠN HÀNG (DOUGHNUT)
+            var statusCanvas = document.getElementById('orderStatusChart');
+            if (statusCanvas && statusData.length > 0) {
+                var statusLabels = statusData.map(function (item) { return item.Status; });
+                var statusCounts = statusData.map(function (item) { return item.Count; });
+                var statusColors = statusData.map(function (item) { return item.Color || '#8e8981'; });
+
+                new Chart(statusCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusCounts,
+                            backgroundColor: statusColors,
+                            borderWidth: 2,
+                            borderColor: '#ffffff',
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false // Đã hiển thị dạng 5 nút bấm chọn lọc ngay bên dưới biểu đồ
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(40, 37, 31, 0.94)',
+                                padding: 10,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function (ctx) {
+                                        var total = statusCounts.reduce(function (a, b) { return a + b; }, 0);
+                                        var pct = total > 0 ? Math.round((ctx.parsed / total) * 100) : 0;
+                                        return ' ' + ctx.label + ': ' + ctx.parsed + ' đơn (' + pct + '%)';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '72%'
+                    }
+                });
+            }
+
+            // 3. BIỂU ĐỒ TOP SẢN PHẨM BÁN CHẠY (HORIZONTAL BAR)
+            var topCanvas = document.getElementById('topProductsChart');
+            if (topCanvas && topProducts.length > 0) {
+                var productNames = topProducts.map(function (item) { return item.ProductName; });
+                var productQuantities = topProducts.map(function (item) { return item.QuantitySold; });
+
+                new Chart(topCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: productNames,
+                        datasets: [{
+                            label: 'Số ly đã bán',
+                            data: productQuantities,
+                            backgroundColor: '#c49b63',
+                            borderRadius: 6,
+                            maxBarThickness: 24
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                precision: 0,
+                                grid: { color: line },
+                                ticks: { precision: 0, color: muted }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { color: ink }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        var item = topProducts[ctx.dataIndex];
+                                        return ' Đã bán: ' + ctx.parsed.x + ' ly (Thu: ' + Number(item.TotalAmount).toLocaleString('vi-VN') + ' đ)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
+}

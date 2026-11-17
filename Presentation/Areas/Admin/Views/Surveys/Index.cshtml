@@ -1,0 +1,517 @@
+@model CoffeeShop.Business.ViewModels.SurveyAdminIndexViewModel
+@{
+    ViewData["Title"] = "Quản lý khảo sát";
+    var editor = Model.Editor;
+    var customers = Model.Customers;
+    var selectedCustomers = editor.MaKH.ToHashSet();
+    var audienceInterests = customers.SelectMany(customer => customer.Interests).Distinct().OrderBy(item => item).ToList();
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Quản lý khảo sát</h1>
+        <p>Thiết lập đối tượng nhận, câu hỏi và theo dõi kết quả khảo sát.</p>
+    </div>
+    <button type="button" class="button button-primary survey-primary-action" data-toggle="modal" data-target="#createSurveyModal">
+        + Tạo khảo sát
+    </button>
+</div>
+
+<section class="panel table-panel">
+    <div class="panel-heading table-heading table-card-header">
+        <div>
+            <h2>Danh sách khảo sát</h2>
+            <p>Ngay khi có ít nhất một câu trả lời, câu hỏi và đối tượng nhận sẽ bị khóa để bảo toàn dữ liệu; vẫn có thể sửa tiêu đề, mô tả và thời gian.</p>
+        </div>
+        <form asp-action="Index" method="get" class="survey-state-filter">
+            <label for="surveyState" class="sr-only">Lọc theo trạng thái khảo sát</label>
+            <select id="surveyState" name="state" class="form-control">
+                <option value="all" selected="@(Model.State == "all")">Tất cả trạng thái</option>
+                <option value="active" selected="@(Model.State == "active")">Đang mở</option>
+                <option value="draft" selected="@(Model.State == "draft")">Nháp</option>
+                <option value="ended" selected="@(Model.State == "ended")">Đã kết thúc</option>
+            </select>
+            <button type="submit" class="button button-outline">Lọc</button>
+        </form>
+    </div>
+    <div class="table-scroll">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>TIÊU ĐỀ</th>
+                    <th>THỜI GIAN</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>ĐỐI TƯỢNG</th>
+                    <th>CÂU HỎI</th>
+                    <th>LƯỢT TRẢ LỜI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var survey in Model.Surveys)
+                {
+                    var state = survey.NgayBatDau > DateTime.Now ? "Nháp" : survey.NgayKetThuc < DateTime.Now ? "Đã kết thúc" : "Đang mở";
+                    var statusClass = state == "Đang mở" ? "status-success" : state == "Nháp" ? "status-warning" : "status-muted";
+                    var participation = survey.AudienceCount == 0 ? 0 : Math.Round(survey.AnswerCount * 100d / survey.AudienceCount, 1);
+                    <tr>
+                        <td>
+                            <strong>@survey.TieuDe</strong>
+                            @if (!string.IsNullOrWhiteSpace(survey.MoTa))
+                            {
+                                <small class="d-block muted-cell">@survey.MoTa</small>
+                            }
+                        </td>
+                        <td>@survey.NgayBatDau.ToString("dd/MM") → @survey.NgayKetThuc.ToString("dd/MM/yyyy")</td>
+                        <td><span class="status @statusClass"><i></i>@state</span></td>
+                        <td>@survey.DoiTuong</td>
+                        <td>@survey.QuestionCount</td>
+                        <td>@survey.AnswerCount/@survey.AudienceCount khách (@participation.ToString("0.#")%)</td>
+                        <td>
+                            <div class="table-actions">
+                                <a class="button button-small button-outline" asp-action="Index" asp-route-state="@Model.State" asp-route-resultId="@survey.MaKhaoSat" asp-route-resultTab="summary" asp-fragment="survey-result">Kết quả</a>
+                                @if (survey.HasResponses)
+                                {
+                                    <button type="button" class="button button-small button-outline js-edit-survey"
+                                            data-id="@survey.MaKhaoSat"
+                                            data-title="@survey.TieuDe"
+                                            data-description="@survey.MoTa"
+                                            data-start="@survey.NgayBatDau.ToString("yyyy-MM-ddTHH:mm")"
+                                            data-end="@survey.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")"
+                                            data-toggle="modal" data-target="#editSurveyModal">Sửa</button>
+                                    <span class="action-note" title="Đã có khách hàng trả lời. Câu hỏi và đối tượng nhận được khóa để bảo toàn kết quả khảo sát.">Đã khóa câu hỏi</span>
+                                }
+                                else
+                                {
+                                    <a class="button button-small button-outline" asp-action="Index" asp-route-state="@Model.State" asp-route-editId="@survey.MaKhaoSat">Sửa</a>
+                                }
+                                <form asp-action="DeleteSurvey" method="post" onsubmit="return confirm('Xóa khảo sát này cùng toàn bộ câu trả lời?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@survey.MaKhaoSat" />
+                                    <button type="submit" class="button button-small button-outline text-danger">Xóa</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (Model.Surveys.Count == 0)
+                {
+                    <tr><td colspan="7" class="text-center py-4 muted-cell">Chưa có khảo sát. Tạo khảo sát mới để bắt đầu.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="ViewBag.Pagination" />
+</section>
+
+@if (Model.Results != null)
+{
+    <section class="panel mt-4 survey-results" id="survey-result">
+        <div class="panel-heading">
+            <div>
+                <h2>Kết quả: @Model.Results.TieuDe</h2>
+                <p>Tổng lượt trả lời: <strong>@Model.Results.TotalResponses</strong></p>
+            </div>
+            <a class="button button-small button-outline" asp-action="Index">Đóng kết quả</a>
+        </div>
+        <nav class="admin-tabs survey-result-tabs mt-3 mb-3" aria-label="Kết quả khảo sát">
+            <a class="admin-tab @(Model.ResultTab == "summary" ? "active" : "")"
+               asp-action="Index" asp-route-state="@Model.State" asp-route-resultId="@Model.Results.MaKhaoSat" asp-route-resultTab="summary" asp-fragment="survey-result">Tổng hợp</a>
+            <a class="admin-tab @(Model.ResultTab == "answers" ? "active" : "")"
+               asp-action="Index" asp-route-state="@Model.State" asp-route-resultId="@Model.Results.MaKhaoSat" asp-route-resultTab="answers" asp-fragment="survey-result">Từng câu trả lời</a>
+        </nav>
+        @if (Model.ResultTab == "summary")
+        {
+            @foreach (var question in Model.Results.Questions)
+            {
+                <div class="category-note mt-3">
+                    <strong>@question.NoiDung</strong>
+                    @if (question.Loai == "SAO")
+                    {
+                        <p class="mb-0 mt-2">Điểm sao trung bình: @(question.AverageRating?.ToString("0.0") ?? "Chưa có đánh giá") / 5</p>
+                    }
+                    else if (question.Loai == "TU_LUAN")
+                    {
+                        @if (question.TextAnswers.Count == 0)
+                        {
+                            <p class="muted-cell mb-0 mt-2">Chưa có câu trả lời tự luận.</p>
+                        }
+                        else
+                        {
+                            <ul class="mt-2 mb-0">
+                                @foreach (var answer in question.TextAnswers)
+                                {
+                                    <li class="mb-2" style="white-space:pre-wrap">@answer</li>
+                                }
+                            </ul>
+                        }
+                    }
+                    else
+                    {
+                        @foreach (var option in question.Options)
+                        {
+                            <div class="d-flex justify-content-between mt-2">
+                                <span>@option.NoiDung</span><span>@option.Count lượt (@option.Percentage.ToString("0.#")%)</span>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+        else if (Model.Results.Responses.Count == 0)
+        {
+            <p class="muted-cell mb-0">Chưa có câu trả lời.</p>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table class="data-table admin-data-table">
+                    <thead><tr><th>KHÁCH HÀNG</th><th>THỜI GIAN</th><th>CÂU TRẢ LỜI</th></tr></thead>
+                    <tbody>
+                        @foreach (var response in Model.Results.Responses)
+                        {
+                            <tr>
+                                <td><strong>@response.CustomerName</strong></td>
+                                <td>@response.CompletedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @foreach (var answer in response.Answers)
+                                    {
+                                        <div class="survey-answer-item">
+                                            <strong>@answer.Question</strong>
+                                            <span>@answer.Answer</span>
+                                        </div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+}
+
+<div class="modal fade" id="createSurveyModal" tabindex="-1" role="dialog" aria-labelledby="createSurveyTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+        <div class="modal-content survey-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createSurveyTitle">@(Model.EditingSurvey ? "Chỉnh sửa khảo sát" : "Tạo khảo sát")</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form asp-action="@(Model.EditingSurvey ? "EditSurvey" : "CreateSurvey")" method="post" id="createSurveyForm" class="survey-modal-form">
+                @Html.AntiForgeryToken()
+                @if (Model.EditingSurvey)
+                {
+                    <input type="hidden" name="MaKhaoSat" value="@editor.MaKhaoSat" />
+                }
+                <div class="modal-body">
+                    @if (ViewBag.OpenCreateModal == true)
+                    {
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
+                    }
+                    <div class="form-row">
+                        <label class="col-md-6">Tiêu đề *
+                            <input name="TieuDe" value="@editor.TieuDe" maxlength="255" class="form-control" required />
+                        </label>
+                        <label class="col-md-6">Đối tượng nhận *
+                            <select name="DoiTuong" id="audienceType" class="form-control">
+                                <option value="TatCa" selected="@(editor.DoiTuong == "TatCa")">Tất cả khách hàng</option>
+                                <option value="ChonKhachHang" selected="@(editor.DoiTuong == "ChonKhachHang")">Chọn khách hàng</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label>Mô tả
+                        <textarea name="MoTa" rows="2" class="form-control">@editor.MoTa</textarea>
+                    </label>
+                    <div id="targetCustomerContainer" class="mb-3">
+                        <div class="form-row">
+                            <label class="col-md-6">Lọc theo nhóm tuổi
+                                <select id="audienceAgeFilter" class="form-control">
+                                    <option value="">Tất cả nhóm tuổi</option>
+                                    <option value="Dưới 18">Dưới 18</option>
+                                    <option value="18–24">18–24</option>
+                                    <option value="25–34">25–34</option>
+                                    <option value="35–44">35–44</option>
+                                    <option value="45 trở lên">45 trở lên</option>
+                                    <option value="missing">Chưa khai báo</option>
+                                </select>
+                            </label>
+                            <label class="col-md-6">Lọc theo sở thích
+                                <select id="audienceInterestFilter" class="form-control">
+                                    <option value="">Tất cả sở thích</option>
+                                    @foreach (var interest in audienceInterests)
+                                    {
+                                        <option value="@interest">@interest</option>
+                                    }
+                                </select>
+                            </label>
+                        </div>
+                        <label>Khách hàng nhận khảo sát
+                            <select name="MaKH" id="targetCustomers" class="form-control" multiple size="5">
+                                @foreach (var customer in customers)
+                                {
+                                    <option value="@customer.MaKH"
+                                            data-age="@(customer.AgeGroup ?? "missing")"
+                                            data-interests="@string.Join("|", customer.Interests)"
+                                            selected="@selectedCustomers.Contains(customer.MaKH)">
+                                        @customer.HoTen @(string.IsNullOrWhiteSpace(customer.TaiKhoan) ? "" : $"({customer.TaiKhoan})")
+                                    </option>
+                                }
+                            </select>
+                        </label>
+                        <small class="muted-cell">Giữ Ctrl để chọn nhiều khách hàng. Bộ lọc chỉ thu hẹp danh sách hiển thị và không bỏ lựa chọn đã có.</small>
+                    </div>
+                    <div class="form-row">
+                        <label class="col-md-6">Ngày giờ bắt đầu *
+                            <input name="NgayBatDau" class="form-control js-survey-date" value="@editor.NgayBatDau.ToString("yyyy-MM-ddTHH:mm")" required />
+                        </label>
+                        <label class="col-md-6">Ngày giờ kết thúc *
+                            <input name="NgayKetThuc" class="form-control js-survey-date" value="@editor.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm")" required />
+                        </label>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+                        <div><h6 class="mb-0">Câu hỏi</h6><small class="muted-cell">Có thể kéo thả hoặc dùng nút lên/xuống để đổi thứ tự.</small></div>
+                        <button type="button" class="button button-small button-outline" id="addQuestion">+ Thêm câu hỏi</button>
+                    </div>
+                    <div id="questionsContainer">
+                        @for (var index = 0; index < editor.Questions.Count; index++)
+                        {
+                            var question = editor.Questions[index];
+                            <div class="question-editor category-note mb-2" draggable="true">
+                                <div class="d-flex align-items-start" style="gap:8px">
+                                    <span class="question-number muted-cell mt-2"></span>
+                                    <div class="flex-grow-1">
+                                        <input name="Questions[@index].NoiDung" value="@question.NoiDung" class="form-control mb-2" maxlength="255" placeholder="Nội dung câu hỏi" required />
+                                        <select name="Questions[@index].Loai" class="form-control question-type mb-2">
+                                            <option value="SAO" selected="@(question.Loai == "SAO")">Đánh giá sao</option>
+                                            <option value="TU_LUAN" selected="@(question.Loai == "TU_LUAN")">Tự luận</option>
+                                            <option value="MOT_LUA_CHON" selected="@(question.Loai == "MOT_LUA_CHON")">Một lựa chọn</option>
+                                            <option value="NHIEU_LUA_CHON" selected="@(question.Loai == "NHIEU_LUA_CHON")">Nhiều lựa chọn</option>
+                                        </select>
+                                        <div class="question-options" style="@(question.Loai is "MOT_LUA_CHON" or "NHIEU_LUA_CHON" ? "" : "display:none")">
+                                            @for (var optionIndex = 0; optionIndex < question.LuaChon.Count; optionIndex++)
+                                            {
+                                                <div class="d-flex question-option mb-1" style="gap:6px">
+                                                    <input name="Questions[@index].LuaChon[@optionIndex]" value="@question.LuaChon[optionIndex]" class="form-control" maxlength="255" placeholder="Nội dung đáp án" />
+                                                    <button type="button" class="button button-small button-outline remove-option" aria-label="Xóa đáp án">×</button>
+                                                </div>
+                                            }
+                                            <button type="button" class="button button-small button-outline add-option">+ Thêm đáp án</button>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex" style="gap:4px">
+                                        <button type="button" class="button button-small button-outline move-question-up" aria-label="Chuyển lên">↑</button>
+                                        <button type="button" class="button button-small button-outline move-question-down" aria-label="Chuyển xuống">↓</button>
+                                        <button type="button" class="button button-small button-outline text-danger remove-question" aria-label="Xóa câu hỏi">×</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button button-outline" data-dismiss="modal">Hủy</button>
+                    <button type="submit" class="button button-primary survey-primary-action">@(Model.EditingSurvey ? "Lưu thay đổi" : "Tạo khảo sát")</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editSurveyModal" tabindex="-1" role="dialog" aria-labelledby="editSurveyTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content survey-modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSurveyTitle">Cập nhật thông tin khảo sát</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form asp-action="EditSurvey" method="post" id="editSurveyForm" class="survey-modal-form">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="MaKhaoSat" id="editSurveyId" />
+                    <input type="hidden" name="OnlyMetadata" value="true" />
+                    <label>Tiêu đề *<input name="TieuDe" id="editSurveyName" maxlength="255" class="form-control" required /></label>
+                    <label>Mô tả<textarea name="MoTa" id="editSurveyDescription" rows="2" class="form-control"></textarea></label>
+                    <div class="form-row">
+                        <label class="col-md-6">Ngày giờ bắt đầu *<input name="NgayBatDau" id="editSurveyStart" class="form-control js-survey-date" required /></label>
+                        <label class="col-md-6">Ngày giờ kết thúc *<input name="NgayKetThuc" id="editSurveyEnd" class="form-control js-survey-date" required /></label>
+                    </div>
+                    <p class="muted-cell mb-0">Câu hỏi và đối tượng nhận không thể thay đổi tại đây.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button button-outline" data-dismiss="modal">Đóng</button>
+                    <button type="submit" class="button button-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/vn.js"></script>
+    <script>
+        (function () {
+            const container = document.getElementById('questionsContainer');
+            const customerContainer = document.getElementById('targetCustomerContainer');
+            const customerSelect = document.getElementById('targetCustomers');
+            const audienceAgeFilter = document.getElementById('audienceAgeFilter');
+            const audienceInterestFilter = document.getElementById('audienceInterestFilter');
+
+            function renumber() {
+                Array.from(container.querySelectorAll('.question-editor')).forEach((row, index) => {
+                    row.querySelector('.question-number').textContent = `Câu ${index + 1}`;
+                    row.querySelectorAll('input, select').forEach(input => {
+                        input.name = input.name.replace(/Questions\[\d+\]/, `Questions[${index}]`);
+                    });
+                    row.querySelectorAll('.question-option input').forEach((input, optionIndex) => {
+                        input.name = `Questions[${index}].LuaChon[${optionIndex}]`;
+                    });
+                });
+            }
+
+            function bindDatePicker(input) {
+                if (!window.flatpickr || input._flatpickr) return;
+                flatpickr(input, {
+                    enableTime: true,
+                    time_24hr: true,
+                    dateFormat: 'Y-m-d\\TH:i',
+                    altInput: true,
+                    altFormat: 'd/m/Y H:i',
+                    locale: flatpickr.l10ns.vn
+                });
+            }
+
+            function updateAudience() {
+                const selecting = document.getElementById('audienceType').value === 'ChonKhachHang';
+                customerContainer.style.display = selecting ? '' : 'none';
+                customerSelect.disabled = !selecting;
+                customerSelect.required = selecting;
+            }
+
+            function filterAudience() {
+                const age = audienceAgeFilter.value;
+                const interest = audienceInterestFilter.value;
+                Array.from(customerSelect.options).forEach(option => {
+                    const hasInterest = !interest || (option.dataset.interests || '').split('|').includes(interest);
+                    option.hidden = Boolean((age && option.dataset.age !== age) || !hasInterest);
+                });
+            }
+
+            function addOption(row) {
+                const options = row.querySelector('.question-options');
+                const questionIndex = Array.from(container.children).indexOf(row);
+                const optionIndex = options.querySelectorAll('.question-option').length;
+                const item = document.createElement('div');
+                item.className = 'd-flex question-option mb-1';
+                item.style.gap = '6px';
+                item.innerHTML = `<input name="Questions[${questionIndex}].LuaChon[${optionIndex}]" class="form-control" maxlength="255" placeholder="Nội dung đáp án" /><button type="button" class="button button-small button-outline remove-option" aria-label="Xóa đáp án">×</button>`;
+                options.insertBefore(item, options.querySelector('.add-option'));
+            }
+
+            function addQuestion() {
+                const index = container.querySelectorAll('.question-editor').length;
+                const row = document.createElement('div');
+                row.className = 'question-editor category-note mb-2';
+                row.draggable = true;
+                row.innerHTML = `<div class="d-flex align-items-start" style="gap:8px">
+                    <span class="question-number muted-cell mt-2"></span>
+                    <div class="flex-grow-1">
+                        <input name="Questions[${index}].NoiDung" class="form-control mb-2" maxlength="255" placeholder="Nội dung câu hỏi" required />
+                        <select name="Questions[${index}].Loai" class="form-control question-type mb-2">
+                            <option value="SAO">Đánh giá sao</option><option value="TU_LUAN">Tự luận</option>
+                            <option value="MOT_LUA_CHON">Một lựa chọn</option><option value="NHIEU_LUA_CHON">Nhiều lựa chọn</option>
+                        </select>
+                        <div class="question-options" style="display:none"><button type="button" class="button button-small button-outline add-option">+ Thêm đáp án</button></div>
+                    </div>
+                    <div class="d-flex" style="gap:4px"><button type="button" class="button button-small button-outline move-question-up">↑</button><button type="button" class="button button-small button-outline move-question-down">↓</button><button type="button" class="button button-small button-outline text-danger remove-question">×</button></div>
+                </div>`;
+                container.appendChild(row);
+                renumber();
+            }
+
+            document.getElementById('addQuestion').addEventListener('click', addQuestion);
+            document.getElementById('audienceType').addEventListener('change', updateAudience);
+            audienceAgeFilter.addEventListener('change', filterAudience);
+            audienceInterestFilter.addEventListener('change', filterAudience);
+            container.addEventListener('change', event => {
+                if (event.target.matches('.question-type')) {
+                    const options = event.target.closest('.question-editor').querySelector('.question-options');
+                    options.style.display = ['MOT_LUA_CHON', 'NHIEU_LUA_CHON'].includes(event.target.value) ? '' : 'none';
+                    if (options.querySelectorAll('.question-option').length === 0) {
+                        addOption(event.target.closest('.question-editor'));
+                        addOption(event.target.closest('.question-editor'));
+                    }
+                }
+            });
+            container.addEventListener('click', event => {
+                const row = event.target.closest('.question-editor');
+                if (!row) return;
+                if (event.target.closest('.add-option')) addOption(row);
+                if (event.target.closest('.remove-option')) {
+                    event.target.closest('.question-option').remove();
+                    renumber();
+                }
+                if (event.target.closest('.remove-question')) {
+                    row.remove();
+                    renumber();
+                }
+                if (event.target.closest('.move-question-up') && row.previousElementSibling) {
+                    container.insertBefore(row, row.previousElementSibling);
+                    renumber();
+                }
+                if (event.target.closest('.move-question-down') && row.nextElementSibling) {
+                    container.insertBefore(row.nextElementSibling, row);
+                    renumber();
+                }
+            });
+            container.addEventListener('dragstart', event => {
+                const row = event.target.closest('.question-editor');
+                if (row) event.dataTransfer.setData('text/plain', Array.from(container.children).indexOf(row));
+            });
+            container.addEventListener('dragover', event => event.preventDefault());
+            container.addEventListener('drop', event => {
+                event.preventDefault();
+                const target = event.target.closest('.question-editor');
+                const sourceIndex = Number(event.dataTransfer.getData('text/plain'));
+                const source = container.children[sourceIndex];
+                if (target && source && source !== target) {
+                    const targetIndex = Array.from(container.children).indexOf(target);
+                    container.insertBefore(source, sourceIndex < targetIndex ? target.nextSibling : target);
+                    renumber();
+                }
+            });
+
+            document.querySelectorAll('.js-survey-date').forEach(bindDatePicker);
+            document.querySelectorAll('.js-edit-survey').forEach(button => button.addEventListener('click', () => {
+                document.getElementById('editSurveyId').value = button.dataset.id;
+                document.getElementById('editSurveyName').value = button.dataset.title;
+                document.getElementById('editSurveyDescription').value = button.dataset.description || '';
+                const startInput = document.getElementById('editSurveyStart');
+                const endInput = document.getElementById('editSurveyEnd');
+                if (startInput._flatpickr) startInput._flatpickr.setDate(button.dataset.start, true, 'Y-m-d\\TH:i');
+                else startInput.value = button.dataset.start;
+                if (endInput._flatpickr) endInput._flatpickr.setDate(button.dataset.end, true, 'Y-m-d\\TH:i');
+                else endInput.value = button.dataset.end;
+            }));
+
+            for (const form of [document.getElementById('createSurveyForm'), document.getElementById('editSurveyForm')]) {
+                form.addEventListener('submit', event => {
+                    const start = new Date(form.querySelector('[name="NgayBatDau"]').value);
+                    const end = new Date(form.querySelector('[name="NgayKetThuc"]').value);
+                    if (!(end > start)) {
+                        event.preventDefault();
+                        alert('Ngày kết thúc phải sau ngày bắt đầu.');
+                    }
+                });
+            }
+
+            renumber();
+            filterAudience();
+            updateAudience();
+            @if (ViewBag.OpenCreateModal == true)
+            {
+                <text>$('#createSurveyModal').modal('show');</text>
+            }
+        })();
+    </script>
+}

@@ -572,10 +572,15 @@ h1 > span {
   cursor: pointer;
   font-size: 11px;
   font-weight: 700;
+  text-decoration: none !important;
   transition:
     background 0.18s,
     border-color 0.18s,
     transform 0.18s;
+}
+.button:hover,
+.button:focus {
+  text-decoration: none !important;
 }
 .button:active {
   transform: translateY(1px);
@@ -2383,9 +2388,19 @@ h1 > span {
   gap: 8px;
   margin-bottom: 16px;
 }
+.order-status-filters a,
+.order-status-filters button,
+.order-status-filters .button {
+  text-decoration: none !important;
+}
+.order-status-filters a:hover,
+.order-status-filters button:hover,
+.order-status-filters .button:hover {
+  text-decoration: none !important;
+}
 .order-management-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(280px, 1.15fr) minmax(0, 0.85fr);
   gap: 16px;
   align-items: start;
 }
@@ -2454,6 +2469,12 @@ h1 > span {
 }
 .order-detail-heading {
   align-items: center;
+}
+.order-detail-heading-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .order-detail-heading .badge {
   flex: 0 0 auto;
@@ -3728,6 +3749,25 @@ body {
   align-items: center;
   gap: 7px;
   white-space: nowrap;
+}
+
+.statistics-summary-link {
+  display: block;
+  color: inherit;
+  text-decoration: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.statistics-summary-link:hover,
+.statistics-summary-link:focus-visible {
+  color: inherit;
+  transform: translateY(-2px);
+}
+
+#finance-periods,
+#finance-staff,
+#finance-products {
+  scroll-margin-top: 20px;
 }
 
 @media (max-width: 700px) {

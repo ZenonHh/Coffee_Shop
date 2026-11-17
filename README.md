@@ -146,7 +146,7 @@ HTTP được bật cho môi trường phát triển cục bộ; không dùng HT
 
 ## API di động
 
-Các route API được triển khai trong `Controllers/Api/`. Một số endpoint chính:
+Các route API được triển khai trong `Presentation/Controllers/Api/`. Một số endpoint chính:
 
 | Method | Đường dẫn | Mục đích |
 |---|---|---|
@@ -165,21 +165,33 @@ Các request mẫu nằm trong [`CoffeeShop.Api.http`](CoffeeShop.Api.http). End
 
 ## Cấu trúc repository
 
+Backend vẫn là một project ASP.NET Core MVC trong cùng thư mục; mã nguồn được gom theo ba lớp:
+
+- **Presentation** (`Presentation/`): MVC controllers, Areas, Razor views và API endpoints.
+- **Business** (`Business/`): nghiệp vụ dùng chung, dịch vụ báo cáo và ViewModels trao đổi với giao diện.
+- **Data** (`Data/`): Entity Framework Core DbContext, entities và migrations.
+
+`wwwroot/` giữ ở thư mục gốc theo quy ước ASP.NET Core để tài nguyên tĩnh tiếp tục được phục vụ ổn định. Các dịch vụ nghiệp vụ hiện có được dùng chung qua dependency injection; phần truy vấn EF còn nằm trực tiếp trong một số controller có thể tiếp tục được chuyển dần sang Business services mà không đổi route hoặc giao diện.
+
 ```text
 Coffee_Shop/
-├── Areas/Admin/               # Controllers và Views quản trị
-├── Controllers/               # Website khách hàng và Controllers/Api
+├── Presentation/
+│   ├── Areas/Admin/            # Controllers và Views quản trị
+│   ├── Controllers/            # Website khách hàng và Controllers/Api
+│   └── Views/                  # Razor Views website khách hàng
+├── Business/
+│   ├── Services/               # Dịch vụ nghiệp vụ dùng chung
+│   └── ViewModels/             # ViewModels của website/Admin
+├── Data/
+│   ├── Entities/               # Entity Framework entities
+│   ├── Migrations/             # EF Core migrations
+│   └── CoffeeShopDbContext.cs  # DbContext
 ├── CoffeeShop.Mobile/         # Ứng dụng .NET MAUI
 │   ├── Views/                 # Trang XAML và code-behind
 │   ├── ViewModels/            # Trạng thái và lệnh UI
 │   ├── Services/              # API và dịch vụ mobile
 │   └── Resources/             # Styles, màu sắc, ảnh
-├── Data/                      # DbContext
 ├── Helpers/                   # Session, giỏ hàng và helpers
-├── Migrations/                # EF Core migrations
-├── Models/                    # Entity và ViewModel
-├── Services/                  # Nghiệp vụ backend, quản lý đơn
-├── Views/                     # Razor Views website khách hàng
 ├── wwwroot/                   # CSS, JavaScript, ảnh và tài nguyên web
 ├── database/                  # SQL khởi tạo và các script database
 ├── docs/                      # Tài liệu kỹ thuật/nghiệp vụ
@@ -207,7 +219,7 @@ Các điểm cần kiểm tra nếu không chạy được:
 2. Backend đang lắng nghe đúng URL/port; mở `/health` để kiểm tra ứng dụng và kết nối database.
 3. Mobile trỏ tới endpoint mà emulator/device truy cập được; địa chỉ `localhost` trên điện thoại không phải máy tính đang chạy backend.
 4. Kiểm tra output của `dotnet build`, terminal đang chạy backend và Android Logcat/emulator khi có lỗi.
-5. Nếu schema không khớp, xem các migration trong `Migrations/` và hướng dẫn tại `database/README.md`; sao lưu trước mọi thao tác cập nhật dữ liệu.
+5. Nếu schema không khớp, xem các migration trong `Data/Migrations/` và hướng dẫn tại `database/README.md`; sao lưu trước mọi thao tác cập nhật dữ liệu.
 
 ## Tài liệu tham khảo
 

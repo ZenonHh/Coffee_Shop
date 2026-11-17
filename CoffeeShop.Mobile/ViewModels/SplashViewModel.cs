@@ -21,6 +21,9 @@ public partial class SplashViewModel(ApiService api) : ObservableObject
     [RelayCommand]
     private void Start() => StartRequested?.Invoke(this, EventArgs.Empty);
 
+    [RelayCommand]
+    private void Explore() => SessionRestored?.Invoke(this, EventArgs.Empty);
+
     public async Task CheckSessionAsync()
     {
         if (IsCheckingSession)

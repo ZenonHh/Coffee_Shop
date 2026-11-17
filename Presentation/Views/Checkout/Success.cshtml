@@ -1,0 +1,69 @@
+@model CoffeeShop.Data.Entities.Order
+@{
+    ViewData["Title"] = "Đặt Hàng Thành Công - Katinat Coffee";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 670px; min-height: 670px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Đặt Hàng Thành Công</h1>
+                    <p class="breadcrumbs mb-0"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Hoàn tất</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center ftco-animate">
+                <div class="p-5 bg-dark border border-success rounded">
+                    <div class="mb-4">
+                        <span class="icon-check_circle text-success" style="font-size: 80px;"></span>
+                    </div>
+                    <h2 class="text-white mb-3">Cảm ơn bạn đã đặt hàng!</h2>
+                    <p class="lead text-light">Mã đơn hàng của bạn là: <strong class="text-primary font-weight-bold" style="font-size: 22px;">#HD@Model.MaHD.ToString("D4")</strong></p>
+                    <p class="text-muted">Đơn hàng của bạn đã được <strong>xác nhận tự động thành công</strong> và chuyển đến quầy pha chế. Nhân viên giao hàng sẽ liên hệ với bạn trong ít phút qua số điện thoại <strong>@Model.SdtNguoiNhan</strong>.</p>
+                    
+                    <div class="card bg-secondary text-left text-white my-4 p-4 border-0">
+                        <h5>Thông tin giao nhận</h5>
+                        <p class="mb-1"><strong>Người nhận:</strong> @Model.HoTenNguoiNhan</p>
+                        <p class="mb-1"><strong>Số điện thoại:</strong> @Model.SdtNguoiNhan</p>
+                        <p class="mb-1"><strong>Địa chỉ giao:</strong> @Model.DiaChiGiao</p>
+                        <p class="mb-1"><strong>Tổng thanh toán:</strong> <span class="text-warning font-weight-bold">@Model.TongTien.ToString("N0") đ</span></p>
+                        <p class="mb-1"><strong>Phương thức thanh toán:</strong> <span>@Model.PhuongThucThanhToan</span></p>
+                        <p class="mb-0"><strong>Trạng thái:</strong> <span class="badge badge-success px-3 py-2" style="font-size: 13px;">✓ @Model.TrangThai</span></p>
+                    </div>
+
+                    @if (Model.PhuongThucThanhToan.Contains("Chuyển khoản") || Model.PhuongThucThanhToan == "Transfer")
+                    {
+                        <div class="card bg-dark border border-warning text-white my-4 p-4 text-center">
+                            <h5 class="text-warning mb-3"><i class="fas fa-qrcode mr-2"></i>Mã QR Thanh Toán Chuyển Khoản</h5>
+                            <div class="mb-3">
+                                <img src="https://img.vietqr.io/image/MB-0909090909-compact2.png?amount=@((long)Model.TongTien)&addInfo=KATINAT%20HD@Model.MaHD&accountName=KATINAT%20COFFEE" 
+                                     alt="Mã QR Chuyển Khoản" 
+                                     style="max-width: 240px; border-radius: 8px; border: 2px solid #c49b63;" />
+                            </div>
+                            <p class="mb-1 text-light">Ngân hàng: <strong>MB Bank</strong> | Số tài khoản: <strong>0909090909</strong></p>
+                            <p class="mb-1 text-light">Chủ tài khoản: <strong>KATINAT COFFEE</strong></p>
+                            <p class="mb-0 text-muted small">Nội dung chuyển khoản: <strong>KATINAT HD@Model.MaHD</strong></p>
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <a asp-controller="Shop" asp-action="Index" class="btn btn-primary py-3 px-4 mr-2">Tiếp tục mua sắm</a>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-controller="Account" asp-action="Profile" class="btn btn-outline-white py-3 px-4">Xem lịch sử đơn</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

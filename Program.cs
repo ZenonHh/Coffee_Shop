@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
 using CoffeeShop.Helpers;
-using CoffeeShop.Services;
+using CoffeeShop.Business.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,7 +99,14 @@ builder.Services.AddScoped<OrderManagementService>();
 builder.Services.AddScoped<StaffMemberResolver>();
 builder.Services.AddSingleton<CoffeeShop.Controllers.Api.ApiSessionStore>();
 builder.Services.AddScoped<CoffeeShop.Controllers.Api.ApiSessionAuthorizationFilter>();
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorOptions(options =>
+    {
+        options.ViewLocationFormats.Insert(0, "/Presentation/Views/{1}/{0}.cshtml");
+        options.ViewLocationFormats.Insert(1, "/Presentation/Views/Shared/{0}.cshtml");
+        options.AreaViewLocationFormats.Insert(0, "/Presentation/Areas/{2}/Views/{1}/{0}.cshtml");
+        options.AreaViewLocationFormats.Insert(1, "/Presentation/Areas/{2}/Views/Shared/{0}.cshtml");
+    });
 
 var app = builder.Build();
 
@@ -110,7 +117,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), appBuilder =>
+{
+    appBuilder.UseHttpsRedirection();
+});
 app.UseStaticFiles();
 
 app.UseRouting();

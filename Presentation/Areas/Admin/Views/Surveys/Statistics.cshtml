@@ -1,0 +1,368 @@
+@model CoffeeShop.Business.ViewModels.SurveyStatisticsViewModel
+@using System.Text.Json
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Thống kê khảo sát";
+
+    var chartQuestions = Model.Questions.Select((question, index) => new
+    {
+        CanvasId = $"survey-chart-{index}",
+        question.Type,
+        question.ResponseCount,
+        AverageRating = question.AverageRating,
+        Labels = question.Type == "SAO"
+            ? question.Ratings.Select(rating => $"{rating.Rating} sao").ToArray()
+            : question.Options.Select(option => option.Text).ToArray(),
+        Counts = question.Type == "SAO"
+            ? question.Ratings.Select(rating => rating.Count).ToArray()
+            : question.Options.Select(option => option.Count).ToArray(),
+        Percentages = question.Type == "SAO"
+            ? question.Ratings.Select(rating => Math.Round(rating.Percentage, 1)).ToArray()
+            : question.Options.Select(option => Math.Round(option.Percentage, 1)).ToArray()
+    }).ToArray();
+    var chartJson = JsonSerializer.Serialize(chartQuestions);
+}
+
+<div class="page-heading">
+    <div>
+        <h1>Thống kê khảo sát</h1>
+        <p>Phân tích lượt phản hồi, điểm đánh giá và câu trả lời theo từng câu hỏi.</p>
+    </div>
+    <a class="button button-small button-outline" asp-action="Index">Quay lại danh sách</a>
+</div>
+
+<section class="panel mb-4">
+    <div class="panel-heading mb-3">
+        <div>
+            <h2>Bộ lọc thống kê</h2>
+            <p>Chọn khảo sát và khoảng ngày trả lời cần xem.</p>
+        </div>
+    </div>
+    <form asp-action="Statistics" method="get" class="form-row align-items-end">
+        <div class="form-group col-md-5">
+            <label for="id">Chiến dịch khảo sát</label>
+            <select id="id" name="id" class="form-control">
+                <option value="">-- Chọn khảo sát --</option>
+                @foreach (var survey in Model.Surveys)
+                {
+                    <option value="@survey.Id" selected="@(Model.SelectedSurveyId == survey.Id)">@survey.Title</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md-3">
+            <label for="fromDate">Từ ngày</label>
+            <input id="fromDate" name="fromDate" type="date" class="form-control"
+                   value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group col-md-3">
+            <label for="toDate">Đến ngày</label>
+            <input id="toDate" name="toDate" type="date" class="form-control"
+                   value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group col-md-1">
+            <button type="submit" class="button button-primary">Lọc</button>
+        </div>
+    </form>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger mb-0"></div>
+    }
+</section>
+
+@if (Model.SelectedSurveyId.HasValue && Model.SurveyTitle != null)
+{
+    <div class="mb-3">
+        <h2>@Model.SurveyTitle</h2>
+        <p class="muted-cell">
+            Khoảng thời gian:
+            @(Model.FromDate?.ToString("dd/MM/yyyy") ?? "Toàn bộ")
+            –
+            @(Model.ToDate?.ToString("dd/MM/yyyy") ?? "hiện có")
+        </p>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỔNG SỐ CÂU HỎI</div>
+                <div class="stat-value">@Model.QuestionCount</div>
+                <div class="stat-foot">Trong khảo sát đã chọn</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">LƯỢT HOÀN THÀNH</div>
+                <div class="stat-value">@Model.ResponseCount</div>
+                <div class="stat-foot">Từ lượt hoàn thành khảo sát</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">ĐIỂM ĐÁNH GIÁ TRUNG BÌNH</div>
+                <div class="stat-value">@(Model.AverageRating?.ToString("0.0") ?? "—") <small>/ 5</small></div>
+                <div class="stat-foot">Tính từ các câu trả lời hợp lệ dạng sao</div>
+            </section>
+        </div>
+    </div>
+    <p class="muted-cell">
+        Lượt hoàn thành được đếm từ bản ghi lượt tham gia; thống kê chi tiết lấy từ câu trả lời và ngày trả lời.
+    </p>
+
+    @if (Model.Questions.Count == 0)
+    {
+        <section class="panel">
+            <p class="muted-cell mb-0">Khảo sát này chưa có câu hỏi.</p>
+        </section>
+    }
+    else
+    {
+        @for (var index = 0; index < Model.Questions.Count; index++)
+        {
+            var question = Model.Questions[index];
+            <section class="panel mb-3">
+                <div class="panel-heading mb-3">
+                    <div>
+                        <h2>Câu @(index + 1): @question.Text</h2>
+                        <p>@question.ResponseCount lượt trả lời câu hỏi</p>
+                    </div>
+                    <span class="status status-muted"><i></i>@question.Type</span>
+                </div>
+
+                @if (question.Type == "SAO")
+                {
+                    <p class="mb-3">
+                        Điểm trung bình:
+                        <strong>@(question.AverageRating?.ToString("0.0") ?? "Chưa có đánh giá")</strong>
+                        @if (question.AverageRating.HasValue)
+                        {
+                            <span>/ 5</span>
+                        }
+                    </p>
+                    @if (question.ResponseCount > 0 && question.Ratings.Any(rating => rating.Count > 0))
+                    {
+                        <div class="survey-chart-wrap mb-4" data-survey-chart="@index">
+                            <canvas id="survey-chart-@index" aria-label="Biểu đồ phân bố đánh giá câu hỏi @(index + 1)" role="img"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="survey-no-chart mb-4">Chưa có dữ liệu</p>
+                    }
+                    @foreach (var rating in question.Ratings)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>@rating.Rating sao</span>
+                                <span>@rating.Count lượt (@rating.Percentage.ToString("0.#")%)</span>
+                            </div>
+                            <div class="progress" role="progressbar"
+                                 aria-label="@rating.Rating sao"
+                                 aria-valuenow="@rating.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)"
+                                 aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar bg-warning"
+                                     style="width: @rating.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (question.Type is "MOT_LUA_CHON" or "NHIEU_LUA_CHON")
+                {
+                    @if (question.Options.Count == 0)
+                    {
+                        <p class="muted-cell mb-0">Câu hỏi chưa có phương án lựa chọn.</p>
+                    }
+                    else if (question.ResponseCount > 0 && question.Options.Any(option => option.Count > 0))
+                    {
+                        <div class="survey-chart-wrap mb-4" data-survey-chart="@index">
+                            <canvas id="survey-chart-@index" aria-label="Biểu đồ lựa chọn câu hỏi @(index + 1)" role="img"></canvas>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="survey-no-chart mb-4">Chưa có dữ liệu</p>
+                    }
+                    @foreach (var option in question.Options)
+                    {
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>@option.Text</span>
+                                <span>@option.Count lượt (@option.Percentage.ToString("0.#")%)</span>
+                            </div>
+                            <div class="progress" role="progressbar"
+                                 aria-label="@option.Text"
+                                 aria-valuenow="@option.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)"
+                                 aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar" style="width: @option.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                            </div>
+                        </div>
+                    }
+                    @if (question.ResponseCount == 0)
+                    {
+                        <p class="muted-cell mb-0">Chưa có lượt trả lời câu hỏi này.</p>
+                    }
+                }
+                else if (question.Type == "TU_LUAN")
+                {
+                    @if (question.TextAnswers.Count == 0)
+                    {
+                        <p class="muted-cell mb-0">Chưa có câu trả lời tự luận.</p>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var answer in question.TextAnswers)
+                            {
+                                <div class="list-group-item">
+                                    <p class="mb-2" style="white-space:pre-wrap">@answer.Text</p>
+                                    <small class="text-muted">@answer.AnsweredAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="muted-cell mb-0">Loại câu hỏi này chưa có kiểu thống kê riêng.</p>
+                }
+            </section>
+        }
+    }
+}
+else if (Model.SelectedSurveyId.HasValue && ViewData.ModelState.IsValid)
+{
+    <section class="panel">
+        <p class="muted-cell mb-0">Không tìm thấy khảo sát đã chọn.</p>
+    </section>
+}
+else if (!Model.SelectedSurveyId.HasValue)
+{
+    <section class="panel">
+        <p class="muted-cell mb-0">Chọn một khảo sát để xem các chỉ số và câu trả lời chi tiết.</p>
+    </section>
+}
+
+<style>
+    .survey-chart-wrap {
+        position: relative;
+        height: 260px;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .survey-no-chart {
+        color: var(--muted, #8e8981);
+        background: var(--canvas, #f8f7f5);
+        border: 1px dashed var(--line, #efede9);
+        border-radius: .25rem;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    @@media (max-width: 575.98px) {
+        .survey-chart-wrap {
+            height: 260px;
+        }
+    }
+</style>
+
+<script type="application/json" id="survey-statistics-chart-data">@Html.Raw(chartJson)</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            var dataElement = document.getElementById('survey-statistics-chart-data');
+            if (!dataElement || typeof Chart === 'undefined') {
+                return;
+            }
+
+            var questions = JSON.parse(dataElement.textContent);
+            var styles = getComputedStyle(document.documentElement);
+            var primary = styles.getPropertyValue('--admin-accent').trim() || styles.getPropertyValue('--coffee').trim() || '#6f4e37';
+            var secondary = styles.getPropertyValue('--blue').trim() || '#496eae';
+            var gridColor = styles.getPropertyValue('--line').trim() || '#efede9';
+            var textColor = styles.getPropertyValue('--ink').trim() || '#28251f';
+            var mutedColor = styles.getPropertyValue('--muted').trim() || '#8e8981';
+            var palette = [primary, secondary, '#23845b', '#a56b11', '#8d6e63', '#78909c', '#7e57c2', '#5c6bc0'];
+
+            Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+            Chart.defaults.color = textColor;
+
+            questions.forEach(function (question) {
+                var canvas = document.getElementById(question.CanvasId);
+                var hasData = question.Counts.some(function (count) { return count > 0; });
+                if (!canvas || !hasData) {
+                    return;
+                }
+
+                var isRating = question.Type === 'SAO';
+                var averageText = question.AverageRating === null
+                    ? ''
+                    : ' — Điểm trung bình: ' + Number(question.AverageRating).toFixed(1) + '/5';
+                var colors = isRating
+                    ? palette.slice(0, question.Labels.length)
+                    : question.Labels.map(function (_, index) { return palette[index % palette.length]; });
+
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: question.Labels,
+                        datasets: [{
+                            label: isRating ? 'Số lượt đánh giá' : 'Số lượt chọn',
+                            data: question.Counts,
+                            backgroundColor: colors,
+                            borderColor: colors,
+                            borderWidth: 0,
+                            borderRadius: 4,
+                            maxBarThickness: 48
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: isRating ? 'x' : 'y',
+                        scales: isRating ? {
+                            x: { grid: { display: false }, ticks: { color: textColor } },
+                            y: {
+                                beginAtZero: true,
+                                precision: 0,
+                                ticks: { precision: 0, color: mutedColor },
+                                grid: { color: gridColor }
+                            }
+                        } : {
+                            x: {
+                                beginAtZero: true,
+                                precision: 0,
+                                ticks: { precision: 0, color: mutedColor },
+                                grid: { color: gridColor }
+                            },
+                            y: { grid: { display: false }, ticks: { color: textColor, autoSkip: false } }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: isRating ? 'Phân bố mức đánh giá' + averageText : 'Số lượt theo phương án',
+                                color: textColor,
+                                font: { size: 14, weight: '600' }
+                            },
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        var count = context.parsed.x;
+                                        var percentage = question.Percentages[context.dataIndex];
+                                        if (isRating) {
+                                            count = context.parsed.y;
+                                        }
+                                        return ' ' + count + ' lượt (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        })();
+    </script>
+}

@@ -41,15 +41,51 @@ public partial class CartViewModel : ObservableObject
     [ObservableProperty]
     private string selectedFulfillment = "Giao hàng";
 
+    [ObservableProperty]
+    private string orderNote = string.Empty;
+
     public bool IsPickup => SelectedFulfillment == "Mang đi";
     public bool IsDelivery => !IsPickup;
     public IReadOnlyList<string> FulfillmentOptions { get; } = ["Giao hàng", "Mang đi"];
 
+    public string DeliveryBorderColor => IsDelivery ? "#C49B63" : "#332B24";
+    public string DeliveryBgColor => IsDelivery ? "#26201A" : "#1A1613";
+    public string DeliveryTextColor => IsDelivery ? "#FFFFFF" : "#A89F91";
+
+    public string PickupBorderColor => IsPickup ? "#C49B63" : "#332B24";
+    public string PickupBgColor => IsPickup ? "#26201A" : "#1A1613";
+    public string PickupTextColor => IsPickup ? "#FFFFFF" : "#A89F91";
+
+    [RelayCommand]
+    private void SelectDelivery() => SelectedFulfillment = "Giao hàng";
+
+    [RelayCommand]
+    private void SelectPickup() => SelectedFulfillment = "Mang đi";
+
     [ObservableProperty]
     private PaymentOption selectedPayment = new("COD", "Tiền mặt khi nhận hàng (COD)");
 
+    public bool IsCodSelected => SelectedPayment?.Code == "COD";
+    public bool IsTransferSelected => SelectedPayment?.Code == "Transfer";
+
+    public string CodBorderColor => IsCodSelected ? "#C49B63" : "#332B24";
+    public string CodBgColor => IsCodSelected ? "#26201A" : "#1A1613";
+    public string TransferBorderColor => IsTransferSelected ? "#C49B63" : "#332B24";
+    public string TransferBgColor => IsTransferSelected ? "#26201A" : "#1A1613";
+
+    public string CodRadioIcon => IsCodSelected ? "●" : "○";
+    public string TransferRadioIcon => IsTransferSelected ? "●" : "○";
+
+    [RelayCommand]
+    private void SelectCod() => SelectedPayment = PaymentMethods[0];
+
+    [RelayCommand]
+    private void SelectTransfer() => SelectedPayment = PaymentMethods[1];
+
     [ObservableProperty]
     private decimal voucherDiscount;
+
+    public bool HasVoucherApplied => VoucherDiscount > 0;
 
     [ObservableProperty]
     private bool hasUpsellHint;
@@ -98,12 +134,32 @@ public partial class CartViewModel : ObservableObject
         _cart.SelectedFulfillment = value;
         OnPropertyChanged(nameof(IsPickup));
         OnPropertyChanged(nameof(IsDelivery));
+        OnPropertyChanged(nameof(DeliveryBorderColor));
+        OnPropertyChanged(nameof(DeliveryBgColor));
+        OnPropertyChanged(nameof(DeliveryTextColor));
+        OnPropertyChanged(nameof(PickupBorderColor));
+        OnPropertyChanged(nameof(PickupBgColor));
+        OnPropertyChanged(nameof(PickupTextColor));
         RefreshTotals();
     }
 
-    partial void OnSelectedPaymentChanged(PaymentOption value) =>
+    partial void OnSelectedPaymentChanged(PaymentOption value)
+    {
         OnPropertyChanged(nameof(PaymentMethod));
-    partial void OnVoucherDiscountChanged(decimal value) => OnPropertyChanged(nameof(Total));
+        OnPropertyChanged(nameof(IsCodSelected));
+        OnPropertyChanged(nameof(IsTransferSelected));
+        OnPropertyChanged(nameof(CodBorderColor));
+        OnPropertyChanged(nameof(CodBgColor));
+        OnPropertyChanged(nameof(TransferBorderColor));
+        OnPropertyChanged(nameof(TransferBgColor));
+        OnPropertyChanged(nameof(CodRadioIcon));
+        OnPropertyChanged(nameof(TransferRadioIcon));
+    }
+    partial void OnVoucherDiscountChanged(decimal value)
+    {
+        OnPropertyChanged(nameof(Total));
+        OnPropertyChanged(nameof(HasVoucherApplied));
+    }
 
     public void StartListeningToCart()
     {
@@ -229,12 +285,20 @@ public partial class CartViewModel : ObservableObject
                 return;
             }
 
+            var noteParts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(OrderNote))
+            {
+                noteParts.Add(OrderNote.Trim());
+            }
+            noteParts.AddRange(Items.Where(item => !string.IsNullOrWhiteSpace(item.Note)).Select(item => $"{item.Product.TenSP}: {item.Note}"));
+            var combinedNote = string.Join(" | ", noteParts);
+
             var request = new CheckoutRequest(
                 IsPickup ? "Mang đi" : "Giao hàng",
                 recipientName,
                 recipientPhone,
                 IsPickup ? null : Address.Trim(),
-                string.Join(" | ", Items.Where(item => !string.IsNullOrWhiteSpace(item.Note)).Select(item => $"{item.Product.TenSP}: {item.Note}")),
+                string.IsNullOrWhiteSpace(combinedNote) ? null : combinedNote,
                 VoucherCode,
                 PaymentMethod,
                 Items.Select(item => new CheckoutItemRequest(

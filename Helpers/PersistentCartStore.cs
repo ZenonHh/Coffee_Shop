@@ -4,8 +4,8 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using CoffeeShop.Data;
-using CoffeeShop.Models.Entities;
-using CoffeeShop.Models.ViewModels;
+using CoffeeShop.Data.Entities;
+using CoffeeShop.Business.ViewModels;
 
 namespace CoffeeShop.Helpers
 {

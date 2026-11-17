@@ -1,0 +1,1234 @@
+@model CoffeeShop.Business.ViewModels.CrmStatisticsViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Thống kê";
+    var fromDate = Model.FromDate.ToString("yyyy-MM-dd");
+    var toDate = Model.ToDate.ToString("yyyy-MM-dd");
+    var invFromDate = Model.InvoiceFromDate.ToString("yyyy-MM-dd");
+    var invToDate = Model.InvoiceToDate.ToString("yyyy-MM-dd");
+    var feedbackRate = Model.TotalCustomers == 0 ? 0
+        : Model.RespondedCustomerCount * 100d / Model.TotalCustomers;
+
+    var ageGroupsJson = JsonSerializer.Serialize(Model.AgeGroups);
+    var loyaltyTiersJson = JsonSerializer.Serialize(Model.LoyaltyTiers);
+    var interestsJson = JsonSerializer.Serialize(Model.Interests);
+    var ratingsJson = JsonSerializer.Serialize(Model.Ratings);
+    var monthlyRatingsJson = JsonSerializer.Serialize(Model.MonthlyRatings);
+    var surveysJson = JsonSerializer.Serialize(Model.Surveys);
+    var currentYear = DateTime.Today.Year;
+    var financePeriodLabel = Model.FinancePeriod switch
+    {
+        "month" => "tháng",
+        "year" => "năm",
+        _ => "quý"
+    };
+}
+
+<div class="page-heading statistics-page-heading">
+    <div>
+        <h1>Thống kê</h1>
+        <p>@(Model.Tab == "finance" ? "Tổng hợp doanh thu hóa đơn, chi phí nhập hàng và doanh thu theo nhân viên, sản phẩm." : "Tổng hợp khách hàng, mức độ hài lòng và kết quả tham gia khảo sát.")</p>
+    </div>
+    @if (Model.RangeIsValid)
+    {
+        <div class="statistics-export-actions">
+            <button type="button" class="button button-primary" data-toggle="modal" data-target="#invoicePrintPreviewModal">
+                <i class="fas fa-file-invoice mr-2" aria-hidden="true"></i> Xem trước báo cáo &amp; Xuất file
+            </button>
+        </div>
+    }
+</div>
+
+<section class="panel statistics-filter mb-4">
+    @if (Model.Tab == "finance")
+    {
+        <form asp-action="Index" method="get" class="form-row align-items-end">
+            <input type="hidden" name="tab" value="finance" />
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="financeMode">Chế độ xem</label>
+                <select id="financeMode" name="period" class="form-control" onchange="toggleFinanceFilterMode(this.value)">
+                    <option value="quarter" selected="@(Model.Period != "custom")">Theo năm &amp; kỳ</option>
+                    <option value="custom" selected="@(Model.Period == "custom")">Theo khoảng ngày (Từ A đến B)</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3 col-md-4 finance-year-field" style="@(Model.Period == "custom" ? "display:none;" : "")">
+                <label for="year">Năm thống kê</label>
+                <input id="year" name="year" type="number" class="form-control" min="2000" max="@currentYear" value="@Model.FinanceYear" />
+            </div>
+            <div class="form-group col-lg-3 col-md-4 finance-year-field" style="@(Model.Period == "custom" ? "display:none;" : "")">
+                <label for="financePeriod">Xem theo</label>
+                <select id="financePeriod" name="financePeriod" class="form-control">
+                    <option value="month" selected="@(Model.FinancePeriod == "month")">Tháng</option>
+                    <option value="quarter" selected="@(Model.FinancePeriod == "quarter")">Quý</option>
+                    <option value="year" selected="@(Model.FinancePeriod == "year")">Năm</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3 col-md-4 finance-custom-field" style="@(Model.Period != "custom" ? "display:none;" : "")">
+                <label for="finFromDate">Từ ngày (A)</label>
+                <input id="finFromDate" name="fromDate" type="date" class="form-control" value="@fromDate" />
+            </div>
+            <div class="form-group col-lg-3 col-md-4 finance-custom-field" style="@(Model.Period != "custom" ? "display:none;" : "")">
+                <label for="finToDate">Đến ngày (B)</label>
+                <input id="finToDate" name="toDate" type="date" class="form-control" value="@toDate" />
+            </div>
+            <div class="form-group col-lg-3 col-md-4">
+                <button type="submit" class="button button-primary">Áp dụng</button>
+            </div>
+        </form>
+        @if (Model.Period == "custom")
+        {
+            <p class="muted-cell mb-0">Dữ liệu doanh thu từ ngày <strong>@Model.FromDate.ToString("dd/MM/yyyy")</strong> đến <strong>@Model.ToDate.ToString("dd/MM/yyyy")</strong></p>
+        }
+        else
+        {
+            <p class="muted-cell mb-0">Báo cáo @financePeriodLabel năm @Model.FinanceYear</p>
+        }
+    }
+    else
+    {
+        <form asp-action="Index" method="get" class="form-row align-items-end">
+            <input type="hidden" name="tab" value="@Model.Tab" />
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="period">Khoảng thời gian</label>
+                <select id="period" name="period" class="form-control">
+                    <option value="30days" selected="@(Model.Period == "30days")">30 ngày gần nhất</option>
+                    <option value="quarter" selected="@(Model.Period == "quarter")">Quý hiện tại</option>
+                    <option value="year" selected="@(Model.Period == "year")">Năm hiện tại</option>
+                    <option value="custom" selected="@(Model.Period == "custom")">Tùy chọn</option>
+                </select>
+            </div>
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="fromDate">Từ ngày</label>
+                <input id="fromDate" name="fromDate" type="date" class="form-control" value="@fromDate" />
+            </div>
+            <div class="form-group col-lg-3 col-md-4">
+                <label for="toDate">Đến ngày</label>
+                <input id="toDate" name="toDate" type="date" class="form-control" value="@toDate" />
+            </div>
+            <div class="form-group col-lg-3">
+                <button type="submit" class="button button-primary">Áp dụng</button>
+            </div>
+        </form>
+        <p class="muted-cell mb-0">Dữ liệu theo kỳ: @Model.FromDate.ToString("dd/MM/yyyy") – @Model.ToDate.ToString("dd/MM/yyyy")</p>
+    }
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger mt-3 mb-0"></div>
+    }
+</section>
+
+@if (!Model.RangeIsValid)
+{
+    <section class="panel"><p class="muted-cell mb-0">@(Model.Tab == "finance" ? "Hãy chọn năm hợp lệ để xem báo cáo." : "Hãy chọn khoảng ngày hợp lệ để xem báo cáo.")</p></section>
+}
+else
+{
+<nav class="admin-tabs statistics-tabs mb-4" aria-label="Các báo cáo">
+    @if (!User.IsInRole("CRM"))
+    {
+        <a class="admin-tab @(Model.Tab == "finance" ? "active" : "")"
+           asp-action="Index" asp-route-tab="finance" asp-route-year="@Model.FinanceYear" asp-route-financePeriod="@Model.FinancePeriod">Doanh thu</a>
+    }
+    <a class="admin-tab @(Model.Tab == "customers" ? "active" : "")"
+       asp-action="Index" asp-route-tab="customers" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khách hàng</a>
+    <a class="admin-tab @(Model.Tab == "satisfaction" ? "active" : "")"
+       asp-action="Index" asp-route-tab="satisfaction" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Hài lòng</a>
+    <a class="admin-tab @(Model.Tab == "surveys" ? "active" : "")"
+       asp-action="Index" asp-route-tab="surveys" asp-route-period="@Model.Period" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Khảo sát</a>
+</nav>
+
+@if (Model.Tab == "finance")
+{
+    <div class="row mb-3">
+        <div class="col-md-4 mb-3">
+            <a class="stat-card h-100 statistics-summary-link" href="#finance-periods">
+                <div class="stat-top">DOANH THU HÓA ĐƠN HOÀN THÀNH</div>
+                <div class="stat-value">@Model.TotalCompletedRevenue.ToString("N0") ₫</div>
+                <div class="stat-foot">@Model.CompletedInvoiceCount hóa đơn trong năm @Model.FinanceYear</div>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a class="stat-card h-100 statistics-summary-link" href="#finance-periods">
+                <div class="stat-top">CHI PHÍ PHIẾU NHẬP ĐÃ DUYỆT</div>
+                <div class="stat-value">@Model.TotalApprovedPurchases.ToString("N0") ₫</div>
+                <div class="stat-foot">Tính theo ngày duyệt phiếu nhập</div>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a class="stat-card h-100 statistics-summary-link" href="#finance-periods">
+                <div class="stat-top">CHÊNH LỆCH THU - CHI NHẬP HÀNG</div>
+                <div class="stat-value">@Model.RevenueMinusPurchases.ToString("N0") ₫</div>
+                <div class="stat-foot">Doanh thu trừ chi phí nhập hàng</div>
+            </a>
+        </div>
+    </div>
+
+    <section id="finance-periods" class="panel table-panel mb-4">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Doanh thu, chi phí và chênh lệch theo @financePeriodLabel</h2>
+                <p>Chỉ tính hóa đơn hoàn thành và phiếu nhập đã duyệt.@(Model.FinancePeriod == "year" ? " Bảng năm so sánh ba năm tính đến năm đã chọn." : "")</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead>
+                    <tr>
+                        <th>Chỉ tiêu</th>
+                        @foreach (var financialPeriod in Model.FinancialPeriods)
+                        {
+                            <th>@financialPeriod.Label</th>
+                        }
+                        <th>@Model.FinanceTotalLabel</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Doanh thu</th>
+                        @foreach (var financialPeriod in Model.FinancialPeriods) { <td>@financialPeriod.Revenue.ToString("N0") ₫</td> }
+                        <td><strong>@Model.FinancialPeriods.Sum(item => item.Revenue).ToString("N0") ₫</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Chi phí nhập hàng</th>
+                        @foreach (var financialPeriod in Model.FinancialPeriods) { <td>@financialPeriod.Purchases.ToString("N0") ₫</td> }
+                        <td><strong>@Model.FinancialPeriods.Sum(item => item.Purchases).ToString("N0") ₫</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Chênh lệch thu - chi</th>
+                        @foreach (var financialPeriod in Model.FinancialPeriods) { <td>@financialPeriod.Difference.ToString("N0") ₫</td> }
+                        <td><strong>@Model.FinancialPeriods.Sum(item => item.Difference).ToString("N0") ₫</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="muted-cell mt-3 mb-0">Đây là chênh lệch giữa doanh thu hóa đơn và tiền nhập hàng, chưa phải lợi nhuận kế toán (chưa trừ các chi phí vận hành khác).</p>
+    </section>
+
+    <section id="finance-staff" class="panel table-panel mb-4">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Doanh thu theo nhân viên và năm</h2>
+                <p>Ghi nhận nhân viên đầu tiên xác nhận đơn hàng; doanh thu chưa được gán nhân viên được thể hiện riêng.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead>
+                    <tr><th>Nhân viên</th>@foreach (var reportYear in Model.StaffReportYears) { <th>@reportYear</th> }<th>Tổng</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var staff in Model.StaffRevenue)
+                    {
+                        <tr>
+                            <th>@staff.Name</th>
+                            @foreach (var reportYear in Model.StaffReportYears)
+                            {
+                                <td>@staff.RevenueByYear.GetValueOrDefault(reportYear).ToString("N0") ₫</td>
+                            }
+                            <td><strong>@staff.Total.ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                    <tr>
+                        <th>Tổng nhân viên</th>
+                        @foreach (var reportYear in Model.StaffReportYears)
+                        {
+                            <td><strong>@Model.StaffRevenue.Sum(staff => staff.RevenueByYear.GetValueOrDefault(reportYear)).ToString("N0") ₫</strong></td>
+                        }
+                        <td><strong>@Model.StaffRevenue.Sum(staff => staff.Total).ToString("N0") ₫</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="finance-products" class="panel table-panel mb-4">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Doanh thu theo sản phẩm và quý</h2>
+                <p>Tính theo thành tiền chi tiết sản phẩm của hóa đơn hoàn thành trong năm @Model.FinanceYear.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead><tr><th>Sản phẩm</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>Tổng năm</th></tr></thead>
+                <tbody>
+                    @foreach (var product in Model.ProductQuarterRevenue)
+                    {
+                        <tr>
+                            <th>@product.Name</th>
+                            @for (var quarter = 1; quarter <= 4; quarter++)
+                            {
+                                <td>@product.RevenueByQuarter.GetValueOrDefault(quarter).ToString("N0") ₫</td>
+                            }
+                            <td><strong>@product.Total.ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                    @if (Model.ProductQuarterRevenue.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-center py-4 muted-cell">Chưa có hóa đơn hoàn thành trong năm này.</td></tr>
+                    }
+                    else
+                    {
+                        <tr>
+                            <th>Tổng sản phẩm</th>
+                            @for (var quarter = 1; quarter <= 4; quarter++)
+                            {
+                                <td><strong>@Model.ProductQuarterRevenue.Sum(product => product.RevenueByQuarter.GetValueOrDefault(quarter)).ToString("N0") ₫</strong></td>
+                            }
+                            <td><strong>@Model.ProductQuarterRevenue.Sum(product => product.Total).ToString("N0") ₫</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="muted-cell mt-3 mb-0">Thành tiền theo sản phẩm chưa phân bổ giảm giá hóa đơn và phí giao hàng.</p>
+    </section>
+
+    <!-- Phần tính tổng tiền hóa đơn từ ngày A tới B (kèm sort theo ngày) -->
+    <section id="finance-invoices" class="panel table-panel mb-4">
+        <div class="panel-heading table-heading d-flex justify-content-between align-items-center flex-wrap">
+            <div>
+                <h2><i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>Tổng hợp &amp; Chi tiết hóa đơn từ ngày A đến B</h2>
+                <p>Tính tổng tiền và liệt kê chi tiết các hóa đơn hoàn thành trong khoảng thời gian đã chọn.</p>
+            </div>
+            <div>
+                <button type="button" class="button button-primary" data-toggle="modal" data-target="#invoicePrintPreviewModal">
+                    <i class="fas fa-eye mr-1"></i> Xem trước khi in
+                </button>
+            </div>
+        </div>
+
+        <div class="p-3 bg-light border-bottom">
+            <form asp-action="Index" method="get" class="form-row align-items-end">
+                <input type="hidden" name="tab" value="finance" />
+                <input type="hidden" name="year" value="@Model.FinanceYear" />
+                <input type="hidden" name="financePeriod" value="@Model.FinancePeriod" />
+
+                <div class="form-group col-md-3 mb-2">
+                    <label for="invFrom" class="font-weight-bold small">Từ ngày (A):</label>
+                    <input id="invFrom" name="invoiceFromDate" type="date" class="form-control" value="@invFromDate" required />
+                </div>
+                <div class="form-group col-md-3 mb-2">
+                    <label for="invTo" class="font-weight-bold small">Đến ngày (B):</label>
+                    <input id="invTo" name="invoiceToDate" type="date" class="form-control" value="@invToDate" required />
+                </div>
+                <div class="form-group col-md-3 mb-2">
+                    <label for="invSort" class="font-weight-bold small">Sắp xếp theo ngày:</label>
+                    <select id="invSort" name="invoiceSortOrder" class="form-control">
+                        <option value="desc" selected="@(Model.InvoiceSortOrder == "desc")">Mới nhất trước (Giảm dần)</option>
+                        <option value="asc" selected="@(Model.InvoiceSortOrder == "asc")">Cũ nhất trước (Tăng dần)</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3 mb-2">
+                    <button type="submit" class="button button-primary w-100">
+                        <i class="fas fa-calculator mr-1"></i> Lọc &amp; Tính tổng tiền
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="p-3 border-bottom bg-white">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-2 mb-md-0">
+                    <span class="text-muted small d-block font-weight-bold">KỲ TÍNH TOÁN:</span>
+                    <span>Từ <strong>@Model.InvoiceFromDate.ToString("dd/MM/yyyy")</strong> đến <strong>@Model.InvoiceToDate.ToString("dd/MM/yyyy")</strong></span>
+                    <span class="badge badge-info ml-2">@Model.RangeInvoiceCount hóa đơn</span>
+                </div>
+                <div class="col-md-6 text-md-right">
+                    <span class="text-muted small d-block font-weight-bold">TỔNG TIỀN HÓA ĐƠN:</span>
+                    <span class="text-success h4 font-weight-bold mb-0">@Model.RangeTotalRevenue.ToString("N0") ₫</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead>
+                    <tr>
+                        <th>Mã HĐ</th>
+                        <th>Khách hàng / Người nhận</th>
+                        <th>SĐT</th>
+                        <th>
+                            <a href="?tab=finance&year=@Model.FinanceYear&financePeriod=@Model.FinancePeriod&invoiceFromDate=@invFromDate&invoiceToDate=@invToDate&invoiceSortOrder=@(Model.InvoiceSortOrder == "desc" ? "asc" : "desc")"
+                               class="text-dark d-inline-flex align-items-center" title="Bấm để đổi sắp xếp Ngày tạo">
+                                Ngày tạo
+                                @if (Model.InvoiceSortOrder == "asc")
+                                {
+                                    <i class="fas fa-sort-numeric-down ml-1 text-primary"></i>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-sort-numeric-up-alt ml-1 text-primary"></i>
+                                }
+                            </a>
+                        </th>
+                        <th>PTTT</th>
+                        <th>Trạng thái</th>
+                        <th class="text-right">Tổng tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.InvoicesInRange.Any())
+                    {
+                        foreach (var inv in Model.InvoicesInRange)
+                        {
+                            <tr>
+                                <td><strong>#@inv.MaHD</strong></td>
+                                <td>@inv.HoTenNguoiNhan</td>
+                                <td>@inv.SdtNguoiNhan</td>
+                                <td>@inv.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="badge badge-light border">@inv.PhuongThucThanhToan</span></td>
+                                <td><span class="badge badge-success">@inv.TrangThai</span></td>
+                                <td class="text-right font-weight-bold text-primary">@inv.TongTien.ToString("N0") ₫</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4 muted-cell">Không có hóa đơn hoàn thành nào từ ngày @Model.InvoiceFromDate.ToString("dd/MM/yyyy") đến @Model.InvoiceToDate.ToString("dd/MM/yyyy").</td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model.InvoicesInRange.Any())
+                {
+                    <tfoot class="bg-light font-weight-bold">
+                        <tr>
+                            <td colspan="6" class="text-right">TỔNG DOANH THU (@Model.RangeInvoiceCount HÓA ĐƠN):</td>
+                            <td class="text-right text-success font-weight-bold" style="font-size: 1.15em;">@Model.RangeTotalRevenue.ToString("N0") ₫</td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </section>
+}
+else if (Model.Tab == "customers")
+{
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỔNG KHÁCH HÀNG</div>
+                <div class="stat-value">@Model.TotalCustomers</div>
+                <div class="stat-foot">Khách mới trong kỳ: @Model.NewCustomers</div>
+            </section>
+        </div>
+        <div class="col-md-6 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">KHÁCH MỚI TRONG KỲ</div>
+                <div class="stat-value">@Model.NewCustomers</div>
+                <div class="stat-foot">@Model.FromDate.ToString("dd/MM/yyyy") – @Model.ToDate.ToString("dd/MM/yyyy")</div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Hàng biểu đồ hạng thành viên -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <section class="panel statistics-panel">
+                <h2><i class="fas fa-medal mr-2 text-warning"></i>Phân bố hạng thành viên (Loyalty Tiers)</h2>
+                <div class="row align-items-center mt-3">
+                    <div class="col-md-5 mb-3 mb-md-0">
+                        <div style="position: relative; height: 260px; width: 100%;">
+                            <canvas id="loyaltyTiersChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        @if (Model.LoyaltyTiers.Count == 0)
+                        {
+                            <p class="muted-cell mb-0">Chưa có dữ liệu khách hàng.</p>
+                        }
+                        @foreach (var segment in Model.LoyaltyTiers)
+                        {
+                            <div class="statistics-bar-row mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>@segment.Label</strong>
+                                    <span>@segment.Count khách (@segment.Percentage.ToString("0.#")%)</span>
+                                </div>
+                                <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Phân bố độ tuổi -->
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2><i class="fas fa-birthday-cake mr-2 text-info"></i>Phân bố độ tuổi</h2>
+                <p class="muted-cell">Tính trên toàn bộ khách hàng; đã bao gồm người chưa khai báo ngày sinh.</p>
+                <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                    <canvas id="ageGroupsChart"></canvas>
+                </div>
+                @foreach (var segment in Model.AgeGroups)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count (@segment.Percentage.ToString("0.#")%)</strong></div>
+                        <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+
+        <!-- Sở thích danh mục -->
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2><i class="fas fa-heart mr-2 text-danger"></i>Sở thích món uống</h2>
+                <p class="muted-cell">Ước tính từ nhóm sản phẩm đã mua; số khách tính theo tổng @Model.TotalCustomers khách.</p>
+                @if (Model.Interests.Count == 0)
+                {
+                    <p class="muted-cell mb-0">Chưa có đơn hoàn thành để thống kê sở thích.</p>
+                }
+                else
+                {
+                    <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="interestsChart"></canvas>
+                    </div>
+                }
+                @foreach (var segment in Model.Interests)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@segment.Label</span><strong>@segment.Count/@Model.TotalCustomers khách</strong></div>
+                        <div class="statistics-track"><span style="width:@segment.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+}
+else if (Model.Tab == "satisfaction")
+{
+    <div class="row mb-3">
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">ĐIỂM HÀI LÒNG TRUNG BÌNH</div>
+                <div class="stat-value">@(Model.AverageSatisfaction?.ToString("0.0") ?? "—") <small>/ 5</small></div>
+                <div class="stat-foot">Từ @Model.RatedFeedbackCount lượt đánh giá có chấm điểm</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỔNG ĐÁNH GIÁ</div>
+                <div class="stat-value">@Model.TotalFeedbackCount</div>
+                <div class="stat-foot">Lượt phản hồi trong kỳ</div>
+            </section>
+        </div>
+        <div class="col-md-4 mb-3">
+            <section class="stat-card h-100">
+                <div class="stat-top">TỶ LỆ KHÁCH ĐÃ PHẢN HỒI</div>
+                <div class="stat-value">@feedbackRate.ToString("0.#")%</div>
+                <div class="stat-foot">@Model.RespondedCustomerCount/@Model.TotalCustomers khách</div>
+            </section>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Phân bố đánh giá 1-5 sao -->
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2><i class="fas fa-star mr-2 text-warning"></i>Phân bố đánh giá</h2>
+                <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                    <canvas id="ratingsChart"></canvas>
+                </div>
+                @foreach (var rating in Model.Ratings.OrderByDescending(item => item.Rating))
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@rating.Rating sao</span><strong>@rating.Count lượt (@rating.Percentage.ToString("0.#")%)</strong></div>
+                        <div class="statistics-track"><span style="width:@rating.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+
+        <!-- Xu hướng theo tháng -->
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2><i class="fas fa-chart-line mr-2 text-success"></i>Xu hướng theo tháng</h2>
+                @if (Model.MonthlyRatings.Count == 0)
+                {
+                    <p class="muted-cell mb-0">Chưa có đánh giá trong kỳ.</p>
+                }
+                else
+                {
+                    <div class="mb-3" style="position: relative; height: 240px; width: 100%;">
+                        <canvas id="monthlyRatingsChart"></canvas>
+                    </div>
+                }
+                @foreach (var month in Model.MonthlyRatings)
+                {
+                    <div class="statistics-bar-row">
+                        <div class="d-flex justify-content-between"><span>@month.Month · @month.Count lượt</span><strong>@month.Average/5</strong></div>
+                        <div class="statistics-track"><span class="statistics-rating-track" style="width:@((month.Average * 20).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></span></div>
+                    </div>
+                }
+            </section>
+        </div>
+
+        <!-- Sản phẩm được đánh giá cao -->
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2><i class="fas fa-thumbs-up mr-2 text-success"></i>Sản phẩm được đánh giá cao</h2>
+                @if (Model.TopProducts.Count == 0) { <p class="muted-cell mb-0">Chưa có đánh giá theo sản phẩm.</p> }
+                @foreach (var product in Model.TopProducts)
+                {
+                    <div class="statistics-product-row"><span>@product.Name <small>(@product.Count lượt)</small></span><strong>@product.Average.ToString("0.0")/5</strong></div>
+                }
+            </section>
+        </div>
+
+        <!-- Sản phẩm được đánh giá thấp -->
+        <div class="col-lg-6 mb-4">
+            <section class="panel statistics-panel h-100">
+                <h2><i class="fas fa-exclamation-triangle mr-2 text-danger"></i>Sản phẩm cần cải thiện</h2>
+                @if (Model.LowestProducts.Count == 0) { <p class="muted-cell mb-0">Chưa có đánh giá theo sản phẩm.</p> }
+                @foreach (var product in Model.LowestProducts)
+                {
+                    <div class="statistics-product-row"><span>@product.Name <small>(@product.Count lượt)</small></span><strong>@product.Average.ToString("0.0")/5</strong></div>
+                }
+            </section>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Tab Khảo sát -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <section class="panel statistics-panel">
+                <h2><i class="fas fa-poll-h mr-2 text-primary"></i>Biểu đồ so sánh tỷ lệ tham gia khảo sát</h2>
+                <div class="my-3" style="position: relative; height: 260px; width: 100%;">
+                    <canvas id="surveysChart"></canvas>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <section class="panel table-panel">
+        <div class="panel-heading table-heading">
+            <div>
+                <h2>Chi tiết đợt khảo sát</h2>
+                <p>Số lượt hoàn thành trong kỳ trên tổng số khách thuộc đối tượng nhận khảo sát.</p>
+            </div>
+        </div>
+        <div class="table-scroll">
+            <table class="data-table admin-data-table">
+                <thead><tr><th>KHẢO SÁT</th><th>ĐỐI TƯỢNG</th><th>LƯỢT TRẢ LỜI</th><th>TỶ LỆ THAM GIA</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var survey in Model.Surveys)
+                    {
+                        <tr>
+                            <td><strong>@survey.Title</strong></td>
+                            <td>@survey.TargetCount khách</td>
+                            <td>@survey.ResponseCount/@survey.TargetCount khách (@survey.Percentage.ToString("0.#")%)</td>
+                            <td><div class="statistics-track"><span style="width:@survey.Percentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></span></div></td>
+                            <td><a class="button button-small button-outline" asp-controller="Surveys" asp-action="Statistics" asp-route-id="@survey.Id" asp-route-fromDate="@fromDate" asp-route-toDate="@toDate">Xem kết quả</a></td>
+                        </tr>
+                    }
+                    @if (Model.Surveys.Count == 0)
+                    {
+                        <tr><td colspan="5" class="text-center py-4 muted-cell">Chưa có khảo sát.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+}
+}
+
+<!-- Modal Xem trước Bản In Hóa Đơn / Báo Cáo Doanh Thu -->
+<div class="modal fade" id="invoicePrintPreviewModal" tabindex="-1" role="dialog" aria-labelledby="invoicePrintPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title font-weight-bold" id="invoicePrintPreviewModalLabel">
+                    <i class="fas fa-print mr-2 text-primary"></i>Xem trước bản in báo cáo hoàn chỉnh
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" id="printableInvoiceReport">
+                <!-- Tiêu đề công ty chuẩn bản in -->
+                <div class="d-flex justify-content-between align-items-start pb-3 border-bottom mb-3">
+                    <div>
+                        <h4 class="font-weight-bold text-uppercase mb-1" style="color: #6f4e37; letter-spacing: 0.5px;">KATINAT SAIGON KAFÉ</h4>
+                        <div class="text-muted small">CÔNG TY CỔ PHẦN CÀ PHÊ KATINAT</div>
+                        <div class="text-muted small">Địa chỉ: 91 Đồng Khởi, P. Bến Nghé, Quận 1, TP. Hồ Chí Minh</div>
+                        <div class="text-muted small">Hotline: 1900 636 586 · MST: 0316278899 · Website: www.katinat.vn</div>
+                    </div>
+                    <div class="text-right text-muted small">
+                        <div><strong>Mã báo cáo:</strong> @(string.IsNullOrEmpty(Model.ReportCode) ? $"TK-{DateTime.Now:yyyyMMdd-HHmmss}" : Model.ReportCode)</div>
+                        <div><strong>Thời điểm lập:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</div>
+                        <div><strong>Người lập:</strong> @(User.Identity?.Name ?? "Quản trị viên")</div>
+                    </div>
+                </div>
+
+                <div class="text-center my-3">
+                    <h4 class="font-weight-bold text-dark text-uppercase mb-1">BÁO CÁO TỔNG HỢP DOANH THU &amp; HOẠT ĐỘNG KINH DOANH</h4>
+                    <p class="text-muted mb-0">
+                        @if (Model.Period == "custom")
+                        {
+                            <span>Kỳ báo cáo: Từ ngày <strong>@Model.FromDate.ToString("dd/MM/yyyy")</strong> đến ngày <strong>@Model.ToDate.ToString("dd/MM/yyyy")</strong></span>
+                        }
+                        else
+                        {
+                            <span>Kỳ báo cáo: Báo cáo @financePeriodLabel năm <strong>@Model.FinanceYear</strong></span>
+                        }
+                    </p>
+                </div>
+
+                <!-- Bỏ hoàn toàn các ô hiển thị thẻ doanh thu, thay bằng bảng số liệu chính quy -->
+                <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
+                    <div>
+                        <span>Tổng doanh thu hoàn thành: <strong class="text-dark">@Model.TotalCompletedRevenue.ToString("N0") ₫</strong> (@Model.CompletedInvoiceCount hóa đơn)</span>
+                        <span class="mx-2">|</span>
+                        <span>Chi phí nhập hàng duyệt: <strong class="text-dark">@Model.TotalApprovedPurchases.ToString("N0") ₫</strong></span>
+                        <span class="mx-2">|</span>
+                        <span>Chênh lệch: <strong class="text-dark">@Model.RevenueMinusPurchases.ToString("N0") ₫</strong></span>
+                    </div>
+                    <div><em>Đơn vị tính: Đồng Việt Nam (VNĐ)</em></div>
+                </div>
+
+                @if (Model.FinancialPeriods.Any())
+                {
+                    <!-- 1. Bảng phân bổ Thu - Chi theo kỳ -->
+                    <div class="mb-4">
+                        <div class="font-weight-bold text-dark mb-1 pb-1 border-bottom" style="font-size: 14px;">
+                            I. TỔNG HỢP DOANH THU &amp; CHI PHÍ THEO KỲ
+                        </div>
+                        <table class="table table-bordered table-sm mb-0">
+                            <thead style="background-color: #F5EEE8;">
+                                <tr>
+                                    <th style="width: 200px;">Chỉ tiêu</th>
+                                    @foreach (var p in Model.FinancialPeriods)
+                                    {
+                                        <th class="text-right">@p.Label</th>
+                                    }
+                                    <th class="text-right">@Model.FinanceTotalLabel</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>1. Doanh thu bán hàng</strong></td>
+                                    @foreach (var p in Model.FinancialPeriods)
+                                    {
+                                        <td class="text-right">@p.Revenue.ToString("N0") ₫</td>
+                                    }
+                                    <td class="text-right font-weight-bold text-dark">@Model.FinancialPeriods.Sum(item => item.Revenue).ToString("N0") ₫</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>2. Chi phí nhập hàng</strong></td>
+                                    @foreach (var p in Model.FinancialPeriods)
+                                    {
+                                        <td class="text-right">@p.Purchases.ToString("N0") ₫</td>
+                                    }
+                                    <td class="text-right font-weight-bold text-dark">@Model.FinancialPeriods.Sum(item => item.Purchases).ToString("N0") ₫</td>
+                                </tr>
+                                <tr class="font-weight-bold" style="background-color: #FAF6F3;">
+                                    <td>3. Chênh lệch thu - chi</td>
+                                    @foreach (var p in Model.FinancialPeriods)
+                                    {
+                                        <td class="text-right">@p.Difference.ToString("N0") ₫</td>
+                                    }
+                                    <td class="text-right text-dark">@Model.FinancialPeriods.Sum(item => item.Difference).ToString("N0") ₫</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                @if (Model.StaffRevenue.Any())
+                {
+                    <!-- 2. Bảng chi tiết doanh thu theo nhân viên -->
+                    <div class="mb-4">
+                        <div class="font-weight-bold text-dark mb-1 pb-1 border-bottom" style="font-size: 14px;">
+                            II. BẢNG CHI TIẾT DOANH THU THEO NHÂN VIÊN
+                        </div>
+                        <table class="table table-bordered table-sm mb-0">
+                            <thead style="background-color: #F5EEE8;">
+                                <tr>
+                                    <th style="width: 50px;" class="text-center">STT</th>
+                                    <th>Họ và tên nhân viên</th>
+                                    @foreach (var y in Model.StaffReportYears)
+                                    {
+                                        <th class="text-right">Năm @y</th>
+                                    }
+                                    <th class="text-right">Tổng doanh thu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ var sIdx = 1; }
+                                @foreach (var staff in Model.StaffRevenue)
+                                {
+                                    <tr>
+                                        <td class="text-center">@(sIdx++)</td>
+                                        <td><strong>@staff.Name</strong></td>
+                                        @foreach (var y in Model.StaffReportYears)
+                                        {
+                                            <td class="text-right">@staff.RevenueByYear.GetValueOrDefault(y).ToString("N0") ₫</td>
+                                        }
+                                        <td class="text-right font-weight-bold">@staff.Total.ToString("N0") ₫</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot style="background-color: #FAF6F3; font-weight: bold;">
+                                <tr>
+                                    <td colspan="2" class="text-right">TỔNG NHÂN VIÊN:</td>
+                                    @foreach (var y in Model.StaffReportYears)
+                                    {
+                                        <td class="text-right">@Model.StaffRevenue.Sum(s => s.RevenueByYear.GetValueOrDefault(y)).ToString("N0") ₫</td>
+                                    }
+                                    <td class="text-right text-dark">@Model.StaffRevenue.Sum(s => s.Total).ToString("N0") ₫</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+
+                @if (Model.ProductQuarterRevenue.Any())
+                {
+                    <!-- 3. Bảng chi tiết doanh thu theo sản phẩm -->
+                    <div class="mb-4">
+                        <div class="font-weight-bold text-dark mb-1 pb-1 border-bottom" style="font-size: 14px;">
+                            III. BẢNG CHI TIẾT DOANH THU THEO SẢN PHẨM
+                        </div>
+                        <table class="table table-bordered table-sm mb-0">
+                            <thead style="background-color: #F5EEE8;">
+                                <tr>
+                                    <th style="width: 50px;" class="text-center">STT</th>
+                                    <th>Tên món / Sản phẩm</th>
+                                    <th class="text-right">Quý 1</th>
+                                    <th class="text-right">Quý 2</th>
+                                    <th class="text-right">Quý 3</th>
+                                    <th class="text-right">Quý 4</th>
+                                    <th class="text-right">Tổng năm</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ var pIdx = 1; }
+                                @foreach (var p in Model.ProductQuarterRevenue)
+                                {
+                                    <tr>
+                                        <td class="text-center">@(pIdx++)</td>
+                                        <td><strong>@p.Name</strong></td>
+                                        @for (var q = 1; q <= 4; q++)
+                                        {
+                                            <td class="text-right">@p.RevenueByQuarter.GetValueOrDefault(q).ToString("N0") ₫</td>
+                                        }
+                                        <td class="text-right font-weight-bold">@p.Total.ToString("N0") ₫</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot style="background-color: #FAF6F3; font-weight: bold;">
+                                <tr>
+                                    <td colspan="2" class="text-right">TỔNG SẢN PHẨM:</td>
+                                    @for (var q = 1; q <= 4; q++)
+                                    {
+                                        <td class="text-right">@Model.ProductQuarterRevenue.Sum(prod => prod.RevenueByQuarter.GetValueOrDefault(q)).ToString("N0") ₫</td>
+                                    }
+                                    <td class="text-right text-dark">@Model.ProductQuarterRevenue.Sum(prod => prod.Total).ToString("N0") ₫</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+
+                <!-- 4. Bảng kê chi tiết các hóa đơn hoàn thành trong kỳ -->
+                <div class="mb-4">
+                    <div class="font-weight-bold text-dark mb-1 pb-1 border-bottom" style="font-size: 14px;">
+                        IV. BẢNG KÊ CHI TIẾT CÁC HÓA ĐƠN HOÀN THÀNH
+                    </div>
+                    <table class="table table-bordered table-sm mb-0">
+                        <thead style="background-color: #F5EEE8;">
+                            <tr>
+                                <th style="width: 50px;" class="text-center">STT</th>
+                                <th style="width: 75px;">Mã HĐ</th>
+                                <th>Khách hàng / Người nhận</th>
+                                <th style="width: 110px;" class="text-center">SĐT</th>
+                                <th style="width: 140px;" class="text-center">Ngày tạo</th>
+                                <th style="width: 120px;" class="text-center">Phương thức</th>
+                                <th style="width: 110px;" class="text-center">Trạng thái</th>
+                                <th style="width: 130px;" class="text-right">Tổng tiền (VNĐ)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.InvoicesInRange.Any())
+                            {
+                                var invIdx = 1;
+                                foreach (var inv in Model.InvoicesInRange)
+                                {
+                                    <tr>
+                                        <td class="text-center">@(invIdx++)</td>
+                                        <td><strong>#@inv.MaHD</strong></td>
+                                        <td>@inv.HoTenNguoiNhan</td>
+                                        <td class="text-center">@inv.SdtNguoiNhan</td>
+                                        <td class="text-center">@inv.NgayTao.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="text-center">@inv.PhuongThucThanhToan</td>
+                                        <td class="text-center">@inv.TrangThai</td>
+                                        <td class="text-right font-weight-bold">@inv.TongTien.ToString("N0") ₫</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="text-center py-3 text-muted">Không có hóa đơn hoàn thành nào trong khoảng thời gian đã chọn.</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot style="background-color: #FAF6F3; font-weight: bold;">
+                            <tr>
+                                <td colspan="7" class="text-right">TỔNG CỘNG (@Model.RangeInvoiceCount HÓA ĐƠN):</td>
+                                <td class="text-right text-dark" style="font-size: 1.05em;">@Model.RangeTotalRevenue.ToString("N0") ₫</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Chữ ký 3 bên chuẩn bản in -->
+                <div class="row pt-4 mt-3 text-center">
+                    <div class="col-4">
+                        <p class="font-weight-bold mb-5">Người lập biểu</p>
+                        <p class="text-muted">(Ký, ghi rõ họ tên)</p>
+                        <p class="font-weight-bold text-dark">@(User.Identity?.Name ?? "Quản trị viên")</p>
+                    </div>
+                    <div class="col-4">
+                        <p class="font-weight-bold mb-5">Kế toán trưởng</p>
+                        <p class="text-muted">(Ký, ghi rõ họ tên)</p>
+                        <p class="text-muted">................................</p>
+                    </div>
+                    <div class="col-4">
+                        <p class="font-weight-bold mb-5">Giám đốc duyệt</p>
+                        <p class="text-muted">(Ký, đóng dấu)</p>
+                        <p class="text-muted">................................</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Đóng
+                </button>
+                <div class="btn-group">
+                    <a class="btn btn-success"
+                       asp-action="ExportExcel"
+                       asp-route-tab="@Model.Tab"
+                       asp-route-period="@Model.Period"
+                       asp-route-fromDate="@fromDate"
+                       asp-route-toDate="@toDate"
+                       asp-route-year="@Model.FinanceYear"
+                       asp-route-financePeriod="@Model.FinancePeriod"
+                       asp-route-invoiceFromDate="@invFromDate"
+                       asp-route-invoiceToDate="@invToDate"
+                       asp-route-invoiceSortOrder="@Model.InvoiceSortOrder">
+                        <i class="fas fa-file-excel mr-1"></i> Xuất file Excel đầy đủ
+                    </a>
+                    <a class="btn btn-danger"
+                       asp-action="ExportPdf"
+                       asp-route-tab="@Model.Tab"
+                       asp-route-period="@Model.Period"
+                       asp-route-fromDate="@fromDate"
+                       asp-route-toDate="@toDate"
+                       asp-route-year="@Model.FinanceYear"
+                       asp-route-financePeriod="@Model.FinancePeriod"
+                       asp-route-invoiceFromDate="@invFromDate"
+                       asp-route-invoiceToDate="@invToDate"
+                       asp-route-invoiceSortOrder="@Model.InvoiceSortOrder">
+                        <i class="fas fa-file-pdf mr-1"></i> Tải bản in PDF
+                    </a>
+                    <button type="button" class="btn btn-primary font-weight-bold" onclick="printInvoicePreviewArea()">
+                        <i class="fas fa-print mr-1"></i> In báo cáo ngay
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="stat-age-data">@Html.Raw(ageGroupsJson)</script>
+<script type="application/json" id="stat-loyalty-data">@Html.Raw(loyaltyTiersJson)</script>
+<script type="application/json" id="stat-interests-data">@Html.Raw(interestsJson)</script>
+<script type="application/json" id="stat-ratings-data">@Html.Raw(ratingsJson)</script>
+<script type="application/json" id="stat-monthly-data">@Html.Raw(monthlyRatingsJson)</script>
+<script type="application/json" id="stat-surveys-data">@Html.Raw(surveysJson)</script>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        (function () {
+            if (typeof Chart === 'undefined') return;
+
+            var currentTab = '@Model.Tab';
+            var styles = getComputedStyle(document.documentElement);
+            var primary = '#6f4e37'; // Katinat coffee brown
+            var secondary = '#c49b63'; // Katinat gold
+            var ink = '#28251f';
+            var muted = '#8e8981';
+            var line = '#efede9';
+
+            Chart.defaults.font.family = "'DM Sans', sans-serif";
+            Chart.defaults.color = ink;
+
+            if (currentTab === 'customers') {
+                // 1. Phân bố hạng thẻ (Doughnut)
+                var loyaltyEl = document.getElementById('stat-loyalty-data');
+                var loyaltyData = loyaltyEl ? JSON.parse(loyaltyEl.textContent || '[]') : [];
+                var loyaltyCanvas = document.getElementById('loyaltyTiersChart');
+
+                if (loyaltyCanvas && loyaltyData.length > 0) {
+                    var tierColors = {
+                        'Đồng': '#b87333',
+                        'Bạc': '#a8a9ad',
+                        'Vàng': '#d4af37',
+                        'Kim Cương': '#0284c7'
+                    };
+                    var labels = loyaltyData.map(function(item) { return item.Label || 'Khác'; });
+                    var counts = loyaltyData.map(function(item) { return item.Count; });
+                    var bgColors = labels.map(function(lbl) { return tierColors[lbl] || '#6f4e37'; });
+
+                    new Chart(loyaltyCanvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: bgColors,
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            },
+                            cutout: '60%'
+                        }
+                    });
+                }
+
+                // 2. Phân bố độ tuổi (Bar)
+                var ageEl = document.getElementById('stat-age-data');
+                var ageData = ageEl ? JSON.parse(ageEl.textContent || '[]') : [];
+                var ageCanvas = document.getElementById('ageGroupsChart');
+
+                if (ageCanvas && ageData.length > 0) {
+                    new Chart(ageCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: ageData.map(function(i) { return i.Label; }),
+                            datasets: [{
+                                label: 'Số khách hàng',
+                                data: ageData.map(function(i) { return i.Count; }),
+                                backgroundColor: '#496eae',
+                                borderRadius: 4,
+                                maxBarThickness: 36
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // 3. Sở thích món uống (Horizontal Bar)
+                var interestEl = document.getElementById('stat-interests-data');
+                var interestData = interestEl ? JSON.parse(interestEl.textContent || '[]') : [];
+                var interestCanvas = document.getElementById('interestsChart');
+
+                if (interestCanvas && interestData.length > 0) {
+                    new Chart(interestCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: interestData.map(function(i) { return i.Label; }),
+                            datasets: [{
+                                label: 'Số khách quan tâm',
+                                data: interestData.map(function(i) { return i.Count; }),
+                                backgroundColor: '#23845b',
+                                borderRadius: 4,
+                                maxBarThickness: 24
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } },
+                                y: { grid: { display: false } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+            }
+            else if (currentTab === 'satisfaction') {
+                // 1. Phân bố đánh giá (Bar)
+                var ratingEl = document.getElementById('stat-ratings-data');
+                var ratingData = ratingEl ? JSON.parse(ratingEl.textContent || '[]') : [];
+                var ratingCanvas = document.getElementById('ratingsChart');
+
+                if (ratingCanvas && ratingData.length > 0) {
+                    var sortedRatings = ratingData.slice().sort(function(a, b) { return a.Rating - b.Rating; });
+                    var colors = ['#dc2626', '#ea580c', '#eab308', '#84cc16', '#16a34a'];
+
+                    new Chart(ratingCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: sortedRatings.map(function(i) { return i.Rating + ' sao'; }),
+                            datasets: [{
+                                label: 'Lượt đánh giá',
+                                data: sortedRatings.map(function(i) { return i.Count; }),
+                                backgroundColor: colors,
+                                borderRadius: 4,
+                                maxBarThickness: 40
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { beginAtZero: true, grid: { color: line }, ticks: { precision: 0 } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // 2. Xu hướng theo tháng (Line)
+                var monthlyEl = document.getElementById('stat-monthly-data');
+                var monthlyData = monthlyEl ? JSON.parse(monthlyEl.textContent || '[]') : [];
+                var monthlyCanvas = document.getElementById('monthlyRatingsChart');
+
+                if (monthlyCanvas && monthlyData.length > 0) {
+                    new Chart(monthlyCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: monthlyData.map(function(i) { return i.Month; }),
+                            datasets: [{
+                                label: 'Điểm trung bình (trên 5)',
+                                data: monthlyData.map(function(i) { return i.Average; }),
+                                borderColor: secondary,
+                                backgroundColor: 'rgba(196, 155, 99, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#fff',
+                                pointBorderColor: secondary
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { grid: { display: false } },
+                                y: { min: 1, max: 5, grid: { color: line }, ticks: { stepSize: 1 } }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) { return ' Điểm: ' + ctx.parsed.y + ' / 5 sao'; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            else if (currentTab === 'surveys') {
+                // Biểu đồ khảo sát (Horizontal Bar)
+                var surveyEl = document.getElementById('stat-surveys-data');
+                var surveyData = surveyEl ? JSON.parse(surveyEl.textContent || '[]') : [];
+                var surveyCanvas = document.getElementById('surveysChart');
+
+                if (surveyCanvas && surveyData.length > 0) {
+                    new Chart(surveyCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: surveyData.map(function(i) { return i.Title; }),
+                            datasets: [{
+                                label: 'Tỷ lệ tham gia (%)',
+                                data: surveyData.map(function(i) { return i.Percentage; }),
+                                backgroundColor: '#6f4e37',
+                                borderRadius: 4,
+                                maxBarThickness: 28
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    grid: { color: line },
+                                    ticks: { callback: function(val) { return val + '%'; } }
+                                },
+                                y: { grid: { display: false } }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(ctx) {
+                                            var item = surveyData[ctx.dataIndex];
+                                            return ' ' + ctx.parsed.x + '% (' + item.ResponseCount + '/' + item.TargetCount + ' khách)';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        })();
+
+        function toggleFinanceFilterMode(mode) {
+            if (mode === 'custom') {
+                $('.finance-year-field').hide();
+                $('.finance-custom-field').show();
+            } else {
+                $('.finance-year-field').show();
+                $('.finance-custom-field').hide();
+            }
+        }
+
+        function printInvoicePreviewArea() {
+            var reportContent = document.getElementById('printableInvoiceReport');
+            if (!reportContent) return;
+            var printWin = window.open('', '_blank', 'width=1100,height=850');
+            printWin.document.write('<!DOCTYPE html><html><head><title>Báo cáo doanh thu và hoạt động kinh doanh - Katinat Coffee</title>');
+            printWin.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">');
+            printWin.document.write('<style>');
+            printWin.document.write('@@page { size: A4 landscape; margin: 12mm 15mm; }');
+            printWin.document.write('body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 20px; color: #28251f; background: #fff; }');
+            printWin.document.write('table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 18px; page-break-inside: avoid; }');
+            printWin.document.write('th, td { border: 1px solid #d0c9c0 !important; padding: 5px 8px !important; font-size: 12px; }');
+            printWin.document.write('thead th { background-color: #F5EEE8 !important; font-weight: 700; color: #28251f; -webkit-print-color-adjust: exact; print-color-adjust: exact; }');
+            printWin.document.write('tfoot { background-color: #FAF6F3 !important; font-weight: 700; -webkit-print-color-adjust: exact; print-color-adjust: exact; }');
+            printWin.document.write('.row.text-center { page-break-inside: avoid; }');
+            printWin.document.write('@@media print { body { padding: 0; } button, .no-print { display: none !important; } }');
+            printWin.document.write('</style>');
+            printWin.document.write('</head><body>');
+            printWin.document.write(reportContent.innerHTML);
+            printWin.document.write('</body></html>');
+            printWin.document.close();
+            printWin.focus();
+            setTimeout(function () {
+                printWin.print();
+                printWin.close();
+            }, 500);
+        }
+    </script>
+}

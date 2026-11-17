@@ -621,6 +621,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[voucher](
 	[MaVoucher] [int] IDENTITY(1,1) NOT NULL,
+	[MaKH] [int] NULL,
 	[MaCode] [nvarchar](50) NOT NULL,
 	[PhanLoaiGiam] [nvarchar](20) NULL,
 	[GiaTriGiam] [decimal](12, 2) NOT NULL,
@@ -1145,6 +1146,11 @@ REFERENCES [dbo].[voucher] ([MaVoucher])
 GO
 ALTER TABLE [dbo].[hoadon] CHECK CONSTRAINT [fk_hoadon_voucher]
 GO
+ALTER TABLE [dbo].[voucher] WITH CHECK ADD CONSTRAINT [FK_Voucher_KhachHang_MaKH] FOREIGN KEY([MaKH])
+REFERENCES [dbo].[khachhang] ([MaKH])
+GO
+CREATE NONCLUSTERED INDEX [IX_Voucher_MaKH] ON [dbo].[voucher] ([MaKH])
+GO
 ALTER TABLE [dbo].[khaosat]  WITH CHECK ADD  CONSTRAINT [fk_khaosat_taikhoan] FOREIGN KEY([MaTaiKhoan])
 REFERENCES [dbo].[taikhoan] ([MaTaiKhoan])
 GO
@@ -1225,4 +1231,24 @@ BEGIN
     REFERENCES [dbo].[bienthesanpham] ([MaBienThe]);
     ALTER TABLE [dbo].[chitiethoadon] CHECK CONSTRAINT [fk_cthd_bienthe];
 END
+GO
+
+IF EXISTS
+(
+    SELECT 1 FROM sys.tables
+    WHERE [name] COLLATE Latin1_General_100_BIN2 = N'chitiethoadon'
+)
+    EXEC sys.sp_rename N'dbo.chitiethoadon', N'ChiTietHoaDon';
+IF EXISTS
+(
+    SELECT 1 FROM sys.tables
+    WHERE [name] COLLATE Latin1_General_100_BIN2 = N'chitiethoadon_topping'
+)
+    EXEC sys.sp_rename N'dbo.chitiethoadon_topping', N'ChiTietHoaDon_Topping';
+IF EXISTS
+(
+    SELECT 1 FROM sys.tables
+    WHERE [name] COLLATE Latin1_General_100_BIN2 = N'phanhoi'
+)
+    EXEC sys.sp_rename N'dbo.phanhoi', N'PhanHoi';
 GO

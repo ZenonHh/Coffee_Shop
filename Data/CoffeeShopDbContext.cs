@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using CoffeeShop.Models.Entities;
+using CoffeeShop.Data.Entities;
 
 namespace CoffeeShop.Data
 {

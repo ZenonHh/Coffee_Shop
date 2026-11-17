@@ -1,3 +1,6 @@
+USE CoffeeShopDb;
+GO
+
 SET XACT_ABORT ON;
 BEGIN TRANSACTION;
 
@@ -63,20 +66,19 @@ EXEC sys.sp_executesql
     N'@UpdatedCount int OUTPUT',
     @UpdatedCount = @AssignedVoucherCount OUTPUT;
 
-IF OBJECT_ID(N'dbo.__EFMigrationsHistory', N'U') IS NULL
+IF OBJECT_ID(N'dbo.__EFMigrationsHistory', N'U') IS NOT NULL
 BEGIN
-    ;THROW 50000, 'EF migration history table was not found; run this script against the application database.', 1;
-END;
-
-IF NOT EXISTS
-(
-    SELECT 1
-    FROM dbo.__EFMigrationsHistory
-    WHERE MigrationId = N'20261113142245_ScopeRedeemedVouchersToCustomers'
-)
-BEGIN
-    INSERT INTO dbo.__EFMigrationsHistory (MigrationId, ProductVersion)
-    VALUES (N'20261113142245_ScopeRedeemedVouchersToCustomers', N'8.0.0');
+    EXEC sys.sp_executesql N'
+        IF NOT EXISTS
+        (
+            SELECT 1
+            FROM dbo.__EFMigrationsHistory
+            WHERE MigrationId = N''20261113142245_ScopeRedeemedVouchersToCustomers''
+        )
+        BEGIN
+            INSERT INTO dbo.__EFMigrationsHistory (MigrationId, ProductVersion)
+            VALUES (N''20261113142245_ScopeRedeemedVouchersToCustomers'', N''8.0.0'');
+        END;';
 END;
 
 COMMIT TRANSACTION;

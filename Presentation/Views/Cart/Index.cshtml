@@ -1,0 +1,205 @@
+@model CoffeeShop.Business.ViewModels.CartViewModel
+@{
+    ViewData["Title"] = "Giỏ Hàng - Katinat Coffee";
+}
+
+<section class="home-slider owl-carousel">
+    <div class="slider-item" style="background-image: url(/images/bg_3.jpg); height: 670px; min-height: 670px;">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text justify-content-center align-items-center" style="height: 670px; padding-top: 90px;">
+                <div class="col-md-8 col-sm-12 text-center ftco-animate">
+                    <span class="subheading" style="font-family: 'Great Vibes', cursive; font-size: 40px; color: #c49b63; display: block; margin-bottom: 5px;">Hương vị tuyệt hảo</span>
+                    <h1 class="mb-3 bread" style="font-size: 38px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase;">Giỏ Hàng Của Bạn</h1>
+                    <p class="breadcrumbs mb-0"><span class="mr-2"><a asp-controller="Home" asp-action="Index">Trang chủ</a></span> <span>Giỏ hàng</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section ftco-cart cart-page">
+    <div class="container">
+        @if (Model.Items.Any())
+        {
+            <div class="row cart-layout">
+                <div class="col-lg-8 mb-4 ftco-animate">
+                    <div class="cart-list table-responsive">
+                        <table class="table text-center cart-table">
+                            <thead class="thead-primary">
+                                <tr class="text-center">
+                                    <th>&nbsp;</th>
+                                    <th>Ảnh</th>
+                                    <th>Sản phẩm</th>
+                                    <th>Đơn giá</th>
+                                    <th>Số lượng</th>
+                                    <th>Tổng tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr class="text-center" id="row_@item.ItemKey">
+                                        <td class="product-remove">
+                                            <form asp-action="RemoveItem" method="post" style="display:inline;">
+                                                <input type="hidden" name="itemKey" value="@item.ItemKey" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa món này">&times;</button>
+                                            </form>
+                                        </td>
+                                        <td class="image-prod">
+                                            <div class="img" style="background-image:url(/picture/@item.ProductImage); width:80px; height:80px; margin:auto;"></div>
+                                        </td>
+                                        <td class="product-name text-left">
+                                            <h5 class="text-white mb-1">@item.ProductName</h5>
+                                            <span class="badge badge-info mr-1">Size @item.Size</span>
+                                            @if (item.SelectedToppingNames.Any())
+                                            {
+                                                <div class="small text-muted mt-1">
+                                                    Topping: @string.Join(", ", item.SelectedToppingNames) (+@item.ToppingPrice.ToString("N0") đ)
+                                                </div>
+                                            }
+                                        </td>
+                                        <td class="price">@item.UnitPrice.ToString("N0") đ</td>
+                                        <td class="quantity">
+                                            <div class="input-group mb-3" style="max-width: 130px; margin: auto;">
+                                                <div class="input-group-prepend">
+                                                    <button class="btn btn-outline-secondary text-white btn-sm" onclick="changeQty('@item.ItemKey', -1)">-</button>
+                                                </div>
+                                                <input type="number" id="qty_@item.ItemKey" class="form-control text-center text-white bg-transparent" value="@item.Quantity" min="1" readonly>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary text-white btn-sm" onclick="changeQty('@item.ItemKey', 1)">+</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="total text-primary font-weight-bold" id="total_@item.ItemKey">@item.TotalPrice.ToString("N0") đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="col-lg-4 cart-wrap ftco-animate">
+                    <div class="cart-total cart-summary mb-3 p-4 bg-dark border border-secondary rounded">
+                        <div class="cart-voucher">
+                            <h4 class="text-white mb-3">Mã giảm giá (Voucher)</h4>
+                            <div class="input-group">
+                                <input type="text" id="voucherCodeInput" value="@Model.VoucherCode" class="form-control" placeholder="Nhập mã voucher (VD: COFFEE10)...">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" onclick="applyVoucher()">Áp dụng</button>
+                                </div>
+                            </div>
+                            <div id="voucherMsg" class="mt-2 small text-warning"></div>
+                        </div>
+                        <h4 class="text-white mb-3">Tổng thanh toán giỏ hàng</h4>
+                        <p class="d-flex justify-content-between text-white">
+                            <span>Tạm tính</span>
+                            <span id="subTotalText">@Model.SubTotal.ToString("N0") đ</span>
+                        </p>
+                        <p class="d-flex justify-content-between text-white"><span>Ưu đãi theo giá trị đơn</span><span id="automaticDiscountText" class="text-success">-@Model.AutomaticDiscountAmount.ToString("N0") đ</span></p>
+                        <div id="automaticDiscountSuggestion" class="cart-discount-suggestion" role="status" aria-live="polite">
+                            @if (Model.NextAutomaticDiscountThreshold.HasValue && Model.NextAutomaticDiscountAmount.HasValue)
+                            {
+                                <span id="automaticDiscountSuggestionText">Thêm @((Model.NextAutomaticDiscountThreshold.Value - Model.SubTotal).ToString("N0")) đ để được giảm thêm @Model.NextAutomaticDiscountAmount.Value.ToString("N0") đ cho đơn từ @Model.NextAutomaticDiscountThreshold.Value.ToString("N0") đ.</span>
+                            }
+                            else
+                            {
+                                <span id="automaticDiscountSuggestionText">Bạn đã đạt mức ưu đãi cao nhất cho đơn hàng.</span>
+                            }
+                        </div>
+                        <p class="d-flex justify-content-between text-white"><span>Voucher <span id="voucherCodeLabel">@(!string.IsNullOrWhiteSpace(Model.VoucherCode) ? "(" + Model.VoucherCode + ")" : "")</span></span><span id="voucherDiscountText" class="text-success">-@Model.VoucherDiscountAmount.ToString("N0") đ</span></p>
+                        <p class="d-flex justify-content-between text-white font-weight-bold"><span>Tổng giảm giá</span><span id="discountText" class="text-success">-@Model.DiscountAmount.ToString("N0") đ</span></p>
+                        <p class="d-flex justify-content-between text-white">
+                            <span>Phí giao hàng</span>
+                            <span>@(Model.ShippingFee == 0 ? "Miễn phí" : Model.ShippingFee.ToString("N0") + " đ")</span>
+                        </p>
+                        <hr class="border-secondary">
+                        <p class="d-flex justify-content-between text-white font-weight-bold h5">
+                            <span>Tổng cộng</span>
+                            <span id="grandTotalText" class="text-primary">@Model.GrandTotal.ToString("N0") đ</span>
+                        </p>
+                        <p class="text-center mt-4">
+                            <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary py-3 px-4 w-100">Tiến hành thanh toán</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-12 text-center py-5">
+                    <div class="icon mb-3" style="font-size: 50px;"><span class="icon-shopping_cart text-muted"></span></div>
+                    <h3 class="text-white">Giỏ hàng của bạn đang trống</h3>
+                    <p class="text-muted">Hãy lựa chọn những món đồ uống yêu thích của bạn từ thực đơn!</p>
+                    <a asp-controller="Shop" asp-action="Index" class="btn btn-primary py-3 px-5 mt-3">Xem thực đơn ngay</a>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+<script>
+    function changeQty(itemKey, delta) {
+        var currentQty = parseInt($('#qty_' + itemKey).val()) || 1;
+        var newQty = currentQty + delta;
+        if (newQty <= 0) return;
+
+        $.ajax({
+            url: '@Url.Action("UpdateQuantity", "Cart")',
+            type: 'POST',
+            data: { itemKey: itemKey, quantity: newQty },
+            success: function(res) {
+                if (res.success) {
+                    $('#qty_' + itemKey).val(newQty);
+                    $('#total_' + itemKey).text(res.itemTotal.toLocaleString('vi-VN') + ' đ');
+                    $('#subTotalText').text(res.subTotal.toLocaleString('vi-VN') + ' đ');
+                    $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' đ');
+                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateAutomaticDiscountSuggestion(res.subTotal, res.nextDiscountThreshold, res.nextDiscountAmount);
+                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateVoucherCodeLabel(res.voucherCode);
+                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateCartBadge();
+                }
+            }
+        });
+    }
+
+    function updateAutomaticDiscountSuggestion(subTotal, nextThreshold, nextDiscount) {
+        var message = nextThreshold && nextDiscount
+            ? 'Thêm ' + (nextThreshold - subTotal).toLocaleString('vi-VN') + ' đ để được giảm thêm ' + nextDiscount.toLocaleString('vi-VN') + ' đ cho đơn từ ' + nextThreshold.toLocaleString('vi-VN') + ' đ.'
+            : 'Bạn đã đạt mức ưu đãi cao nhất cho đơn hàng.';
+        $('#automaticDiscountSuggestionText').text(message);
+    }
+
+    function updateVoucherCodeLabel(code) {
+        $('#voucherCodeLabel').text(code ? '(' + code + ')' : '');
+    }
+
+    function applyVoucher() {
+        var code = $('#voucherCodeInput').val();
+        $.ajax({
+            url: '@Url.Action("ApplyVoucher", "Cart")',
+            type: 'POST',
+            data: { code: code, subTotal: @Model.SubTotal.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+            success: function(res) {
+                $('#voucherMsg').text(res.message);
+                if (res.success) {
+                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateVoucherCodeLabel(res.voucherCode);
+                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#grandTotalText').text((res.grandTotal || 0).toLocaleString('vi-VN') + ' đ');
+                } else if (res.grandTotal !== undefined) {
+                    $('#automaticDiscountText').text('-' + (res.automaticDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#voucherDiscountText').text('-' + (res.voucherDiscount || 0).toLocaleString('vi-VN') + ' đ');
+                    updateVoucherCodeLabel(res.voucherCode);
+                    $('#discountText').text('-' + (res.discount || 0).toLocaleString('vi-VN') + ' đ');
+                    $('#grandTotalText').text(res.grandTotal.toLocaleString('vi-VN') + ' đ');
+                }
+            }
+        });
+    }
+</script>
+}

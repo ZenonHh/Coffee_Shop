@@ -5,31 +5,88 @@
              Shell.NavBarIsVisible="False"
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="White">
-    <Grid BackgroundColor="White">
-        <VerticalStackLayout Padding="28" VerticalOptions="Center" HorizontalOptions="Center" Spacing="18">
-            <Image Source="katinat_logo.png" WidthRequest="280" HeightRequest="280"
-                   Aspect="AspectFit" HorizontalOptions="Center" />
-            <Border Stroke="{StaticResource PrimaryGold}" StrokeThickness="1"
-                    StrokeShape="RoundRectangle 32" BackgroundColor="White" Padding="8">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding StartCommand}" />
-                </Border.GestureRecognizers>
-                <Grid ColumnDefinitions="64,*" ColumnSpacing="16">
-                    <Border BackgroundColor="{StaticResource PrimaryGold}" StrokeThickness="0"
-                            StrokeShape="RoundRectangle 28" WidthRequest="56" HeightRequest="56">
-                        <Label Text="›" TextColor="White" FontSize="32" FontAttributes="Bold"
-                               HorizontalOptions="Center" VerticalOptions="Center" />
-                    </Border>
-                    <Label Grid.Column="1" Text="Bắt đầu ngay"
-                           TextColor="#684B31" FontSize="18" HorizontalOptions="Start"
-                           VerticalOptions="Center" />
-                </Grid>
-            </Border>
+    <ScrollView BackgroundColor="White">
+        <VerticalStackLayout Padding="32,24" VerticalOptions="Center" HorizontalOptions="Fill" Spacing="14" MaximumWidthRequest="380">
+            <!-- 1. LOGO KATINAT -->
+            <Image Source="katinat_logo.png" WidthRequest="170" HeightRequest="170"
+                   Aspect="AspectFit" HorizontalOptions="Center" Margin="0,0,0,4" />
+
+            <!-- 2. LỜI CHÀO -->
+            <VerticalStackLayout Spacing="4" HorizontalOptions="Center" Margin="0,0,0,8">
+                <Label Text="Xin chào quý khách! ☕" FontSize="21" FontAttributes="Bold"
+                       TextColor="#28251F" HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+                <Label Text="Vui lòng đăng nhập để tiếp tục trải nghiệm" FontSize="13" TextColor="#684B31"
+                       HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+
+            <!-- 3. PHẦN ĐĂNG NHẬP / ĐĂNG KÝ TRỰC TIẾP -->
+            <!-- Họ tên (khi đăng ký) -->
+            <VerticalStackLayout Spacing="4" IsVisible="{Binding IsRegistrationForm}">
+                <Label Text="Họ và tên *" TextColor="#524538" FontSize="12" FontAttributes="Bold" />
+                <Border BackgroundColor="#F7F5F2" Stroke="#DDD6CE" StrokeShape="RoundRectangle 12" Padding="14,3">
+                    <Entry Placeholder="Nhập họ và tên..." Text="{Binding FullName}" TextColor="#28251F" PlaceholderColor="#9E968E" FontSize="14" BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Số điện thoại (khi đăng ký) -->
+            <VerticalStackLayout Spacing="4" IsVisible="{Binding IsRegistrationForm}">
+                <Label Text="Số điện thoại *" TextColor="#524538" FontSize="12" FontAttributes="Bold" />
+                <Border BackgroundColor="#F7F5F2" Stroke="#DDD6CE" StrokeShape="RoundRectangle 12" Padding="14,3">
+                    <Entry Placeholder="Số điện thoại 10 chữ số..." Text="{Binding Phone}" Keyboard="Telephone" TextColor="#28251F" PlaceholderColor="#9E968E" FontSize="14" BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Tên đăng nhập -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Tên đăng nhập *" TextColor="#524538" FontSize="12" FontAttributes="Bold" />
+                <Border BackgroundColor="#F7F5F2" Stroke="#DDD6CE" StrokeShape="RoundRectangle 12" Padding="14,3">
+                    <Entry Placeholder="Nhập tên đăng nhập (vd: user01)..." Text="{Binding Username}" TextColor="#28251F" PlaceholderColor="#9E968E" FontSize="14" BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Mật khẩu -->
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Mật khẩu *" TextColor="#524538" FontSize="12" FontAttributes="Bold" />
+                <Border BackgroundColor="#F7F5F2" Stroke="#DDD6CE" StrokeShape="RoundRectangle 12" Padding="14,3">
+                    <Entry Placeholder="Nhập mật khẩu..." IsPassword="True" Text="{Binding Password}" TextColor="#28251F" PlaceholderColor="#9E968E" FontSize="14" BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Xác nhận mật khẩu (khi đăng ký) -->
+            <VerticalStackLayout Spacing="4" IsVisible="{Binding IsRegistrationForm}">
+                <Label Text="Xác nhận mật khẩu *" TextColor="#524538" FontSize="12" FontAttributes="Bold" />
+                <Border BackgroundColor="#F7F5F2" Stroke="#DDD6CE" StrokeShape="RoundRectangle 12" Padding="14,3">
+                    <Entry Placeholder="Nhập lại mật khẩu..." IsPassword="True" Text="{Binding ConfirmPassword}" TextColor="#28251F" PlaceholderColor="#9E968E" FontSize="14" BackgroundColor="Transparent" />
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Thông báo lỗi (nếu có) -->
             <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}"
-                   TextColor="#B3261E" FontSize="12" HorizontalTextAlignment="Center" />
+                   TextColor="#B3261E" FontSize="12" HorizontalTextAlignment="Center" Margin="0,2" />
+
+            <!-- NÚT ĐĂNG NHẬP / ĐĂNG KÝ -->
+            <Button Text="{Binding ContinueText}"
+                    Command="{Binding ContinueCommand}"
+                    BackgroundColor="{StaticResource PrimaryGold}"
+                    TextColor="#12100D"
+                    FontAttributes="Bold"
+                    FontSize="15"
+                    CornerRadius="24"
+                    HeightRequest="50"
+                    Margin="0,6,0,0" />
+
+            <!-- NÚT CHUYỂN ĐỔI GIỮA ĐĂNG NHẬP VÀ ĐĂNG KÝ -->
+            <Button Text="{Binding ModeSwitchText}"
+                    Command="{Binding ToggleModeCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="#8C673D"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    HorizontalOptions="Center"
+                    Padding="4,2" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                               Color="{StaticResource PrimaryGold}" HorizontalOptions="Center" HeightRequest="28" />
         </VerticalStackLayout>
-        <ActivityIndicator IsRunning="{Binding IsCheckingSession}" IsVisible="{Binding IsCheckingSession}"
-                           Color="{StaticResource PrimaryGold}" VerticalOptions="Start" HorizontalOptions="End"
-                           Margin="24,48" />
-    </Grid>
+    </ScrollView>
 </ContentPage>

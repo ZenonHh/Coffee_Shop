@@ -35,3 +35,11 @@ Nếu database đã được tạo trước đó bằng `coffee_shop_mssql.sql`,
 [`migrations/20261109_make_legacy_survey_invitation_optional.sql`](migrations/20261109_make_legacy_survey_invitation_optional.sql)
 trong SSMS hoặc `sqlcmd`. Script chỉ đổi cột legacy `MaLoiMoi` trong `CauTraLoi`
 thành cho phép `NULL`, để câu trả lời khảo sát mới không cần mã lời mời cũ.
+
+Với database được tạo từ `CoffeeShopDBNEW.sql`, chạy các migration còn thiếu trong
+`migrations/` theo thứ tự ngày để bổ sung schema cho các chức năng mới. Bản sửa tên
+bảng đã tồn tại là [`migrations/20261116_align_case_sensitive_table_names.sql`](migrations/20261116_align_case_sensitive_table_names.sql);
+nó giữ nguyên dữ liệu và đồng bộ tên một số bảng với mapping EF Core.
+
+Với database cũ chưa có cột voucher gắn với khách hàng, chạy
+[`ScopeRedeemedVouchersToCustomers.sql`](ScopeRedeemedVouchersToCustomers.sql).

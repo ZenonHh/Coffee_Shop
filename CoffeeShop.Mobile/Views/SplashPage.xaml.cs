@@ -1,20 +1,23 @@
+using CoffeeShop.Mobile.Services;
 using CoffeeShop.Mobile.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CoffeeShop.Mobile.Views;
 
 public partial class SplashPage : ContentPage
 {
-    private readonly SplashViewModel _viewModel;
+    private readonly AuthViewModel _viewModel;
+    private readonly ApiService _api;
     private readonly IServiceProvider _services;
     private bool _initialized;
 
-    public SplashPage(SplashViewModel viewModel, IServiceProvider services)
+    public SplashPage(AuthViewModel viewModel, ApiService api, IServiceProvider services)
     {
         InitializeComponent();
         BindingContext = _viewModel = viewModel;
+        _api = api;
         _services = services;
-        _viewModel.StartRequested += OnStartRequested;
-        _viewModel.SessionRestored += OnSessionRestored;
+        _viewModel.Authenticated += OnAuthenticated;
     }
 
     protected override async void OnAppearing()
@@ -23,16 +26,22 @@ public partial class SplashPage : ContentPage
         if (_initialized)
             return;
         _initialized = true;
-        await _viewModel.CheckSessionAsync();
+
+        try
+        {
+            var profile = await _api.RestoreProfileAsync();
+            if (profile is not null)
+            {
+                await NavigateToAppShellAsync();
+            }
+        }
+        catch
+        {
+            // Chờ người dùng đăng nhập tại trang
+        }
     }
 
-    private async void OnStartRequested(object? sender, EventArgs e)
-    {
-        var authPage = _services.GetRequiredService<AuthBottomSheet>();
-        await Navigation.PushModalAsync(authPage);
-    }
-
-    private async void OnSessionRestored(object? sender, EventArgs e) =>
+    private async void OnAuthenticated(object? sender, EventArgs e) =>
         await NavigateToAppShellAsync();
 
     private async Task NavigateToAppShellAsync()
