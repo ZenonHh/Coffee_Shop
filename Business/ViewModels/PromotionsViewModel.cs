@@ -21,7 +21,7 @@ namespace CoffeeShop.Business.ViewModels
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string BadgeText { get; set; } = string.Empty;
-        public string Icon { get; set; } = "🏷️";
+        public string Icon { get; set; } = "icon-tag";
     }
 
     public static class OrderDiscountRuleCatalog
@@ -36,7 +36,7 @@ namespace CoffeeShop.Business.ViewModels
                 Title = "Đơn từ 100.000đ",
                 Description = "Giảm trực tiếp 5.000đ khi thanh toán đơn hàng từ 100K.",
                 BadgeText = "Giảm 5%",
-                Icon = "☕"
+                Icon = "icon-coffee"
             },
             new()
             {
@@ -46,7 +46,7 @@ namespace CoffeeShop.Business.ViewModels
                 Title = "Đơn từ 200.000đ",
                 Description = "Giảm ngay 15.000đ hoặc 10% tổng đơn hàng dành cho nhóm bạn.",
                 BadgeText = "Giảm 10%",
-                Icon = "🍰"
+                Icon = "icon-gift"
             },
             new()
             {
@@ -56,7 +56,7 @@ namespace CoffeeShop.Business.ViewModels
                 Title = "Đơn từ 300.000đ",
                 Description = "Giảm ngay 30.000đ và tặng kèm mã miễn phí vận chuyển 5km.",
                 BadgeText = "Giảm 15%",
-                Icon = "🎉"
+                Icon = "icon-fire"
             },
             new()
             {
@@ -66,7 +66,7 @@ namespace CoffeeShop.Business.ViewModels
                 Title = "Đơn từ 500.000đ",
                 Description = "Giảm ngay 50.000đ và nhân đôi điểm tích lũy vào tài khoản.",
                 BadgeText = "Giảm 20% VIP",
-                Icon = "👑"
+                Icon = "icon-diamond"
             }
         ];
     }
@@ -78,7 +78,7 @@ namespace CoffeeShop.Business.ViewModels
         public string DiscountRate { get; set; } = string.Empty;
         public List<string> Perks { get; set; } = new();
         public string BadgeColor { get; set; } = "#c49b63";
-        public string Icon { get; set; } = "🥉";
+        public string Icon { get; set; } = "icon-star";
         public bool IsCurrent { get; set; }
     }
 
@@ -91,7 +91,7 @@ namespace CoffeeShop.Business.ViewModels
         public decimal DiscountAmount { get; set; }
         public decimal MinOrder { get; set; }
         public string RewardType { get; set; } = "CASH";
-        public string Icon { get; set; } = "🎟️";
+        public string Icon { get; set; } = "icon-ticket";
         public string CodePrefix { get; set; } = string.Empty;
     }
 
@@ -108,7 +108,7 @@ namespace CoffeeShop.Business.ViewModels
                 DiscountAmount = 20000m,
                 MinOrder = 50000m,
                 CodePrefix = "CB-P20",
-                Icon = "🎟️"
+                Icon = "icon-ticket"
             },
             new()
             {
@@ -119,7 +119,7 @@ namespace CoffeeShop.Business.ViewModels
                 DiscountAmount = 50000m,
                 MinOrder = 120000m,
                 CodePrefix = "CB-P50",
-                Icon = "🎁"
+                Icon = "icon-gift"
             },
             new()
             {
@@ -130,7 +130,7 @@ namespace CoffeeShop.Business.ViewModels
                 DiscountAmount = 100000m,
                 MinOrder = 200000m,
                 CodePrefix = "CB-P100",
-                Icon = "⭐"
+                Icon = "icon-star"
             },
             new()
             {
@@ -141,7 +141,7 @@ namespace CoffeeShop.Business.ViewModels
                 DiscountAmount = 65000m,
                 MinOrder = 0m,
                 CodePrefix = "CB-P150",
-                Icon = "☕"
+                Icon = "icon-coffee"
             }
         ];
     }

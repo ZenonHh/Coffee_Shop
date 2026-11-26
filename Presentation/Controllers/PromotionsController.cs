@@ -74,7 +74,7 @@ namespace CoffeeShop.Controllers
                     DiscountRate = "Tích điểm 1%",
                     Perks = new List<string> { "Tích 1 điểm cho mỗi 10.000đ chi tiêu", "Nhận thông báo ưu đãi sớm qua email", "Tặng +50 điểm khi làm khảo sát ý kiến" },
                     BadgeColor = "#cd7f32",
-                    Icon = "🥉",
+                    Icon = "icon-star",
                     IsCurrent = currentTier == "Đồng"
                 },
                 new()
@@ -84,7 +84,7 @@ namespace CoffeeShop.Controllers
                     DiscountRate = "Giảm 5% toàn menu",
                     Perks = new List<string> { "Giảm 5% cho tất cả đơn hàng trực tiếp hoặc online", "Tặng Voucher 30.000đ trong tháng sinh nhật", "Tích điểm nhân 1.2 lần" },
                     BadgeColor = "#c0c0c0",
-                    Icon = "🥈",
+                    Icon = "icon-star",
                     IsCurrent = currentTier == "Bạc"
                 },
                 new()
@@ -94,7 +94,7 @@ namespace CoffeeShop.Controllers
                     DiscountRate = "Giảm 10% toàn menu",
                     Perks = new List<string> { "Giảm 10% không giới hạn giá trị đơn", "Miễn phí vận chuyển bán kính 5km", "Tặng 1 ly nước Signature miễn phí dịp sinh nhật" },
                     BadgeColor = "#ffd700",
-                    Icon = "🥇",
+                    Icon = "icon-trophy",
                     IsCurrent = currentTier == "Vàng"
                 },
                 new()
@@ -104,7 +104,7 @@ namespace CoffeeShop.Controllers
                     DiscountRate = "Giảm 15% VIP",
                     Perks = new List<string> { "Giảm 15% VIP mọi hóa đơn", "Freeship toàn bộ các đơn hàng", "Quà tặng tri ân đặc biệt hàng quý", "Ưu tiên phục vụ và đặt bàn VIP" },
                     BadgeColor = "#b9f2ff",
-                    Icon = "💎",
+                    Icon = "icon-diamond",
                     IsCurrent = currentTier == "Kim Cương"
                 }
             };
@@ -190,7 +190,7 @@ namespace CoffeeShop.Controllers
             await transaction.CommitAsync();
 
             TempData["JustRedeemedCode"] = voucherCode;
-            TempData["Success"] = $"🎉 Chúc mừng bạn đã đổi thành công: {reward.Title}! Mã ưu đãi {voucherCode} đã được lưu vào 'Ví Voucher Của Bạn' bên dưới để bạn sử dụng ngay.";
+            TempData["Success"] = $"Chúc mừng bạn đã đổi thành công: {reward.Title}! Mã ưu đãi {voucherCode} đã được lưu vào 'Ví Voucher Của Bạn' bên dưới để bạn sử dụng ngay.";
             return Redirect("/Promotions#my-vouchers");
         }
     }
