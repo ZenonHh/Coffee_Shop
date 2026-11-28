@@ -2,6 +2,9 @@
 @{
     ViewData["Title"] = "Quản lý đơn hàng";
     var selectedOrder = Model.SelectedOrder;
+    var statusSteps = new[] { "Chờ xác nhận", "Đã xác nhận", "Đang giao", "Hoàn thành" };
+    var selectedStatusStep = selectedOrder == null ? -1 : Array.IndexOf(statusSteps, selectedOrder.TrangThai);
+    int StatusCount(string status) => Model.StatusCounts.TryGetValue(status, out var count) ? count : 0;
     string BadgeClass(string status) => status switch
     {
         "Chờ xác nhận" => "order-status-waiting",
@@ -34,7 +37,7 @@
         align-items: center;
         justify-content: center;
         padding: 5px 14px;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
         color: #4a3b32;
         background-color: #ffffff;
@@ -64,20 +67,361 @@
         outline: none;
         text-decoration: none !important;
     }
+    .order-list {
+        display: block;
+        margin-top: 12px;
+    }
+    .order-list-item {
+        display: grid;
+        gap: 6px;
+        padding: 10px 12px;
+    }
+    .order-list-row-top,
+    .order-list-row-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+    }
+    .order-list-order-code {
+        color: var(--admin-accent);
+        font-size: 14px;
+    }
+    .order-list-row-bottom {
+        justify-content: flex-start;
+        color: #575149;
+        font-size: 13px;
+    }
+    .order-list-row-bottom .order-status {
+        flex: 0 0 auto;
+        font-size: 13px;
+    }
+    .order-list-meta {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .order-list-amount {
+        color: #39342f;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+    .order-voucher-badge {
+        padding: 2px 6px;
+        border: 1px solid #ded7cf;
+        border-radius: 10px;
+        background: #f7f4f0;
+        color: #6f4e37;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .order-filter-form {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid #eee8e2;
+        border-radius: 7px;
+        background: #fbfaf8;
+    }
+    .order-filter-form label {
+        display: block;
+        margin-bottom: 4px;
+        color: #575149;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    .order-filter-dates {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+    .order-filter-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .orders-page-title {
+        padding-top: 12px;
+    }
+    .order-detail-sticky {
+        position: sticky;
+        top: 67px;
+        z-index: 9;
+        margin: -18px -18px 0;
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid #e9e3dc;
+        border-radius: 8px 8px 0 0;
+        background: rgba(255, 255, 255, .98);
+    }
+    .order-detail-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .order-detail-heading h2 {
+        color: #302b26;
+        font-size: 17px;
+        font-weight: 700;
+    }
+    .order-detail-heading p {
+        margin-top: 3px;
+        color: #575149;
+        font-size: 13px;
+    }
+    .order-detail-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 0;
+    }
+    .order-detail-actions form {
+        margin: 0;
+    }
+    .order-detail-actions .button {
+        min-height: 34px;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    .order-progress {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        margin-top: 14px;
+    }
+    .order-progress-step {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        color: #625b53;
+        font-size: 13px;
+        text-align: center;
+    }
+    .order-progress-step:not(:last-child)::after {
+        position: absolute;
+        top: 11px;
+        left: calc(50% + 13px);
+        width: calc(100% - 26px);
+        height: 2px;
+        background: #ded7cf;
+        content: "";
+    }
+    .order-progress-step.is-complete:not(:last-child)::after {
+        background: #6f4e37;
+    }
+    .order-progress-dot {
+        z-index: 1;
+        display: grid;
+        width: 23px;
+        height: 23px;
+        place-items: center;
+        border: 1px solid #cfc7bd;
+        border-radius: 50%;
+        background: #fff;
+        color: #625b53;
+        font-weight: 700;
+    }
+    .order-progress-step.is-complete .order-progress-dot,
+    .order-progress-step.is-current .order-progress-dot {
+        border-color: #6f4e37;
+        background: #6f4e37;
+        color: #fff;
+    }
+    .order-progress-step.is-current {
+        color: #4d3528;
+        font-weight: 700;
+    }
+    .order-cancelled-state {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 16px;
+        background: #fbeceb;
+        color: #9c3d32;
+        font-size: 13px;
+        font-weight: 700;
+    }
+    .order-detail-content {
+        display: grid;
+        gap: 14px;
+        margin-top: 14px;
+    }
+    .order-detail-section {
+        min-width: 0;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #efede9;
+    }
+    .order-detail-section h3 {
+        margin: 0 0 10px;
+        color: #39342f;
+        font-size: 15px;
+        font-weight: 700;
+    }
+    .order-detail-section h3 i {
+        color: #6f4e37 !important;
+    }
+    .order-detail-section h3 span {
+        color: #575149;
+        font-size: 13px;
+        font-weight: 400;
+    }
+    .order-prep-note {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border: 1px solid #ead8a8;
+        border-radius: 7px;
+        background: #fff8e6;
+        color: #574721;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+    .order-prep-note i {
+        margin-top: 2px;
+        color: #9a741f;
+    }
+    .order-items {
+        display: grid;
+        gap: 10px;
+    }
+    .order-items.is-scrollable {
+        max-height: 280px;
+        overflow-y: auto;
+        padding-right: 6px;
+    }
+    .order-detail-item {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 9px;
+        border-bottom: 1px solid #f0ede8;
+    }
+    .order-detail-item:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+    }
+    .order-detail-item-main {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+    }
+    .order-detail-item-main strong,
+    .order-detail-item > strong {
+        color: #39342f;
+        font-size: 14px;
+    }
+    .order-detail-item-main > span {
+        color: #575149;
+        font-size: 13px;
+    }
+    .order-detail-item > strong {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+    .order-detail-toppings {
+        display: grid;
+        gap: 3px;
+        margin: 2px 0 0 10px;
+        color: #575149;
+        font-size: 13px;
+    }
+    .order-detail-topping {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .order-summary dt {
+        color: #575149;
+        font-size: 13px;
+    }
+    .order-summary dd {
+        color: #39342f;
+        font-size: 14px;
+    }
+    .order-summary .order-total dt,
+    .order-summary .order-total dd {
+        color: #4d3528;
+        font-size: 15px;
+    }
+    .order-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 14px;
+        margin: 0;
+    }
+    .order-info-wide {
+        grid-column: 1 / -1;
+    }
+    .order-info-grid dt {
+        margin-bottom: 3px;
+        color: #575149;
+        font-size: 13px;
+    }
+    .order-info-grid dd {
+        margin: 0;
+        color: #39342f;
+        font-size: 14px;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+    .order-cancel-reason {
+        padding: 10px 12px;
+        border-radius: 7px;
+        background: #fbeceb;
+        color: #9c3d32;
+        font-size: 13px;
+    }
+    @@media (max-width: 575px) {
+        .order-status-group {
+            flex-wrap: wrap;
+        }
+        .order-detail-sticky {
+            top: 56px;
+            margin-right: -14px;
+            margin-left: -14px;
+            padding-right: 14px;
+            padding-left: 14px;
+        }
+        .order-detail-heading {
+            flex-direction: column;
+        }
+        .order-detail-actions {
+            justify-content: flex-start;
+        }
+        .order-progress-step {
+            font-size: 13px;
+        }
+        .order-info-grid {
+            grid-template-columns: 1fr;
+        }
+        .order-info-wide {
+            grid-column: auto;
+        }
+    }
 </style>
 
-<div class="welcome-row page-title-row">
+<div class="welcome-row page-title-row orders-page-title">
     <div><div class="eyebrow">ĐIỀU HÀNH</div><h1>Quản lý đơn hàng</h1><p class="page-subtitle">Theo dõi và xử lý đơn hàng theo trạng thái.</p></div>
 </div>
 
 <nav class="order-status-filters" aria-label="Lọc đơn hàng theo trạng thái">
     <div class="order-status-group" role="group">
-        <a asp-action="Index" class="order-status-btn @(string.IsNullOrEmpty(Model.SelectedStatus) ? "active" : "")">Tất cả</a>
-        <a asp-action="Index" asp-route-status="Chờ xác nhận" class="order-status-btn @(Model.SelectedStatus == "Chờ xác nhận" ? "active" : "")">Chờ xác nhận</a>
-        <a asp-action="Index" asp-route-status="Đã xác nhận" class="order-status-btn @(Model.SelectedStatus == "Đã xác nhận" ? "active" : "")">Đã xác nhận</a>
-        <a asp-action="Index" asp-route-status="Đang giao" class="order-status-btn @(Model.SelectedStatus == "Đang giao" ? "active" : "")">Đang giao</a>
-        <a asp-action="Index" asp-route-status="Hoàn thành" class="order-status-btn @(Model.SelectedStatus == "Hoàn thành" ? "active" : "")">Hoàn thành</a>
-        <a asp-action="Index" asp-route-status="Đã hủy" class="order-status-btn @(Model.SelectedStatus == "Đã hủy" ? "active" : "")">Đã hủy</a>
+        <a asp-action="Index" asp-route-search="@Model.SearchTerm" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="order-status-btn @(string.IsNullOrEmpty(Model.SelectedStatus) ? "active" : "")">Tất cả (@StatusCount(string.Empty))</a>
+        <a asp-action="Index" asp-route-status="Chờ xác nhận" asp-route-search="@Model.SearchTerm" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="order-status-btn @(Model.SelectedStatus == "Chờ xác nhận" ? "active" : "")">Chờ xác nhận (@StatusCount("Chờ xác nhận"))</a>
+        <a asp-action="Index" asp-route-status="Đã xác nhận" asp-route-search="@Model.SearchTerm" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="order-status-btn @(Model.SelectedStatus == "Đã xác nhận" ? "active" : "")">Đã xác nhận (@StatusCount("Đã xác nhận"))</a>
+        <a asp-action="Index" asp-route-status="Đang giao" asp-route-search="@Model.SearchTerm" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="order-status-btn @(Model.SelectedStatus == "Đang giao" ? "active" : "")">Đang giao (@StatusCount("Đang giao"))</a>
+        <a asp-action="Index" asp-route-status="Hoàn thành" asp-route-search="@Model.SearchTerm" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="order-status-btn @(Model.SelectedStatus == "Hoàn thành" ? "active" : "")">Hoàn thành (@StatusCount("Hoàn thành"))</a>
+        <a asp-action="Index" asp-route-status="Đã hủy" asp-route-search="@Model.SearchTerm" asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))" asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="order-status-btn @(Model.SelectedStatus == "Đã hủy" ? "active" : "")">Đã hủy (@StatusCount("Đã hủy"))</a>
     </div>
 </nav>
 
@@ -89,6 +433,31 @@
                 <p>@Model.Pagination.TotalCount đơn hàng</p>
             </div>
         </div>
+        <form asp-action="Index" method="get" class="order-filter-form">
+            @if (!string.IsNullOrWhiteSpace(Model.SelectedStatus))
+            {
+                <input type="hidden" name="status" value="@Model.SelectedStatus" />
+            }
+            <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+            <div>
+                <label for="orderSearch">Tìm theo mã đơn hoặc tên khách</label>
+                <input id="orderSearch" name="search" value="@Model.SearchTerm" class="form-control form-control-sm" placeholder="Ví dụ: HD0013 hoặc tên khách" />
+            </div>
+            <div class="order-filter-dates">
+                <div>
+                    <label for="orderFromDate">Từ ngày</label>
+                    <input id="orderFromDate" name="fromDate" type="date" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                </div>
+                <div>
+                    <label for="orderToDate">Đến ngày</label>
+                    <input id="orderToDate" name="toDate" type="date" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                </div>
+            </div>
+            <div class="order-filter-actions">
+                <button type="submit" class="button button-primary button-small">Lọc đơn hàng</button>
+                <a asp-action="Index" asp-route-status="@Model.SelectedStatus" class="button button-outline button-small">Xóa lọc</a>
+            </div>
+        </form>
         <div class="order-list">
             @if (Model.Orders.Any())
             {
@@ -100,16 +469,24 @@
                        asp-route-status="@Model.SelectedStatus"
                        asp-route-page="@Model.Pagination.PageNumber"
                        asp-route-selectedOrderId="@order.MaHD"
+                       asp-route-search="@Model.SearchTerm"
+                       asp-route-fromDate="@(Model.FromDate?.ToString("yyyy-MM-dd"))"
+                       asp-route-toDate="@(Model.ToDate?.ToString("yyyy-MM-dd"))"
                        class="order-list-item @(isSelected ? "is-selected" : "")"
                        aria-current="@(isSelected ? "true" : null)">
-                        <div class="order-list-item-top">
-                            <strong>@orderCode</strong>
-                            <span class="badge order-status @BadgeClass(order.TrangThai)">@order.TrangThai</span>
+                        <div class="order-list-row-top">
+                            <strong class="order-list-order-code">@orderCode</strong>
+                            <div class="d-flex align-items-center" style="gap: 6px;">
+                                <strong class="order-list-amount">@order.TongTien.ToString("N0") đ</strong>
+                                @if (!string.IsNullOrWhiteSpace(order.VoucherCode))
+                                {
+                                    <span class="order-voucher-badge">@order.VoucherCode</span>
+                                }
+                            </div>
                         </div>
-                        <div class="order-list-customer">@order.HoTenNguoiNhan</div>
-                        <div class="order-list-item-bottom">
-                            <span>@order.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
-                            <strong>@order.TongTien.ToString("N0") đ</strong>
+                        <div class="order-list-row-bottom">
+                            <span class="badge order-status @BadgeClass(order.TrangThai)">@order.TrangThai</span>
+                            <span class="order-list-meta">@order.HoTenNguoiNhan · @order.TotalItems món · @order.NgayTao.ToString("dd/MM HH:mm")</span>
                         </div>
                     </a>
                 }
@@ -126,54 +503,132 @@
         @if (selectedOrder != null)
         {
             var selectedOrderCode = $"#HD{selectedOrder.MaHD:D4}";
-            <div class="panel-heading order-detail-heading">
-                <div>
-                    <h2 id="order-detail-title">Chi tiết đơn hàng</h2>
-                    <p>@selectedOrderCode · Đặt lúc @selectedOrder.NgayTao.ToString("dd/MM/yyyy HH:mm")</p>
+            <div class="order-detail-sticky">
+                <div class="order-detail-heading">
+                    <div>
+                        <h2 id="order-detail-title">Chi tiết @selectedOrderCode</h2>
+                        <p>Đặt lúc @selectedOrder.NgayTao.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div class="order-detail-actions">
+                        @if (selectedOrder.TrangThai == "Chờ xác nhận")
+                        {
+                            @if (!selectedOrder.PhuongThucThanhToan.Contains("Đã thanh toán", StringComparison.OrdinalIgnoreCase)
+                                && (selectedOrder.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
+                                    || selectedOrder.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                <form asp-action="ConfirmPayment" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
+                                    <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
+                                    <input type="hidden" name="status" value="@Model.SelectedStatus" />
+                                    <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
+                                    <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                    <input type="hidden" name="fromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                                    <input type="hidden" name="toDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                                    <button type="submit" class="button button-outline">Xác nhận thanh toán</button>
+                                </form>
+                            }
+                            <form asp-action="ConfirmOrder" method="post" onsubmit="return confirm('Xác nhận đơn hàng @selectedOrderCode?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
+                                <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
+                                <input type="hidden" name="status" value="@Model.SelectedStatus" />
+                                <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
+                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                <input type="hidden" name="fromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                                <input type="hidden" name="toDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                                <button type="submit" class="button button-primary">Xác nhận</button>
+                            </form>
+                            <button type="button" class="button button-outline order-cancel-button js-cancel-order" data-order-id="@selectedOrder.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
+                        }
+                        else if (selectedOrder.TrangThai == "Đã xác nhận")
+                        {
+                            <form asp-action="AdvanceOrder" method="post" onsubmit="return confirm('Bắt đầu giao đơn hàng @selectedOrderCode?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
+                                <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
+                                <input type="hidden" name="status" value="@Model.SelectedStatus" />
+                                <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
+                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                <input type="hidden" name="fromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                                <input type="hidden" name="toDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                                <button type="submit" class="button button-primary">Giao hàng</button>
+                            </form>
+                            <button type="button" class="button button-outline order-cancel-button js-cancel-order" data-order-id="@selectedOrder.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
+                        }
+                        else if (selectedOrder.TrangThai == "Đang giao")
+                        {
+                            <form asp-action="AdvanceOrder" method="post" onsubmit="return confirm('Xác nhận hoàn thành đơn hàng @selectedOrderCode?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
+                                <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
+                                <input type="hidden" name="status" value="@Model.SelectedStatus" />
+                                <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
+                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                                <input type="hidden" name="fromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                                <input type="hidden" name="toDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                                <button type="submit" class="button button-primary">Hoàn thành</button>
+                            </form>
+                        }
+                    </div>
                 </div>
-                <div class="order-detail-heading-actions">
-                    <a asp-action="Details" asp-route-id="@selectedOrder.MaHD" class="button button-small button-outline">Xem chi tiết</a>
-                    <span class="badge order-status @BadgeClass(selectedOrder.TrangThai)">@selectedOrder.TrangThai</span>
-                </div>
+                @if (selectedOrder.TrangThai == "Đã hủy")
+                {
+                    <div class="order-cancelled-state"><i class="fas fa-times-circle" aria-hidden="true"></i> Đơn hàng đã hủy</div>
+                }
+                else
+                {
+                    <div class="order-progress" aria-label="Tiến trình xử lý đơn hàng">
+                        @for (var index = 0; index < statusSteps.Length; index++)
+                        {
+                            var stepClass = index < selectedStatusStep
+                                ? "is-complete"
+                                : index == selectedStatusStep ? "is-current" : string.Empty;
+                            <div class="order-progress-step @stepClass" aria-current="@(index == selectedStatusStep ? "step" : null)">
+                                <span class="order-progress-dot">@(index < selectedStatusStep ? "✓" : (index + 1).ToString())</span>
+                                <span>@statusSteps[index]</span>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
 
             <div class="order-detail-content">
-                <section class="order-detail-section">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h3 class="mb-0"><i class="fas fa-coffee mr-2 text-primary"></i>Danh sách món đặt <span>(@selectedOrder.Details.Sum(item => item.SoLuong) món)</span></h3>
-                        <span class="badge badge-primary font-weight-bold">Tổng: @selectedOrder.TongTien.ToString("N0") đ</span>
+                @if (!string.IsNullOrWhiteSpace(selectedOrder.GhiChu))
+                {
+                    <div class="order-prep-note">
+                        <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+                        <div><strong>Lưu ý pha chế</strong><br />@selectedOrder.GhiChu</div>
                     </div>
+                }
+
+                <section class="order-detail-section">
+                    <h3><i class="fas fa-coffee mr-2" aria-hidden="true"></i>Món cần làm <span>(@selectedOrder.Details.Sum(item => item.SoLuong) món)</span></h3>
                     @if (selectedOrder.Details.Any())
                     {
-                        <div class="table-responsive mb-2">
-                            <table class="table table-sm table-bordered mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th>Tên món &amp; Size</th>
-                                        <th class="text-center" style="width: 70px;">SL</th>
-                                        <th class="text-right" style="width: 100px;">Đơn giá</th>
-                                        <th class="text-right" style="width: 110px;">Thành tiền</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in selectedOrder.Details)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <strong>@item.TenSP</strong>
-                                                <span class="badge badge-light border ml-1">Size @item.KichCo</span>
-                                                @if (item.Toppings.Any())
+                        <div class="order-items @(selectedOrder.Details.Count > 3 ? "is-scrollable" : "")">
+                            @foreach (var item in selectedOrder.Details)
+                            {
+                                <article class="order-detail-item">
+                                    <div class="order-detail-item-main">
+                                        <strong>@item.TenSP</strong>
+                                        <span>Size @item.KichCo · Số lượng: @item.SoLuong · Đơn giá: @item.GiaBan.ToString("N0") đ</span>
+                                        @if (item.Toppings.Any())
+                                        {
+                                            <div class="order-detail-toppings">
+                                                @foreach (var topping in item.Toppings)
                                                 {
-                                                    <small class="d-block text-muted">+ @string.Join(", ", item.Toppings)</small>
+                                                    <div class="order-detail-topping">
+                                                        <span>+ @topping.TenSP</span>
+                                                        <span>@topping.GiaBan.ToString("N0") đ</span>
+                                                    </div>
                                                 }
-                                            </td>
-                                            <td class="text-center font-weight-bold">@item.SoLuong</td>
-                                            <td class="text-right">@item.GiaBan.ToString("N0") đ</td>
-                                            <td class="text-right font-weight-bold text-primary">@item.ThanhTien.ToString("N0") đ</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                            </div>
+                                        }
+                                    </div>
+                                    <strong>@item.ThanhTien.ToString("N0") đ</strong>
+                                </article>
+                            }
                         </div>
                     }
                     else
@@ -183,9 +638,8 @@
                 </section>
 
                 <section class="order-detail-section">
-                    <h3><i class="fas fa-receipt mr-2 text-secondary"></i>Thanh toán</h3>
+                    <h3><i class="fas fa-receipt mr-2" aria-hidden="true"></i>Thanh toán <span>(@selectedOrder.PhuongThucThanhToan)</span></h3>
                     <dl class="order-summary">
-                        <div><dt>Phương thức</dt><dd>@selectedOrder.PhuongThucThanhToan</dd></div>
                         <div><dt>Tạm tính</dt><dd>@selectedOrder.TamTinh.ToString("N0") đ</dd></div>
                         <div><dt>Giảm giá</dt><dd>−@selectedOrder.TienGiamGia.ToString("N0") đ</dd></div>
                         <div><dt>Phí giao hàng</dt><dd>@selectedOrder.PhiGiao.ToString("N0") đ</dd></div>
@@ -194,65 +648,18 @@
                 </section>
 
                 <section class="order-detail-section">
-                    <h3><i class="fas fa-user mr-2 text-info"></i>Thông tin khách hàng &amp; Giao hàng</h3>
+                    <h3><i class="fas fa-user mr-2" aria-hidden="true"></i>Khách hàng &amp; giao hàng</h3>
                     <dl class="order-info-grid">
                         <div><dt>Người nhận</dt><dd><strong>@selectedOrder.HoTenNguoiNhan</strong></dd></div>
                         <div><dt>Số điện thoại</dt><dd>@(string.IsNullOrWhiteSpace(selectedOrder.SdtNguoiNhan) ? "—" : selectedOrder.SdtNguoiNhan)</dd></div>
-                        <div><dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(selectedOrder.EmailKhachHang) ? "—" : selectedOrder.EmailKhachHang)</dd></div>
-                        <div><dt>Địa chỉ giao</dt><dd>@(string.IsNullOrWhiteSpace(selectedOrder.DiaChiGiao) ? "Nhận tại quán" : selectedOrder.DiaChiGiao)</dd></div>
-                        @if (!string.IsNullOrWhiteSpace(selectedOrder.GhiChu))
-                        {
-                            <div class="order-info-wide"><dt>Ghi chú</dt><dd class="text-danger font-weight-bold">@selectedOrder.GhiChu</dd></div>
-                        }
+                        <div class="order-info-wide"><dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(selectedOrder.EmailKhachHang) ? "—" : selectedOrder.EmailKhachHang)</dd></div>
+                        <div class="order-info-wide"><dt>Địa chỉ</dt><dd>@(string.IsNullOrWhiteSpace(selectedOrder.DiaChiGiao) ? "Nhận tại quán" : selectedOrder.DiaChiGiao)</dd></div>
                     </dl>
                 </section>
 
                 @if (selectedOrder.TrangThai == "Đã hủy" && !string.IsNullOrWhiteSpace(selectedOrder.LyDoHuy))
                 {
                     <div class="order-cancel-reason"><strong>Lý do hủy:</strong> @selectedOrder.LyDoHuy</div>
-                }
-            </div>
-
-            <div class="order-detail-actions">
-                @if (selectedOrder.TrangThai == "Chờ xác nhận")
-                {
-                    @if (!selectedOrder.PhuongThucThanhToan.Contains("Đã thanh toán", StringComparison.OrdinalIgnoreCase)
-                        && (selectedOrder.PhuongThucThanhToan.Contains("Transfer", StringComparison.OrdinalIgnoreCase)
-                            || selectedOrder.PhuongThucThanhToan.Contains("Chuyển khoản", StringComparison.OrdinalIgnoreCase)))
-                    {
-                        <form asp-action="ConfirmPayment" method="post" onsubmit="return confirm('Xác nhận khách đã chuyển khoản cho đơn hàng @selectedOrderCode?');">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
-                            <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
-                            <input type="hidden" name="status" value="@Model.SelectedStatus" />
-                            <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
-                            <button type="submit" class="button button-outline">✓ Đã thanh toán</button>
-                        </form>
-                    }
-                    <form asp-action="ConfirmOrder" method="post" onsubmit="return confirm('Xác nhận duyệt đơn hàng @selectedOrderCode và chuyển sang pha chế?');">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
-                        <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
-                        <input type="hidden" name="status" value="@Model.SelectedStatus" />
-                        <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
-                        <button type="submit" class="button button-primary">Xác nhận đơn</button>
-                    </form>
-                }
-                else if (selectedOrder.TrangThai == "Đã xác nhận" || selectedOrder.TrangThai == "Đang giao")
-                {
-                    <form asp-action="AdvanceOrder" method="post" onsubmit="return confirm('@(selectedOrder.TrangThai == "Đã xác nhận" ? $"Bắt đầu giao đơn hàng {selectedOrderCode}?" : $"Xác nhận hoàn thành đơn hàng {selectedOrderCode}?")');">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="orderId" value="@selectedOrder.MaHD" />
-                        <input type="hidden" name="selectedOrderId" value="@selectedOrder.MaHD" />
-                        <input type="hidden" name="status" value="@Model.SelectedStatus" />
-                        <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
-                        <button type="submit" class="button button-primary">@(selectedOrder.TrangThai == "Đã xác nhận" ? "Bắt đầu giao" : "Hoàn thành đơn")</button>
-                    </form>
-                }
-
-                @if (selectedOrder.TrangThai == "Chờ xác nhận" || selectedOrder.TrangThai == "Đã xác nhận")
-                {
-                    <button type="button" class="button button-outline order-cancel-button js-cancel-order" data-order-id="@selectedOrder.MaHD" data-toggle="modal" data-target="#cancelOrderModal">Hủy đơn</button>
                 }
             </div>
         }
@@ -275,6 +682,9 @@
                 <input type="hidden" name="selectedOrderId" value="@selectedOrder?.MaHD" />
                 <input type="hidden" name="status" value="@Model.SelectedStatus" />
                 <input type="hidden" name="page" value="@Model.Pagination.PageNumber" />
+                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                <input type="hidden" name="fromDate" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="toDate" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
                 <div class="modal-header">
                     <h5 class="modal-title" id="cancelOrderTitle">Hủy đơn hàng</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>

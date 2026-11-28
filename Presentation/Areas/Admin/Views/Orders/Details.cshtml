@@ -117,7 +117,10 @@
                             <strong>@detail.TenSP</strong>
                             @if (detail.Toppings.Any())
                             {
-                                <div class="muted-cell">Topping: @string.Join(", ", detail.Toppings)</div>
+                                @foreach (var topping in detail.Toppings)
+                                {
+                                    <div class="muted-cell">Topping: @topping.TenSP (+@topping.GiaBan.ToString("N0") đ)</div>
+                                }
                             }
                         </td>
                         <td>@detail.KichCo</td>

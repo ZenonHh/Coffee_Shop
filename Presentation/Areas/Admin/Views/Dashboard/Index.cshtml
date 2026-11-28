@@ -2,11 +2,8 @@
 @using System.Text.Json
 @{
     ViewData["Title"] = "Bảng điều khiển";
-    var dailyRevenueJson = JsonSerializer.Serialize(Model.DailyStats.Any() ? Model.DailyStats : Model.DailyRevenues.Select(d => new CoffeeShop.Business.ViewModels.DashboardChartPeriodViewModel { Label = d.Date, Revenue = d.Revenue, OrderCount = d.OrderCount }));
-    var weeklyRevenueJson = JsonSerializer.Serialize(Model.WeeklyStats);
-    var monthlyRevenueJson = JsonSerializer.Serialize(Model.MonthlyStats);
     var orderStatusJson = JsonSerializer.Serialize(Model.OrderStatusesList);
-    var topProductsJson = JsonSerializer.Serialize(Model.TopSellingProducts);
+    var topRevenueProductsJson = JsonSerializer.Serialize(Model.TopRevenueProducts);
     var customerTrendJson = JsonSerializer.Serialize(Model.CustomerTrend);
     var satisfactionRatingsJson = JsonSerializer.Serialize(Model.SatisfactionRatings);
     var surveyParticipationJson = JsonSerializer.Serialize(Model.SurveyParticipation);
@@ -46,12 +43,6 @@
         padding: 1px 6px;
         border-radius: 10px;
         line-height: 1.2;
-    }
-    .kpi-stat-box {
-        padding: 8px 12px;
-        border-radius: 6px;
-        background: #fdfbf9;
-        border: 1px solid #f2ede8;
     }
 </style>
 
@@ -130,56 +121,142 @@
 
 @if (User.IsInRole("Admin"))
 {
-    <!-- Khu vực Biểu đồ Thống kê Dashboard -->
+    <!-- Top 10 sản phẩm theo doanh thu -->
     <div class="row mb-4">
-        <!-- Biểu đồ Doanh thu & Đơn hàng linh hoạt theo Ngày / Tuần / Tháng -->
-        <div class="col-lg-8 mb-4">
-            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
+        <div class="col-12">
+            <div id="product-revenue-report" class="card shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px; scroll-margin-top: 80px;">
                 <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom flex-wrap" style="gap: 10px;">
                     <div>
-                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
-                            <i class="fas fa-chart-line mr-2 text-warning"></i>Doanh thu &amp; Số đơn hàng
+                        <h5 class="font-weight-bold mb-1" style="color: var(--ink, #28251f);">
+                            <i class="fas fa-chart-bar mr-2 text-warning"></i>Top 10 sản phẩm theo doanh thu
                         </h5>
-                        <small class="text-muted" id="chartPeriodSubtitle">Thống kê biến động dòng tiền và số lượng đơn hàng (7 ngày qua)</small>
+                        <small class="text-muted">Doanh thu tính từ chi tiết đơn hàng, không bao gồm đơn đã hủy.</small>
                     </div>
-                    <div class="d-flex align-items-center" style="gap: 8px;">
-                        <div class="btn-group btn-group-sm" role="group" aria-label="Bộ lọc chu kỳ">
-                            <button type="button" class="btn btn-sm btn-primary js-period-toggle active font-weight-bold" data-period="daily" style="font-size: 12px; padding: 4px 11px;">Theo Ngày</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary js-period-toggle font-weight-bold" data-period="weekly" style="font-size: 12px; padding: 4px 11px;">Theo Tuần</button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary js-period-toggle font-weight-bold" data-period="monthly" style="font-size: 12px; padding: 4px 11px;">Theo Tháng</button>
-                        </div>
-                        <span class="badge badge-pill badge-light px-3 py-2 border d-none d-md-inline" id="chartPeriodBadge">7 ngày gần nhất</span>
-                    </div>
+                    <span class="badge badge-pill badge-light px-3 py-2 border">@Model.ProductRevenuePeriodLabel</span>
                 </div>
+                <div class="card-body">
+                    <form asp-area="Admin" asp-controller="Dashboard" asp-action="Index" asp-fragment="product-revenue-report" method="get" class="form-row align-items-end mb-3">
+                        <div asp-validation-summary="ModelOnly" class="col-12 text-danger small mb-2"></div>
+                        <div class="form-group col-md-2 col-sm-6">
+                            <label for="productRevenuePeriod" class="small font-weight-bold text-muted">Thời gian</label>
+                            <select id="productRevenuePeriod" name="productPeriod" class="form-control form-control-sm">
+                                <option value="quarter" selected="@(Model.ProductRevenuePeriod == "quarter")">Quý</option>
+                                <option value="month" selected="@(Model.ProductRevenuePeriod == "month")">Tháng</option>
+                                <option value="year" selected="@(Model.ProductRevenuePeriod == "year")">Năm</option>
+                                <option value="custom" selected="@(Model.ProductRevenuePeriod == "custom")">Khoảng ngày</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2 col-sm-6" id="productRevenueYearFilter">
+                            <label for="productRevenueYear" class="small font-weight-bold text-muted">Năm</label>
+                            <input id="productRevenueYear" name="productYear" type="number" min="2000" max="@DateTime.Today.Year" value="@Model.ProductRevenueYear" class="form-control form-control-sm" />
+                        </div>
+                        <div class="form-group col-md-2 col-sm-6" id="productRevenueQuarterFilter">
+                            <label for="productRevenueQuarter" class="small font-weight-bold text-muted">Quý</label>
+                            <select id="productRevenueQuarter" name="productQuarter" class="form-control form-control-sm">
+                                @for (var quarter = 1; quarter <= 4; quarter++)
+                                {
+                                    <option value="@quarter" selected="@(Model.ProductRevenueQuarter == quarter)">Quý @quarter</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2 col-sm-6" id="productRevenueMonthFilter">
+                            <label for="productRevenueMonth" class="small font-weight-bold text-muted">Tháng</label>
+                            <select id="productRevenueMonth" name="productMonth" class="form-control form-control-sm">
+                                @for (var month = 1; month <= 12; month++)
+                                {
+                                    <option value="@month" selected="@(Model.ProductRevenueMonth == month)">Tháng @month</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2 col-sm-6" id="productRevenueFromFilter">
+                            <label for="productRevenueFromDate" class="small font-weight-bold text-muted">Từ ngày</label>
+                            <input id="productRevenueFromDate" name="productFromDate" type="date" value="@(Model.ProductRevenueFromDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                        </div>
+                        <div class="form-group col-md-2 col-sm-6" id="productRevenueToFilter">
+                            <label for="productRevenueToDate" class="small font-weight-bold text-muted">Đến ngày</label>
+                            <input id="productRevenueToDate" name="productToDate" type="date" value="@(Model.ProductRevenueToDate?.ToString("yyyy-MM-dd"))" class="form-control form-control-sm" />
+                        </div>
+                        <div class="form-group col-auto">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="fas fa-filter mr-1"></i> Lọc
+                            </button>
+                        </div>
+                    </form>
 
-                <!-- KPI Tóm tắt nhanh trong kỳ đã chọn -->
-                <div class="px-3 pt-3 pb-0">
-                    <div class="row no-gutters p-2 rounded text-center kpi-stat-box">
-                        <div class="col-4 border-right py-1">
-                            <span class="text-muted d-block small" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Doanh thu kỳ</span>
-                            <strong class="h6 mb-0 font-weight-bold" id="kpiPeriodRevenue" style="color: #6f4e37; font-size: 15px;">--</strong>
+                    <div class="row">
+                        <div class="col-lg-4 mb-4 mb-lg-0 border-right">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <h6 class="mb-0 font-weight-bold text-dark">Bảng xếp hạng</h6>
+                                <span class="small text-muted">10 sản phẩm</span>
+                            </div>
+                            @if (Model.TopRevenueProducts.Any())
+                            {
+                                <div class="table-responsive" style="max-height: 340px; overflow-y: auto;">
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Sản phẩm</th>
+                                                <th class="text-right">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (var index = 0; index < Model.TopRevenueProducts.Count; index++)
+                                            {
+                                                var product = Model.TopRevenueProducts[index];
+                                                <tr>
+                                                    <td class="font-weight-bold">@(index + 1)</td>
+                                                    <td>
+                                                        <div class="font-weight-bold">@product.ProductName</div>
+                                                        <small class="text-muted">@product.QuantitySold đã bán</small>
+                                                    </td>
+                                                    <td class="text-right text-nowrap font-weight-bold" style="color: #6f4e37;">@product.TotalRevenue.ToString("N0") đ</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fas fa-box-open fa-2x mb-2"></i>
+                                    <p class="mb-0 small">Chưa có doanh thu sản phẩm trong kỳ này.</p>
+                                </div>
+                            }
                         </div>
-                        <div class="col-4 border-right py-1">
-                            <span class="text-muted d-block small" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Tổng số đơn</span>
-                            <strong class="h6 mb-0 font-weight-bold" id="kpiPeriodOrders" style="color: #2563eb; font-size: 15px;">--</strong>
+                        <div class="col-lg-8 pl-lg-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h6 class="mb-1 font-weight-bold">
+                                        <i class="fas fa-chart-bar text-primary mr-1"></i>Doanh thu theo sản phẩm
+                                    </h6>
+                                    <small class="text-muted">@Model.ProductRevenuePeriodLabel</small>
+                                </div>
+                            </div>
+                            @if (Model.TopRevenueProducts.Any())
+                            {
+                                <div style="position: relative; height: 340px; width: 100%;">
+                                    <canvas id="topRevenueProductsChart" aria-label="Biểu đồ doanh thu Top 10 sản phẩm"></canvas>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                                    <p class="mb-0 small">Biểu đồ sẽ hiển thị khi có dữ liệu.</p>
+                                </div>
+                            }
                         </div>
-                        <div class="col-4 py-1">
-                            <span class="text-muted d-block small" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">TB mỗi đơn</span>
-                            <strong class="h6 mb-0 font-weight-bold" id="kpiPeriodAOV" style="color: #16a34a; font-size: 15px;">--</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-body pt-2">
-                    <div style="position: relative; height: 300px; width: 100%;">
-                        <canvas id="revenueOrdersChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Biểu đồ Cơ cấu trạng thái đơn hàng (Đồng bộ chuẩn 5 mục) -->
-        <div class="col-lg-4 mb-4">
+    <div class="row mb-4">
+        <!-- Trạng thái đơn hàng -->
+        <div class="col-lg-6 mb-4">
             <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
                 <div class="card-header bg-transparent py-3 border-bottom d-flex justify-content-between align-items-center">
                     <div>
@@ -188,9 +265,7 @@
                         </h5>
                         <small class="text-muted">Đồng bộ 5 bước quy trình đơn hàng</small>
                     </div>
-                    <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size: 11.5px; padding: 2px 8px;">
-                        Quản lý đơn
-                    </a>
+                    <a asp-controller="Orders" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size: 11.5px; padding: 2px 8px;">Quản lý đơn</a>
                 </div>
                 <div class="card-body d-flex flex-column justify-content-between p-3">
                     <div style="position: relative; height: 210px; width: 100%;">
@@ -201,14 +276,12 @@
                             <small class="text-muted d-block" style="font-size: 10.5px; line-height: 1;">đơn hàng</small>
                         </div>
                     </div>
-
-                    <!-- 5 nút trạng thái đồng bộ chính xác với bộ lọc đơn hàng -->
                     <div class="order-status-dashboard-list mt-3 pt-2 border-top">
                         <div class="d-flex flex-wrap justify-content-center" style="gap: 6px;">
                             @foreach (var st in Model.OrderStatusesList)
                             {
-                                <a asp-controller="Orders" asp-action="Index" asp-route-status="@st.Status" 
-                                   class="dashboard-status-filter-btn" 
+                                <a asp-controller="Orders" asp-action="Index" asp-route-status="@st.Status"
+                                   class="dashboard-status-filter-btn"
                                    title="Bấm để mở danh sách đơn: @st.Status">
                                     <span class="status-indicator-dot" style="background-color: @st.Color;"></span>
                                     <span class="status-title font-weight-bold">@st.Status</span>
@@ -220,42 +293,9 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Hàng 2: Top 5 Món uống bán chạy nhất & Đánh giá mức độ hài lòng khách hàng CSAT (đã xóa Lối tắt nghiệp vụ theo yêu cầu) -->
-    <div class="row mb-4">
-        <!-- Biểu đồ Top 5 sản phẩm bán chạy -->
-        <div class="col-lg-7 mb-4">
-            <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
-                <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom">
-                    <div>
-                        <h5 class="font-weight-bold mb-0" style="color: var(--ink, #28251f);">
-                            <i class="fas fa-coffee mr-2 text-success"></i>Top 5 Món uống bán chạy nhất
-                        </h5>
-                        <small class="text-muted">Dựa trên các đơn hàng hợp lệ trong hệ thống</small>
-                    </div>
-                    <a asp-controller="Products" asp-action="Index" class="btn btn-sm btn-outline-secondary" style="font-size: 12px;">Xem kho món</a>
-                </div>
-                <div class="card-body">
-                    @if (Model.TopSellingProducts.Any())
-                    {
-                        <div style="position: relative; height: 270px; width: 100%;">
-                            <canvas id="topProductsChart"></canvas>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center py-5 text-muted">
-                            <i class="fas fa-box-open fa-3x mb-3 text-secondary opacity-50"></i>
-                            <p class="mb-0">Chưa có đủ dữ liệu đơn hàng để xếp hạng món.</p>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
 
         <!-- Mức độ hài lòng của khách hàng (CSAT) -->
-        <div class="col-lg-5 mb-4">
+        <div class="col-lg-6 mb-4">
             <div class="card h-100 shadow-sm border-0" style="background: var(--paper, #fff); border-radius: 8px;">
                 <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3 border-bottom">
                     <div>
@@ -371,11 +411,8 @@ else
     </div>
 }
 
-<script type="application/json" id="dashboard-daily-revenue-data">@Html.Raw(dailyRevenueJson)</script>
-<script type="application/json" id="dashboard-weekly-revenue-data">@Html.Raw(weeklyRevenueJson)</script>
-<script type="application/json" id="dashboard-monthly-revenue-data">@Html.Raw(monthlyRevenueJson)</script>
 <script type="application/json" id="dashboard-order-status-data">@Html.Raw(orderStatusJson)</script>
-<script type="application/json" id="dashboard-top-products-data">@Html.Raw(topProductsJson)</script>
+<script type="application/json" id="dashboard-top-revenue-products-data">@Html.Raw(topRevenueProductsJson)</script>
 <script type="application/json" id="dashboard-customer-trend-data">@Html.Raw(customerTrendJson)</script>
 <script type="application/json" id="dashboard-satisfaction-data">@Html.Raw(satisfactionRatingsJson)</script>
 <script type="application/json" id="dashboard-survey-participation-data">@Html.Raw(surveyParticipationJson)</script>
@@ -386,23 +423,14 @@ else
         (function () {
             if (typeof Chart === 'undefined') return;
 
-            var dailyEl = document.getElementById('dashboard-daily-revenue-data');
-            var weeklyEl = document.getElementById('dashboard-weekly-revenue-data');
-            var monthlyEl = document.getElementById('dashboard-monthly-revenue-data');
             var statusDataEl = document.getElementById('dashboard-order-status-data');
-            var topProductsDataEl = document.getElementById('dashboard-top-products-data');
+            var topRevenueProductsDataEl = document.getElementById('dashboard-top-revenue-products-data');
             var customerTrendDataEl = document.getElementById('dashboard-customer-trend-data');
             var satisfactionDataEl = document.getElementById('dashboard-satisfaction-data');
             var surveyParticipationDataEl = document.getElementById('dashboard-survey-participation-data');
 
-            var datasets = {
-                daily: dailyEl ? JSON.parse(dailyEl.textContent || '[]') : [],
-                weekly: weeklyEl ? JSON.parse(weeklyEl.textContent || '[]') : [],
-                monthly: monthlyEl ? JSON.parse(monthlyEl.textContent || '[]') : []
-            };
-
             var statusData = statusDataEl ? JSON.parse(statusDataEl.textContent || '[]') : [];
-            var topProducts = topProductsDataEl ? JSON.parse(topProductsDataEl.textContent || '[]') : [];
+            var topRevenueProducts = topRevenueProductsDataEl ? JSON.parse(topRevenueProductsDataEl.textContent || '[]') : [];
             var customerTrend = customerTrendDataEl ? JSON.parse(customerTrendDataEl.textContent || '[]') : [];
             var satisfactionRatings = satisfactionDataEl ? JSON.parse(satisfactionDataEl.textContent || '[]') : [];
             var surveyParticipation = surveyParticipationDataEl ? JSON.parse(surveyParticipationDataEl.textContent || '[]') : [];
@@ -415,6 +443,34 @@ else
 
             Chart.defaults.font.family = "'DM Sans', sans-serif";
             Chart.defaults.color = ink;
+
+            var productPeriodFilter = document.getElementById('productRevenuePeriod');
+            var productQuarterFilter = document.getElementById('productRevenueQuarterFilter');
+            var productMonthFilter = document.getElementById('productRevenueMonthFilter');
+            var productYearFilter = document.getElementById('productRevenueYearFilter');
+            var productFromFilter = document.getElementById('productRevenueFromFilter');
+            var productToFilter = document.getElementById('productRevenueToFilter');
+            var productFromDate = document.getElementById('productRevenueFromDate');
+            var productToDate = document.getElementById('productRevenueToDate');
+
+            function updateProductRevenueFilters() {
+                if (!productPeriodFilter) return;
+
+                var period = productPeriodFilter.value;
+                var isCustom = period === 'custom';
+                productQuarterFilter.style.display = period === 'quarter' ? '' : 'none';
+                productMonthFilter.style.display = period === 'month' ? '' : 'none';
+                productYearFilter.style.display = isCustom ? 'none' : '';
+                productFromFilter.style.display = isCustom ? '' : 'none';
+                productToFilter.style.display = isCustom ? '' : 'none';
+                productFromDate.required = isCustom;
+                productToDate.required = isCustom;
+            }
+
+            if (productPeriodFilter) {
+                productPeriodFilter.addEventListener('change', updateProductRevenueFilters);
+                updateProductRevenueFilters();
+            }
 
             var customerTrendCanvas = document.getElementById('customerTrendChart');
             if (customerTrendCanvas && customerTrend.length > 0) {
@@ -524,6 +580,60 @@ else
                                         var survey = surveyParticipation[ctx.dataIndex];
                                         return ' ' + ctx.dataset.label + ': ' + ctx.parsed.x
                                             + (ctx.datasetIndex === 0 ? ' (' + survey.Percentage + '%)' : '');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            var topRevenueCanvas = document.getElementById('topRevenueProductsChart');
+            if (topRevenueCanvas && topRevenueProducts.length > 0) {
+                var revenueProductNames = topRevenueProducts.map(function (item) { return item.ProductName; });
+                var productRevenueValues = topRevenueProducts.map(function (item) { return item.TotalRevenue; });
+                var revenueProductColors = ['#c49b63', '#6f4e37', '#23845b', '#3b82f6', '#d97706'];
+
+                new Chart(topRevenueCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: revenueProductNames,
+                        datasets: [{
+                            label: 'Doanh thu',
+                            data: productRevenueValues,
+                            backgroundColor: revenueProductNames.map(function (_, index) {
+                                return revenueProductColors[index % revenueProductColors.length];
+                            }),
+                            borderRadius: 6,
+                            maxBarThickness: 42
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { maxRotation: 55, minRotation: 25, autoSkip: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: line },
+                                ticks: {
+                                    callback: function (value) {
+                                        return Number(value).toLocaleString('vi-VN') + ' đ';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        var product = topRevenueProducts[context.dataIndex];
+                                        return ' Doanh thu: ' + Number(product.TotalRevenue).toLocaleString('vi-VN')
+                                            + ' đ (' + product.QuantitySold + ' sản phẩm)';
                                     }
                                 }
                             }

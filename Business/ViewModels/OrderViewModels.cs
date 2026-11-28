@@ -6,6 +6,10 @@ namespace CoffeeShop.Business.ViewModels
     {
         public List<OrderListItemViewModel> Orders { get; set; } = new();
         public string? SelectedStatus { get; set; }
+        public string SearchTerm { get; set; } = string.Empty;
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public Dictionary<string, int> StatusCounts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
         public OrderDetailViewModel? SelectedOrder { get; set; }
         public PaginationViewModel Pagination { get; set; } = new();
     }
@@ -23,7 +27,7 @@ namespace CoffeeShop.Business.ViewModels
         public string TrangThai { get; set; } = string.Empty;
         public string? LyDoHuy { get; set; }
         public int TotalItems { get; set; }
-        public List<string> ItemsPreview { get; set; } = new();
+        public string? VoucherCode { get; set; }
     }
 
     public class OrderDetailViewModel
@@ -54,7 +58,13 @@ namespace CoffeeShop.Business.ViewModels
         public int SoLuong { get; set; }
         public decimal GiaBan { get; set; }
         public decimal ThanhTien { get; set; }
-        public List<string> Toppings { get; set; } = new();
+        public List<OrderToppingLineViewModel> Toppings { get; set; } = new();
+    }
+
+    public class OrderToppingLineViewModel
+    {
+        public string TenSP { get; set; } = string.Empty;
+        public int GiaBan { get; set; }
     }
 
     public class CancelOrderRequestModel

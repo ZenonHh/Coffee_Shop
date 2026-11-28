@@ -12,12 +12,15 @@ namespace CoffeeShop.Business.ViewModels
         public int PendingContactCount { get; set; }
         public int ActiveSurveyCount { get; set; }
 
-        public List<DashboardDailyRevenueViewModel> DailyRevenues { get; set; } = new();
-        public List<DashboardChartPeriodViewModel> DailyStats { get; set; } = new();
-        public List<DashboardChartPeriodViewModel> WeeklyStats { get; set; } = new();
-        public List<DashboardChartPeriodViewModel> MonthlyStats { get; set; } = new();
         public List<DashboardOrderStatusViewModel> OrderStatusesList { get; set; } = new();
-        public List<DashboardTopProductViewModel> TopSellingProducts { get; set; } = new();
+        public List<DashboardTopRevenueProductViewModel> TopRevenueProducts { get; set; } = new();
+        public string ProductRevenuePeriod { get; set; } = "quarter";
+        public int ProductRevenueYear { get; set; }
+        public int ProductRevenueQuarter { get; set; }
+        public int ProductRevenueMonth { get; set; }
+        public DateTime? ProductRevenueFromDate { get; set; }
+        public DateTime? ProductRevenueToDate { get; set; }
+        public string ProductRevenuePeriodLabel { get; set; } = string.Empty;
         public List<DashboardCustomerTrendViewModel> CustomerTrend { get; set; } = new();
         public List<DashboardRatingViewModel> SatisfactionRatings { get; set; } = new();
         public decimal? AverageSatisfaction { get; set; }
@@ -45,20 +48,6 @@ namespace CoffeeShop.Business.ViewModels
         public double Percentage { get; set; }
     }
 
-    public class DashboardChartPeriodViewModel
-    {
-        public string Label { get; set; } = string.Empty;
-        public decimal Revenue { get; set; }
-        public int OrderCount { get; set; }
-    }
-
-    public class DashboardDailyRevenueViewModel
-    {
-        public string Date { get; set; } = string.Empty;
-        public decimal Revenue { get; set; }
-        public int OrderCount { get; set; }
-    }
-
     public class DashboardOrderStatusViewModel
     {
         public string Status { get; set; } = string.Empty;
@@ -66,11 +55,12 @@ namespace CoffeeShop.Business.ViewModels
         public string Color { get; set; } = string.Empty;
     }
 
-    public class DashboardTopProductViewModel
+    public class DashboardTopRevenueProductViewModel
     {
+        public int ProductId { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public int QuantitySold { get; set; }
-        public decimal TotalAmount { get; set; }
+        public decimal TotalRevenue { get; set; }
     }
 
     public class CrmSegmentViewModel

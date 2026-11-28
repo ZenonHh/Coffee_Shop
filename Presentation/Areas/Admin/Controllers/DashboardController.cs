@@ -19,7 +19,13 @@ namespace CoffeeShop.Areas.Admin.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            string productPeriod = "quarter",
+            int? productYear = null,
+            int? productQuarter = null,
+            int? productMonth = null,
+            DateTime? productFromDate = null,
+            DateTime? productToDate = null)
         {
             var now = DateTime.Now;
             var today = DateTime.Today;
@@ -108,82 +114,74 @@ namespace CoffeeShop.Areas.Admin.Controllers
                 viewModel.PendingOrderCount = await _context.Orders.CountAsync(order =>
                     order.TrangThai == OrderStatuses.WaitingForConfirmation);
 
-                var oneYearAgo = today.AddYears(-1);
-
-                // Lấy đơn hàng trong 1 năm qua để tính thống kê Ngày, Tuần, Tháng
-                var pastOrders = await _context.Orders.AsNoTracking()
-                    .Where(order => order.NgayTao >= oneYearAgo && order.NgayTao < tomorrow)
-                    .Select(order => new { order.NgayTao, order.TongTien, order.TrangThai })
-                    .ToListAsync();
-
-                static bool IsCompleted(string status) => status != OrderStatuses.Cancelled;
-
-                // 1. Thống kê theo Ngày (7 ngày qua)
-                for (var date = sevenDaysAgo; date <= today; date = date.AddDays(1))
+                var period = (productPeriod ?? string.Empty).ToLowerInvariant();
+                if (period is not ("quarter" or "month" or "year" or "custom"))
                 {
-                    var currentDate = date.Date;
-                    var dayOrders = pastOrders.Where(order => order.NgayTao.Date == currentDate).ToList();
-                    var dayCompletedOrders = dayOrders.Where(order => IsCompleted(order.TrangThai)).ToList();
-
-                    var stat = new DashboardChartPeriodViewModel
-                    {
-                        Label = date.ToString("dd'/'MM", System.Globalization.CultureInfo.InvariantCulture),
-                        Revenue = dayCompletedOrders.Sum(order => order.TongTien),
-                        OrderCount = dayOrders.Count
-                    };
-
-                    viewModel.DailyStats.Add(stat);
-                    viewModel.DailyRevenues.Add(new DashboardDailyRevenueViewModel
-                    {
-                        Date = stat.Label,
-                        Revenue = stat.Revenue,
-                        OrderCount = stat.OrderCount
-                    });
+                    ModelState.AddModelError(string.Empty, "Kiểu thời gian không hợp lệ. Đã chuyển về quý hiện tại.");
+                    period = "quarter";
                 }
 
-                // 2. Thống kê theo Tuần (8 tuần gần nhất)
-                int diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
-                var currentWeekMonday = today.AddDays(-diff);
-                var eightWeeksAgoMonday = currentWeekMonday.AddDays(-7 * 7);
-
-                for (int w = 0; w < 8; w++)
+                var selectedYear = productYear ?? today.Year;
+                if (selectedYear < 2000 || selectedYear > today.Year)
                 {
-                    var weekStart = eightWeeksAgoMonday.AddDays(w * 7);
-                    var weekEnd = weekStart.AddDays(6);
-                    var weekEndExclusive = weekEnd.AddDays(1);
-
-                    var weekOrders = pastOrders
-                        .Where(order => order.NgayTao >= weekStart && order.NgayTao < weekEndExclusive)
-                        .ToList();
-                    var weekCompletedOrders = weekOrders.Where(order => IsCompleted(order.TrangThai)).ToList();
-
-                    viewModel.WeeklyStats.Add(new DashboardChartPeriodViewModel
-                    {
-                        Label = $"{weekStart.ToString("dd'/'MM", System.Globalization.CultureInfo.InvariantCulture)} - {weekEnd.ToString("dd'/'MM", System.Globalization.CultureInfo.InvariantCulture)}",
-                        Revenue = weekCompletedOrders.Sum(order => order.TongTien),
-                        OrderCount = weekOrders.Count
-                    });
+                    ModelState.AddModelError(string.Empty, $"Năm phải nằm trong khoảng 2000 đến {today.Year}.");
+                    selectedYear = Math.Clamp(selectedYear, 2000, today.Year);
                 }
 
-                // 3. Thống kê theo Tháng (6 tháng gần nhất)
-                var currentMonthStart = new DateTime(today.Year, today.Month, 1);
-                for (int m = 5; m >= 0; m--)
+                var selectedQuarter = productQuarter ?? ((today.Month - 1) / 3 + 1);
+                if (selectedQuarter < 1 || selectedQuarter > 4)
                 {
-                    var monthDate = currentMonthStart.AddMonths(-m);
-                    var nextMonth = monthDate.AddMonths(1);
-
-                    var monthOrders = pastOrders
-                        .Where(order => order.NgayTao >= monthDate && order.NgayTao < nextMonth)
-                        .ToList();
-                    var monthCompletedOrders = monthOrders.Where(order => IsCompleted(order.TrangThai)).ToList();
-
-                    viewModel.MonthlyStats.Add(new DashboardChartPeriodViewModel
-                    {
-                        Label = $"T{monthDate.Month:00}/{monthDate.Year}",
-                        Revenue = monthCompletedOrders.Sum(order => order.TongTien),
-                        OrderCount = monthOrders.Count
-                    });
+                    ModelState.AddModelError(string.Empty, "Quý phải nằm trong khoảng từ 1 đến 4.");
+                    selectedQuarter = Math.Clamp(selectedQuarter, 1, 4);
                 }
+
+                var selectedMonth = productMonth ?? today.Month;
+                if (selectedMonth < 1 || selectedMonth > 12)
+                {
+                    ModelState.AddModelError(string.Empty, "Tháng phải nằm trong khoảng từ 1 đến 12.");
+                    selectedMonth = Math.Clamp(selectedMonth, 1, 12);
+                }
+
+                var rangeStart = new DateTime(selectedYear, (selectedQuarter - 1) * 3 + 1, 1);
+                var rangeEnd = rangeStart.AddMonths(3);
+                var periodLabel = $"Quý {selectedQuarter}/{selectedYear}";
+
+                if (period == "month")
+                {
+                    rangeStart = new DateTime(selectedYear, selectedMonth, 1);
+                    rangeEnd = rangeStart.AddMonths(1);
+                    periodLabel = $"Tháng {selectedMonth:00}/{selectedYear}";
+                }
+                else if (period == "year")
+                {
+                    rangeStart = new DateTime(selectedYear, 1, 1);
+                    rangeEnd = rangeStart.AddYears(1);
+                    periodLabel = $"Năm {selectedYear}";
+                }
+                else if (period == "custom")
+                {
+                    if (productFromDate.HasValue
+                        && productToDate.HasValue
+                        && productFromDate.Value.Date <= productToDate.Value.Date)
+                    {
+                        rangeStart = productFromDate.Value.Date;
+                        rangeEnd = productToDate.Value.Date.AddDays(1);
+                        periodLabel = $"Từ {rangeStart:dd/MM/yyyy} đến {rangeEnd.AddDays(-1):dd/MM/yyyy}";
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Vui lòng chọn khoảng ngày hợp lệ (từ ngày không lớn hơn đến ngày). Đã chuyển về quý đã chọn.");
+                        period = "quarter";
+                    }
+                }
+
+                viewModel.ProductRevenuePeriod = period;
+                viewModel.ProductRevenueYear = selectedYear;
+                viewModel.ProductRevenueQuarter = selectedQuarter;
+                viewModel.ProductRevenueMonth = selectedMonth;
+                viewModel.ProductRevenueFromDate = productFromDate?.Date;
+                viewModel.ProductRevenueToDate = productToDate?.Date;
+                viewModel.ProductRevenuePeriodLabel = periodLabel;
 
                 // Cơ cấu trạng thái đơn hàng: Chuẩn hóa đồng nhất 5 trạng thái theo đúng phân hệ Quản lý đơn hàng
                 var allOrderStatuses = await _context.Orders.AsNoTracking()
@@ -230,27 +228,31 @@ namespace CoffeeShop.Areas.Admin.Controllers
                     })
                     .ToList();
 
-                // Top 5 sản phẩm bán chạy nhất
-                var topProductsData = await _context.OrderDetails.AsNoTracking()
+                var topRevenueProducts = await _context.OrderDetails.AsNoTracking()
                     .Where(detail => detail.Order != null
                         && detail.Order.TrangThai != OrderStatuses.Cancelled
-                        && detail.Product != null)
+                        && detail.Product != null
+                        && detail.Order.NgayTao >= rangeStart
+                        && detail.Order.NgayTao < rangeEnd)
                     .GroupBy(detail => new { detail.MaSP, detail.Product!.TenSP })
                     .Select(group => new
                     {
+                        ProductId = group.Key.MaSP,
                         ProductName = group.Key.TenSP,
                         Quantity = group.Sum(detail => detail.SoLuong),
-                        Amount = group.Sum(detail => detail.ThanhTien)
+                        Revenue = group.Sum(detail => detail.ThanhTien)
                     })
-                    .OrderByDescending(item => item.Quantity)
-                    .Take(5)
+                    .OrderByDescending(item => item.Revenue)
+                    .ThenByDescending(item => item.Quantity)
+                    .Take(10)
                     .ToListAsync();
 
-                viewModel.TopSellingProducts = topProductsData.Select(product => new DashboardTopProductViewModel
+                viewModel.TopRevenueProducts = topRevenueProducts.Select(product => new DashboardTopRevenueProductViewModel
                 {
+                    ProductId = product.ProductId,
                     ProductName = product.ProductName,
                     QuantitySold = product.Quantity,
-                    TotalAmount = product.Amount
+                    TotalRevenue = product.Revenue
                 }).ToList();
             }
 
