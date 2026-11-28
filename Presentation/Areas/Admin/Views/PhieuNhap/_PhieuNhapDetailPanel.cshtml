@@ -1,0 +1,83 @@
+@model CoffeeShop.Business.ViewModels.PurchaseDetailsViewModel
+@{
+    var statusClass = Model.TrangThai == "Đã duyệt" ? "status-success" : Model.TrangThai == "Đã hủy" ? "status-muted" : "status-warning";
+}
+<article class="purchase-detail-card">
+    <header class="purchase-detail-header">
+        <div>
+            <span class="purchase-detail-eyebrow">CHI TIẾT PHIẾU NHẬP</span>
+            <h2>#@Model.MaPN</h2>
+        </div>
+        <span class="status @statusClass"><i></i>@Model.TrangThai</span>
+    </header>
+
+    <section class="purchase-detail-products" aria-labelledby="purchaseProductsHeading">
+        <div class="purchase-detail-section-heading">
+            <h3 id="purchaseProductsHeading">Sản phẩm &amp; số lượng nhập</h3>
+            <span>@Model.Details.Count mặt hàng</span>
+        </div>
+        <div class="purchase-detail-lines">
+            @foreach (var detail in Model.Details)
+            {
+                <div class="purchase-detail-line">
+                    <div class="purchase-detail-product-name">@detail.TenSanPham</div>
+                    <span class="purchase-quantity-pill">@detail.SoLuong.ToString("N2")</span>
+                    <div class="purchase-detail-prices">
+                        <span>Đơn giá @detail.DonGia.ToString("N0") đ</span>
+                        <strong>@detail.ThanhTien.ToString("N0") đ</strong>
+                    </div>
+                </div>
+            }
+            @if (!Model.Details.Any())
+            {
+                <p class="purchase-detail-empty-lines">Phiếu nhập chưa có sản phẩm.</p>
+            }
+        </div>
+        <div class="purchase-detail-total">
+            <span>Tổng giá trị phiếu</span>
+            <strong>@(Model.TongTien?.ToString("N0") ?? "0") đ</strong>
+        </div>
+    </section>
+
+    <section class="purchase-detail-people">
+        <div class="purchase-detail-info">
+            <span>Công ty nhập</span>
+            <strong>@Model.TenNCC</strong>
+        </div>
+        <div class="purchase-detail-info">
+            <span>Người lập phiếu</span>
+            <strong>@(string.IsNullOrWhiteSpace(Model.NguoiLap) ? "—" : Model.NguoiLap)</strong>
+        </div>
+        <div class="purchase-detail-info">
+            <span>Người duyệt phiếu</span>
+            <strong>@(string.IsNullOrWhiteSpace(Model.NguoiDuyet) ? "Chưa duyệt" : Model.NguoiDuyet)</strong>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.GhiChu))
+        {
+            <div class="purchase-detail-info">
+                <span>Ghi chú</span>
+                <strong>@Model.GhiChu</strong>
+            </div>
+        }
+    </section>
+
+    <footer class="purchase-detail-footer">
+        <span>Ngày nhập kho</span>
+        <strong>@(Model.NgayNhap?.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong>
+        @if (Model.TrangThai == "Chờ duyệt" && User.IsInRole("Admin"))
+        {
+            <div class="purchase-detail-actions">
+                <form asp-action="Approve" method="post" onsubmit="return confirm('Xác nhận duyệt nhập kho phiếu này? Số lượng tồn kho sản phẩm sẽ được tăng tương ứng.');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.MaPN" />
+                    <button class="button button-small button-primary" type="submit">Duyệt phiếu</button>
+                </form>
+                <form asp-action="Cancel" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.MaPN" />
+                    <button class="button button-small button-outline" type="submit">Hủy phiếu</button>
+                </form>
+            </div>
+        }
+    </footer>
+</article>

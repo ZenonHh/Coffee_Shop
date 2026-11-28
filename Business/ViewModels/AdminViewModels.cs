@@ -130,6 +130,16 @@ namespace CoffeeShop.Business.ViewModels
         public List<PurchaseListItemViewModel> Purchases { get; set; } = new();
         public int SupplierCount { get; set; }
         public int PurchaseCount { get; set; }
+        public int FilteredPurchaseCount { get; set; }
+        public string PurchaseFilter { get; set; } = "all";
+        public int PurchaseYear { get; set; }
+        public int PurchaseQuarter { get; set; }
+        public int PurchaseMonths { get; set; }
+        public DateTime? PurchaseFromDate { get; set; }
+        public DateTime? PurchaseToDate { get; set; }
+        public string PurchaseSort { get; set; } = "newest";
+        public string PurchaseFilterSummary { get; set; } = string.Empty;
+        public List<int> PurchaseYears { get; set; } = new();
     }
 
     public class PurchaseListItemViewModel

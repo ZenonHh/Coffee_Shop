@@ -164,4 +164,114 @@
             preview.style.top = top + 'px';
         });
         cell.addEventListener('mouseleave', function () { preview.classList.remove('is-visible'); });
-    });}());
+    });
+
+    var purchaseFilterForm = document.getElementById('purchaseFilterForm');
+    if (purchaseFilterForm) {
+        var filterMode = document.getElementById('purchaseFilterMode');
+        var filterSections = purchaseFilterForm.querySelectorAll('[data-filter-options]');
+        var fromDate = document.getElementById('purchaseFromDate');
+        var toDate = document.getElementById('purchaseToDate');
+
+        function setFilterMode(mode) {
+            filterMode.value = mode;
+            purchaseFilterForm.querySelectorAll('[data-filter-mode]').forEach(function (button) {
+                button.classList.toggle('active', button.dataset.filterMode === mode);
+            });
+            filterSections.forEach(function (section) {
+                section.hidden = section.dataset.filterOptions !== mode;
+            });
+        }
+
+        purchaseFilterForm.querySelectorAll('[data-filter-mode]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                setFilterMode(button.dataset.filterMode);
+                if (button.dataset.filterMode === 'all') {
+                    purchaseFilterForm.submit();
+                }
+            });
+        });
+
+        purchaseFilterForm.querySelectorAll('[data-purchase-quarter]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                document.getElementById('purchaseQuarter').value = button.dataset.purchaseQuarter;
+                setFilterMode('quarter');
+                purchaseFilterForm.submit();
+            });
+        });
+        purchaseFilterForm.querySelectorAll('[data-purchase-months]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                document.getElementById('purchaseMonths').value = button.dataset.purchaseMonths;
+                setFilterMode('months');
+                purchaseFilterForm.submit();
+            });
+        });
+
+        var yearSelect = document.getElementById('purchaseYear');
+        if (yearSelect) {
+            yearSelect.addEventListener('change', function () {
+                setFilterMode('quarter');
+                purchaseFilterForm.submit();
+            });
+        }
+        var sortSelect = document.getElementById('purchaseSort');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                purchaseFilterForm.submit();
+            });
+        }
+        purchaseFilterForm.addEventListener('submit', function (event) {
+            if (filterMode.value !== 'custom') return;
+            var start = fromDate.value;
+            var end = toDate.value;
+            fromDate.setCustomValidity(!start ? 'Vui lòng chọn ngày bắt đầu.' : '');
+            toDate.setCustomValidity(!end ? 'Vui lòng chọn ngày kết thúc.' : '');
+            if (start && end && start > end) {
+                toDate.setCustomValidity('Đến ngày phải bằng hoặc sau Từ ngày.');
+            }
+            if (!purchaseFilterForm.checkValidity()) {
+                event.preventDefault();
+                purchaseFilterForm.reportValidity();
+            }
+        });
+
+        var detailPanel = document.getElementById('purchaseDetailPanel');
+        var purchaseRows = purchaseFilterForm.parentElement.querySelectorAll('.purchase-select-row');
+        var activeRequest;
+
+        function loadPurchaseDetail(row) {
+            if (activeRequest) activeRequest.abort();
+            activeRequest = new AbortController();
+            purchaseRows.forEach(function (item) {
+                item.classList.toggle('is-selected', item === row);
+                item.setAttribute('aria-pressed', String(item === row));
+            });
+            detailPanel.innerHTML = '<div class="purchase-detail-loading" role="status">Đang tải chi tiết phiếu nhập #' +
+                row.dataset.purchaseId + '…</div>';
+            fetch(row.dataset.detailsUrl, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: activeRequest.signal
+            }).then(function (response) {
+                if (!response.ok) throw new Error('Không thể tải chi tiết phiếu nhập.');
+                return response.text();
+            }).then(function (html) {
+                detailPanel.innerHTML = html;
+            }).catch(function (error) {
+                if (error.name === 'AbortError') return;
+                detailPanel.innerHTML = '<div class="purchase-detail-load-error" role="alert">' +
+                    error.message + ' Vui lòng chọn lại phiếu hoặc tải lại trang.</div>';
+            });
+        }
+
+        purchaseRows.forEach(function (row) {
+            row.addEventListener('click', function () { loadPurchaseDetail(row); });
+            row.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    loadPurchaseDetail(row);
+                }
+            });
+        });
+        if (purchaseRows.length) loadPurchaseDetail(purchaseRows[0]);
+    }
+}());

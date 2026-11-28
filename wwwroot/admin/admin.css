@@ -4056,3 +4056,486 @@ body {
     flex: 1 1 auto;
   }
 }
+
+.purchase-history-panel {
+  padding: 22px;
+}
+
+.purchase-history-heading {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.purchase-history-heading h2,
+.purchase-list-heading h3 {
+  margin: 0;
+  color: #45382f;
+  font-weight: 700;
+}
+
+.purchase-history-heading p,
+.purchase-list-heading p {
+  margin: 5px 0 0;
+  color: #81766d;
+  font-size: 0.88rem;
+}
+
+.purchase-filter-panel {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid #e8dfd5;
+  border-radius: 12px;
+  background: #fbf8f4;
+}
+
+.purchase-filter-toolbar,
+.purchase-filter-modes,
+.purchase-filter-options,
+.purchase-filter-summary,
+.purchase-quick-filters,
+.purchase-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.purchase-filter-toolbar {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.purchase-filter-modes {
+  flex-wrap: wrap;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f0e9e1;
+}
+
+.purchase-filter-mode {
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #695b50;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.purchase-filter-mode.active {
+  background: #563a2c;
+  color: #fffaf4;
+  box-shadow: 0 2px 6px rgba(63, 43, 31, 0.16);
+}
+
+.purchase-sort-control,
+.purchase-year-control,
+.purchase-date-range label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #6f6258;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.purchase-sort-control select,
+.purchase-year-control select,
+.purchase-date-range input {
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid #ded3c8;
+  border-radius: 8px;
+  background: #fffdfa;
+  color: #45382f;
+  font: inherit;
+}
+
+.purchase-filter-options {
+  margin-top: 12px;
+}
+
+.purchase-filter-options[hidden] {
+  display: none;
+}
+
+.purchase-date-range label {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.purchase-filter-summary {
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid #e8dfd5;
+  flex-wrap: wrap;
+}
+
+.purchase-filter-summary p {
+  margin: 0;
+  color: #76695f;
+  font-size: 0.84rem;
+}
+
+.purchase-filter-summary p strong {
+  color: #563a2c;
+}
+
+.purchase-filter-summary p span {
+  margin: 0 4px;
+  color: #b6a99d;
+}
+
+.purchase-filter-summary .purchase-filter-error {
+  flex-basis: 100%;
+  color: #a13e32;
+}
+
+.purchase-master-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.22fr) minmax(340px, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.purchase-list-panel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e8dfd5;
+  border-radius: 12px;
+  background: #fffdfa;
+  box-shadow: none;
+}
+
+.purchase-list-heading {
+  margin: 0;
+  padding: 15px 16px;
+  border-bottom: 1px solid #eee6de;
+}
+
+.purchase-table-scroll {
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+}
+
+.purchase-history-table {
+  min-width: 610px;
+}
+
+.purchase-history-table thead th {
+  padding: 11px 9px;
+  font-size: 0.7rem;
+}
+
+.purchase-history-table tbody td {
+  padding: 11px 9px;
+  font-size: 0.81rem;
+}
+
+.purchase-history-table .money-cell {
+  color: #77543d;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.purchase-history-table .status {
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+
+.purchase-select-row {
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.purchase-select-row:hover,
+.purchase-select-row:focus {
+  outline: none;
+  background: #fbf5ed;
+}
+
+.purchase-select-row.is-selected {
+  background: #f4e9dc;
+  box-shadow: inset 4px 0 0 #65442f;
+}
+
+.purchase-select-row.is-selected td {
+  color: #49372b;
+}
+
+.purchase-detail-sticky {
+  position: sticky;
+  top: 20px;
+  min-width: 0;
+}
+
+.purchase-detail-card,
+.purchase-detail-empty,
+.purchase-detail-loading,
+.purchase-detail-load-error {
+  padding: 18px;
+  border: 1px solid #e6dbcf;
+  border-radius: 14px;
+  background: #fffdfa;
+  box-shadow: 0 8px 24px rgba(73, 52, 37, 0.07);
+}
+
+.purchase-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.purchase-detail-header h2 {
+  margin: 2px 0 0;
+  color: #4b3325;
+  font-size: 1.35rem;
+  font-weight: 750;
+}
+
+.purchase-detail-eyebrow {
+  color: #968477;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+}
+
+.purchase-detail-header .status {
+  white-space: nowrap;
+}
+
+.purchase-detail-products {
+  overflow: hidden;
+  padding: 13px;
+  border: 1px solid #e7d8c8;
+  border-radius: 11px;
+  background: #fbf6ef;
+}
+
+.purchase-detail-section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.purchase-detail-section-heading h3 {
+  margin: 0;
+  color: #4d392b;
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.purchase-detail-section-heading > span {
+  color: #928174;
+  font-size: 0.73rem;
+  white-space: nowrap;
+}
+
+.purchase-detail-lines {
+  max-height: 270px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.purchase-detail-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e9ded2;
+}
+
+.purchase-detail-product-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: #4d433b;
+  font-size: 0.87rem;
+  font-weight: 650;
+}
+
+.purchase-quantity-pill {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  min-width: 66px;
+  padding: 7px 10px;
+  border: 1px solid #d5b99d;
+  border-radius: 999px;
+  background: #f0e0ce;
+  color: #563a2c;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.purchase-detail-prices {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: #897b70;
+  font-size: 0.73rem;
+}
+
+.purchase-detail-prices strong {
+  color: #5d4433;
+  font-size: 0.79rem;
+  white-space: nowrap;
+}
+
+.purchase-detail-empty-lines {
+  margin: 12px 0;
+  color: #897b70;
+  font-size: 0.84rem;
+}
+
+.purchase-detail-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 11px;
+  color: #4d392b;
+  font-size: 0.9rem;
+}
+
+.purchase-detail-total strong {
+  color: #563a2c;
+  font-size: 1.03rem;
+  white-space: nowrap;
+}
+
+.purchase-detail-people {
+  display: grid;
+  gap: 11px;
+  padding: 15px 2px;
+}
+
+.purchase-detail-info {
+  display: grid;
+  gap: 3px;
+}
+
+.purchase-detail-info span,
+.purchase-detail-footer > span {
+  color: #948579;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.purchase-detail-info strong {
+  color: #4e443c;
+  font-size: 0.87rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.purchase-detail-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 13px;
+  border-top: 1px solid #ece4dc;
+}
+
+.purchase-detail-footer > strong {
+  color: #4d392b;
+  font-size: 0.86rem;
+}
+
+.purchase-detail-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.purchase-detail-actions form {
+  margin: 0;
+}
+
+.purchase-detail-empty,
+.purchase-detail-loading,
+.purchase-detail-load-error {
+  color: #796c61;
+  font-size: 0.87rem;
+}
+
+.purchase-detail-empty {
+  padding: 36px 20px;
+  text-align: center;
+}
+
+.purchase-detail-empty > span {
+  color: #a58c77;
+  font-size: 1.8rem;
+}
+
+.purchase-detail-empty h3 {
+  margin: 8px 0 4px;
+  color: #4d392b;
+  font-size: 1rem;
+}
+
+.purchase-detail-empty p {
+  margin: 0;
+}
+
+.purchase-detail-load-error {
+  color: #a13e32;
+}
+
+@media (max-width: 991.98px) {
+  .purchase-master-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .purchase-detail-sticky {
+    position: static;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .purchase-history-panel {
+    padding: 14px;
+  }
+
+  .purchase-history-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .purchase-filter-toolbar,
+  .purchase-filter-modes,
+  .purchase-filter-options,
+  .purchase-date-range {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .purchase-filter-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .purchase-filter-mode {
+    text-align: center;
+  }
+
+  .purchase-date-range input {
+    width: 100%;
+  }
+
+  .purchase-detail-card {
+    padding: 14px;
+  }
+}

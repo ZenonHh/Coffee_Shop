@@ -96,30 +96,15 @@ public class PhieuNhapController : Controller
 
     public async Task<IActionResult> Details(int id)
     {
-        var purchase = await _context.Purchases
-            .AsNoTracking()
-            .Where(p => p.MaPN == id)
-            .Select(p => new PurchaseDetailsViewModel
-            {
-                MaPN = p.MaPN,
-                TenNCC = p.Supplier!.TenNCC,
-                NguoiLap = p.NguoiLap,
-                NguoiDuyet = p.NguoiDuyet,
-                NgayNhap = p.NgayNhap,
-                NgayDuyet = p.NgayDuyet,
-                TongTien = p.TongTien,
-                GhiChu = p.GhiChu,
-                TrangThai = p.TrangThai,
-                Details = p.Details.Select(detail => new PurchaseDetailsLineViewModel
-                {
-                    TenSanPham = detail.Product != null ? detail.Product.TenSP : detail.Ingredient!.TenNL,
-                    SoLuong = detail.SoLuong,
-                    DonGia = detail.DonGia,
-                    ThanhTien = detail.ThanhTien
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
+        var purchase = await GetPurchaseDetailsAsync(id);
         return purchase == null ? NotFound() : View(purchase);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetDetailsPartial(int id)
+    {
+        var purchase = await GetPurchaseDetailsAsync(id);
+        return purchase == null ? NotFound() : PartialView("_PhieuNhapDetailPanel", purchase);
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Roles = "Admin")]
@@ -214,6 +199,33 @@ public class PhieuNhapController : Controller
                 account.HoTen,
                 account.TenDangNhap,
                 Role = account.MaVaiTro == 4 ? "Admin" : "Nhân viên"
+            })
+            .FirstOrDefaultAsync();
+    }
+
+    private Task<PurchaseDetailsViewModel?> GetPurchaseDetailsAsync(int id)
+    {
+        return _context.Purchases
+            .AsNoTracking()
+            .Where(p => p.MaPN == id)
+            .Select(p => new PurchaseDetailsViewModel
+            {
+                MaPN = p.MaPN,
+                TenNCC = p.Supplier!.TenNCC,
+                NguoiLap = p.NguoiLap,
+                NguoiDuyet = p.NguoiDuyet,
+                NgayNhap = p.NgayNhap,
+                NgayDuyet = p.NgayDuyet,
+                TongTien = p.TongTien,
+                GhiChu = p.GhiChu,
+                TrangThai = p.TrangThai,
+                Details = p.Details.Select(detail => new PurchaseDetailsLineViewModel
+                {
+                    TenSanPham = detail.Product != null ? detail.Product.TenSP : detail.Ingredient!.TenNL,
+                    SoLuong = detail.SoLuong,
+                    DonGia = detail.DonGia,
+                    ThanhTien = detail.ThanhTien
+                }).ToList()
             })
             .FirstOrDefaultAsync();
     }

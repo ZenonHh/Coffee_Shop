@@ -152,72 +152,134 @@
 }
 else
 {
-    <!-- TAB 2: QUẢN LÝ PHIẾU NHẬP KHO -->
-    <section class="panel table-panel">
-        <div class="panel-heading table-heading">
+    <section class="panel purchase-history-panel">
+        <div class="panel-heading purchase-history-heading">
             <div>
-                <h2>Danh sách phiếu nhập kho từ các nhà cung cấp</h2>
-                <p>Theo dõi tiếp nhận nguyên vật liệu, giá nhập và trạng thái duyệt kho.</p>
+                <h2>Lịch sử &amp; Phiếu nhập kho</h2>
+                <p>Theo dõi các lần nhập kho, mặt hàng và trạng thái duyệt.</p>
             </div>
             <a asp-controller="PhieuNhap" asp-action="Create" class="button button-primary">
                 + Lập phiếu nhập mới
             </a>
         </div>
 
-        <div class="table-scroll">
-            <table class="data-table admin-data-table admin-table--purchases">
-                <thead>
-                    <tr>
-                        <th>MÃ PHIẾU</th>
-                        <th>NHÀ CUNG CẤP</th>
-                        <th>NGƯỜI LẬP</th>
-                        <th>NGÀY TẠO</th>
-                        <th>TỔNG GIÁ TRỊ</th>
-                        <th>TRẠNG THÁI</th>
-                        <th>THAO TÁC</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var purchase in Model.Purchases)
+        <form asp-action="Index" method="get" class="purchase-filter-panel" id="purchaseFilterForm">
+            <input type="hidden" name="tab" value="purchases" />
+            <input type="hidden" name="purchasePage" value="1" />
+            <input type="hidden" name="purchaseFilter" id="purchaseFilterMode" value="@Model.PurchaseFilter" />
+            <input type="hidden" name="purchaseQuarter" id="purchaseQuarter" value="@Model.PurchaseQuarter" />
+            <input type="hidden" name="purchaseMonths" id="purchaseMonths" value="@Model.PurchaseMonths" />
+            <div class="purchase-filter-toolbar">
+                <div class="purchase-filter-modes" role="group" aria-label="Chế độ lọc thời gian">
+                    <button type="button" class="purchase-filter-mode @(Model.PurchaseFilter == "all" ? "active" : "")" data-filter-mode="all">Tất cả</button>
+                    <button type="button" class="purchase-filter-mode @(Model.PurchaseFilter == "quarter" ? "active" : "")" data-filter-mode="quarter">Theo Quý</button>
+                    <button type="button" class="purchase-filter-mode @(Model.PurchaseFilter == "months" ? "active" : "")" data-filter-mode="months">Theo tháng</button>
+                    <button type="button" class="purchase-filter-mode @(Model.PurchaseFilter == "custom" ? "active" : "")" data-filter-mode="custom">Từ ngày – Đến ngày</button>
+                </div>
+                <label class="purchase-sort-control">
+                    <span>Sắp xếp</span>
+                    <select name="purchaseSort" id="purchaseSort">
+                        <option value="newest" selected="@(Model.PurchaseSort == "newest")">Mới nhất trước</option>
+                        <option value="oldest" selected="@(Model.PurchaseSort == "oldest")">Cũ nhất trước</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="purchase-filter-options" data-filter-options="quarter" hidden="@(Model.PurchaseFilter != "quarter")">
+                <label class="purchase-year-control">
+                    Năm
+                    <select name="purchaseYear" id="purchaseYear">
+                        @foreach (var year in Model.PurchaseYears)
+                        {
+                            <option value="@year" selected="@(year == Model.PurchaseYear)">@year</option>
+                        }
+                    </select>
+                </label>
+                <div class="purchase-quick-filters" role="group" aria-label="Chọn quý">
+                    @for (var quarter = 1; quarter <= 4; quarter++)
                     {
-                        var statusClass = purchase.TrangThai == "Đã duyệt" ? "status-success" : purchase.TrangThai == "Đã hủy" ? "status-muted" : "status-warning";
-                        <tr>
-                            <td class="order-id">#@purchase.MaPN</td>
-                            <td><strong>@purchase.TenNCC</strong></td>
-                            <td>@purchase.NguoiLap</td>
-                            <td>@purchase.NgayNhap?.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="money-cell" style="color: #c49b63; font-weight: 700;">
-                                @(purchase.TongTien?.ToString("N0") ?? "0") đ
-                            </td>
-                            <td>
-                                <span class="status @statusClass">
-                                    <i></i>@purchase.TrangThai
-                                </span>
-                            </td>
-                            <td class="purchase-actions" style="white-space: nowrap;">
-                                <a asp-controller="PhieuNhap" asp-action="Details" asp-route-id="@purchase.MaPN" class="button button-small button-outline">
-                                    Chi tiết
-                                </a>
-                                @if (User.IsInRole("Admin") && purchase.TrangThai == "Chờ duyệt")
-                                {
-                                    <form asp-controller="PhieuNhap" asp-action="Approve" method="post" class="d-inline ml-1" onsubmit="return confirm('Xác nhận duyệt nhập kho phiếu này? Số lượng tồn kho sản phẩm sẽ được tăng tương ứng.');">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@purchase.MaPN" />
-                                        <button class="button button-small button-primary" type="submit">Duyệt kho</button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
+                        <button type="button" class="button button-small @(Model.PurchaseQuarter == quarter ? "button-primary" : "button-outline")" data-purchase-quarter="@quarter">Quý @quarter</button>
                     }
-                    @if (!Model.Purchases.Any())
+                </div>
+            </div>
+            <div class="purchase-filter-options purchase-quick-filters" data-filter-options="months" role="group" aria-label="Khoảng thời gian" hidden="@(Model.PurchaseFilter != "months")">
+                <button type="button" class="button button-small @(Model.PurchaseMonths == 3 ? "button-primary" : "button-outline")" data-purchase-months="3">3 tháng</button>
+                <button type="button" class="button button-small @(Model.PurchaseMonths == 6 ? "button-primary" : "button-outline")" data-purchase-months="6">6 tháng</button>
+                <button type="button" class="button button-small @(Model.PurchaseMonths == 9 ? "button-primary" : "button-outline")" data-purchase-months="9">9 tháng</button>
+            </div>
+            <div class="purchase-filter-options purchase-date-range" data-filter-options="custom" hidden="@(Model.PurchaseFilter != "custom")">
+                <label>Từ ngày<input type="date" name="purchaseFromDate" id="purchaseFromDate" value="@Model.PurchaseFromDate?.ToString("yyyy-MM-dd")" /></label>
+                <label>Đến ngày<input type="date" name="purchaseToDate" id="purchaseToDate" value="@Model.PurchaseToDate?.ToString("yyyy-MM-dd")" /></label>
+                <button type="submit" class="button button-small button-primary">Áp dụng</button>
+            </div>
+
+            <div class="purchase-filter-summary">
+                <p><strong>@Model.FilteredPurchaseCount</strong> phiếu phù hợp <span>·</span> @Model.PurchaseFilterSummary</p>
+                @if (ViewBag.PurchaseFilterError != null)
+                {
+                    <p class="purchase-filter-error" role="alert">@ViewBag.PurchaseFilterError</p>
+                }
+                <a asp-action="Index" asp-route-tab="purchases" class="button button-small button-outline">Đặt lại</a>
+            </div>
+        </form>
+
+        <div class="purchase-master-detail">
+            <section class="panel purchase-list-panel" aria-labelledby="purchaseListHeading">
+                <div class="panel-heading purchase-list-heading">
+                    <div>
+                        <h3 id="purchaseListHeading">Danh sách phiếu</h3>
+                        <p>@Model.Purchases.Count phiếu trên trang này</p>
+                    </div>
+                </div>
+                <div class="table-scroll purchase-table-scroll">
+                    <table class="data-table admin-data-table admin-table--purchases purchase-history-table">
+                        <thead>
+                            <tr>
+                                <th>MÃ PHIẾU</th>
+                                <th>NHÀ CUNG CẤP</th>
+                                <th>NGÀY NHẬP</th>
+                                <th>TỔNG GIÁ TRỊ</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var purchase in Model.Purchases)
+                            {
+                                var statusClass = purchase.TrangThai == "Đã duyệt" ? "status-success" : purchase.TrangThai == "Đã hủy" ? "status-muted" : "status-warning";
+                                <tr class="purchase-select-row" data-purchase-id="@purchase.MaPN" data-details-url="@Url.Action("GetDetailsPartial", "PhieuNhap", new { area = "Admin", id = purchase.MaPN })" tabindex="0" role="button" aria-label="Xem chi tiết phiếu nhập #@purchase.MaPN">
+                                    <td class="order-id">#@purchase.MaPN</td>
+                                    <td><strong>@purchase.TenNCC</strong></td>
+                                    <td>@(purchase.NgayNhap?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                    <td class="money-cell">@(purchase.TongTien?.ToString("N0") ?? "0") đ</td>
+                                    <td><span class="status @statusClass"><i></i>@purchase.TrangThai</span></td>
+                                </tr>
+                            }
+                            @if (!Model.Purchases.Any())
+                            {
+                                <tr><td colspan="5" class="text-center py-4 muted-cell">Không có phiếu nhập trong khoảng thời gian này.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <partial name="_Pagination" model="ViewBag.Pagination" />
+            </section>
+
+            <aside class="purchase-detail-sticky" aria-label="Chi tiết phiếu nhập" aria-live="polite">
+                <div id="purchaseDetailPanel">
+                    @if (Model.Purchases.Any())
                     {
-                        <tr>
-                            <td colspan="7" class="text-center py-4 muted-cell">Chưa có phiếu nhập nào được ghi nhận.</td>
-                        </tr>
+                        <div class="purchase-detail-loading">Đang tải chi tiết phiếu nhập #@Model.Purchases[0].MaPN…</div>
                     }
-                </tbody>
-            </table>
+                    else
+                    {
+                        <div class="purchase-detail-empty">
+                            <span aria-hidden="true">▤</span>
+                            <h3>Chưa có phiếu nhập</h3>
+                            <p>Thay đổi bộ lọc thời gian hoặc lập phiếu nhập mới.</p>
+                        </div>
+                    }
+                </div>
+            </aside>
         </div>
-        <partial name="_Pagination" model="ViewBag.Pagination" />
     </section>
 }
